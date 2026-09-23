@@ -14,10 +14,13 @@ public class BattleScript : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI status;
 
-    public float CalcularDano()
+    public float CalcularDano(
+    BilixinsData atacante,
+    BilixinsData defensor,
+    float power)
 {
-    return ((((2f * bilixinJogador.nivel / 5f) + 2f) * power *
-        ((float)bilixinJogador.ataque / bilixinInimigo.defesa)) / 50f) + 2f;
+    return ((((2f * atacante.nivel / 5f) + 2f) * power *
+        ((float)atacante.ataque / defensor.defesa)) / 50f) + 2f;
 }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
