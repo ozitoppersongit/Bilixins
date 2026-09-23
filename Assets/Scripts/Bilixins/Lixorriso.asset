@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c022b85f6ac385d48b1260271f606f14, type: 3}
+  m_Name: Lixorriso
+  m_EditorClassIdentifier: Assembly-CSharp::BilixinsData
+  nome: Lixorriso
+  nivel: 1
+  ataque: 8
+  defesa: 4
+  spr: {fileID: 21300000, guid: 168fa1b53bb6e644fbb7b5685602c1bd, type: 3}
