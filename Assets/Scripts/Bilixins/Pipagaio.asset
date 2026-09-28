@@ -16,4 +16,5 @@ MonoBehaviour:
   nivel: 1
   ataque: 10
   defesa: 5
+  tipo: 4
   spr: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}

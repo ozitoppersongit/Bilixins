@@ -7,5 +7,15 @@ public class BilixinsData : ScriptableObject
     public int nivel;
     public int ataque;
     public int defesa;
+    public TipoLixo tipo;
     public Sprite spr;
+}
+
+public enum TipoLixo
+{
+    Organico,
+    Metal,
+    Vidro,
+    Plastico,
+    Papel
 }
