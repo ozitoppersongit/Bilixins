@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6a618bbad4a4cff49889bc529cb19f76
+guid: fe9339f46610cfc4b8b21834b93d15dc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1204807771635183992
-    second: dialogo_0
+      213: -8091485257502193275
+    second: garrafaquebrada 1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -102,7 +102,7 @@ TextureImporter:
     buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: 50
+    textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -115,7 +115,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: dialogo_0
+      name: garrafaquebrada 1_0
       rect:
         serializedVersion: 2
         x: 0
@@ -130,8 +130,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 88e0e0d07b9a74fe0800000000000000
-      internalID: -1204807771635183992
+      spriteID: 5898541670545bf80800000000000000
+      internalID: -8091485257502193275
       vertices: []
       indices: 
       edges: []

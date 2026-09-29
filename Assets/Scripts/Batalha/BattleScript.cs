@@ -25,6 +25,16 @@ public class BattleScript : MonoBehaviour
     public TextMeshProUGUI hpTextoInimigo;
     public Slider hpBarraInimigo;
 
+    [Header("Ícones dos tipos")]
+    public RawImage iconeTipoJogador;
+    public RawImage iconeTipoInimigo;
+
+    public Texture2D iconeOrganico;
+    public Texture2D iconeMetal;
+    public Texture2D iconeVidro;
+    public Texture2D iconePlastico;
+    public Texture2D iconePapel;
+
     [Header("HP")]
     public float hpJogador;
     public float hpInimigo;
@@ -43,6 +53,9 @@ public class BattleScript : MonoBehaviour
         spriteJogador.sprite = bilixinJogador.spr;
         spriteInimigo.sprite = bilixinInimigo.spr;
 
+        iconeTipoJogador.texture = PegarIconeTipo(bilixinJogador.tipo);
+        iconeTipoInimigo.texture = PegarIconeTipo(bilixinInimigo.tipo);
+
         maxHpJogador = CalcularHP(bilixinJogador);
         maxHpInimigo = CalcularHP(bilixinInimigo);
 
@@ -59,6 +72,29 @@ public class BattleScript : MonoBehaviour
         // Espera a mensagem terminar antes de começar
         StartCoroutine(IniciarBatalha());
     }
+
+    Texture2D PegarIconeTipo(TipoLixo tipo)
+{
+    switch (tipo)
+    {
+        case TipoLixo.Organico:
+            return iconeOrganico;
+
+        case TipoLixo.Metal:
+            return iconeMetal;
+
+        case TipoLixo.Vidro:
+            return iconeVidro;
+
+        case TipoLixo.Plastico:
+            return iconePlastico;
+
+        case TipoLixo.Papel:
+            return iconePapel;
+    }
+
+    return null;
+}
 
     void AtualizarUI()
 {
@@ -97,14 +133,69 @@ public class BattleScript : MonoBehaviour
         return (2f * bilixin.nivel) + 50f;
     }
 
-    public float CalcularDano(
-        BilixinsData atacante,
-        BilixinsData defensor,
-        float power)
+float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
+{
+    // ORGÂNICO tem vantagem contra TODOS
+    if (atacante == TipoLixo.Organico)
     {
-        return ((((2f * atacante.nivel / 5f) + 2f) * power *
-            ((float)atacante.ataque / defensor.defesa)) / 50f) + 2f;
+        return 1.25f;
     }
+
+    // Ninguém tem vantagem contra ORGÂNICO
+    if (defensor == TipoLixo.Organico)
+    {
+        return 1f;
+    }
+
+    // METAL → VIDRO
+    if (atacante == TipoLixo.Metal &&
+        defensor == TipoLixo.Vidro)
+    {
+        return 1.25f;
+    }
+
+    // VIDRO → PLÁSTICO
+    if (atacante == TipoLixo.Vidro &&
+        defensor == TipoLixo.Plastico)
+    {
+        return 1.25f;
+    }
+
+    // PLÁSTICO → PAPEL
+    if (atacante == TipoLixo.Plastico &&
+        defensor == TipoLixo.Papel)
+    {
+        return 1.25f;
+    }
+
+    // PAPEL → METAL
+    if (atacante == TipoLixo.Papel &&
+        defensor == TipoLixo.Metal)
+    {
+        return 1.25f;
+    }
+
+    // Sem vantagem
+    return 1f;
+}
+    public float CalcularDano(
+    BilixinsData atacante,
+    BilixinsData defensor,
+    float power)
+{
+    float danoBase =
+    (((2f * atacante.nivel / 5f) + 2f)
+    * power
+    * atacante.ataque
+    / defensor.defesa)
+    / 50f
+    + 2f;
+
+    float multiplicador =
+        MultiplicadorTipo(atacante.tipo, defensor.tipo);
+
+    return danoBase * multiplicador;
+}
 
     IEnumerator IniciarBatalha()
     {
@@ -160,6 +251,24 @@ public class BattleScript : MonoBehaviour
             bilixinInimigo,
             power
         );
+
+        float multiplicador = MultiplicadorTipo(
+        bilixinJogador.tipo,
+        bilixinInimigo.tipo
+    );
+
+    if (multiplicador > 1f)
+    {
+        typewriter.Escrever("É super efetivo!");
+
+        yield return new WaitForSeconds(1.5f);
+    }
+    else if (multiplicador < 1f)
+    {
+        typewriter.Escrever("Não foi muito efetivo...");
+
+        yield return new WaitForSeconds(1.5f);
+    }
 
         hpInimigo -= danoJogador;
         hpInimigo = Mathf.Max(hpInimigo, 0);
