@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-// SETUP:
-// 1. Coloque a pixel art em Assets/Art/Mapa/ (o MapaImportador configura a importação sozinho)
-// 2. Adicione este componente em um GameObject vazio na cena
-// 3. Preencha os slots no Inspector (cor + prefab de cada tile)
-// 4. O mapa é gerado ao carregar a cena; use aoTerminarDeGerar para esconder o loading
+// Le a pixel art de Assets/Art/Mapa/ e monta o mapa com os prefabs configurados no Inspector.
+// Cor do inimigo/player parecida com o piso ao redor = nasce "escondido" ali.
+// Botão "Gerar Preview no Editor" mostra o resultado sem precisar dar Play.
 
 public class MapaGerador : MonoBehaviour
 {
@@ -22,23 +20,61 @@ public class MapaGerador : MonoBehaviour
     [SerializeField] TileDefinicao calcada = new TileDefinicao { nome = "Calçada", altura = 0.35f };
     [SerializeField] TileDefinicao predio  = new TileDefinicao { nome = "Prédio",  altura = 6f };
     [SerializeField] TileDefinicao chao    = new TileDefinicao { nome = "Chão",    altura = 0.2f };
-    [SerializeField] TileDefinicao arvore  = new TileDefinicao { nome = "Árvore",  offsetY = 0.2f, redimensionar = false };
+    [SerializeField] TileDefinicao arvore  = new TileDefinicao { nome = "Árvore",  redimensionar = false };
+
+    [Header("Inimigos (pontos de encontro escondidos, colocados à mão por vocês)")]
+    [SerializeField] List<InimigoDefinicao> inimigos = new List<InimigoDefinicao>();
+
+    [Header("Player")]
+    [SerializeField] SpawnDefinicao player;
 
     [Header("Evento apos gerar")]
     public UnityEvent aoTerminarDeGerar;
 
+    // O player instanciado no spawn, disponível depois que aoTerminarDeGerar dispara.
+    public GameObject PlayerInstanciado { get; private set; }
+
     const int ToleranciaCor = 900;
     const float SegundosPorFrame = 0.008f;
+    const float TamanhoTriggerPadrao = 3f;
+    const float AlturaTrigger = 3f;
 
     float inicioDoFrame;
 
     void Start()
     {
-        StartCoroutine(GerarMapa());
+        StartCoroutine(GerarMapaInterno(instantaneo: false));
     }
 
-    IEnumerator GerarMapa()
+    // Gera o mapa na hora, sem pausas por frame — pra ver o resultado no Editor sem apertar Play.
+    public void GerarPreviewNoEditor()
     {
+        var rotina = GerarMapaInterno(instantaneo: true);
+        while (rotina.MoveNext()) { }
+    }
+
+    public void LimparMapa()
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            GameObject filho = transform.GetChild(i).gameObject;
+            if (Application.isPlaying) Destroy(filho);
+            else DestroyImmediate(filho);
+        }
+
+        // O player não é filho do MapaGerador (não pode entrar na combinação de meshes), então limpa à parte
+        if (PlayerInstanciado != null)
+        {
+            if (Application.isPlaying) Destroy(PlayerInstanciado);
+            else DestroyImmediate(PlayerInstanciado);
+            PlayerInstanciado = null;
+        }
+    }
+
+    IEnumerator GerarMapaInterno(bool instantaneo)
+    {
+        LimparMapa();
+
         if (imagemDoMapa == null)
         {
             Debug.LogError("MapaGerador: atribua a pixel art no Inspector.");
@@ -51,21 +87,49 @@ public class MapaGerador : MonoBehaviour
         }
 
         TileDefinicao[] tiles = TilesValidos();
-        bool gramaValida = System.Array.IndexOf(tiles, grama) >= 0;
+        List<InimigoDefinicao> inimigosValidos = InimigosValidos();
 
         int largura = imagemDoMapa.width;
         int altura  = imagemDoMapa.height;
         Color32[] pixels = imagemDoMapa.GetPixels32();
 
-        // Camada de chão (vira retângulos) e camada de objetos (um por pixel)
+        bool playerValido = player != null && player.prefab != null &&
+            !(player.cor.r == 0 && player.cor.g == 0 && player.cor.b == 0 && player.cor.a == 0);
+
+        // Camada de chão (vira retângulos), árvores (um por pixel) e inimigos (um por pixel, com trigger)
+        // Guarda também qual piso nasceu embaixo de cada ponto, pra apoiar o objeto na altura certa dele
         TileDefinicao[] camadaChao = new TileDefinicao[largura * altura];
-        var objetos = new List<(int x, int y, TileDefinicao tile)>();
+        var arvores = new List<(int x, int y, TileDefinicao tile, TileDefinicao piso)>();
+        var inimigosAGerar = new List<(int x, int y, InimigoDefinicao inimigo, TileDefinicao piso)>();
+        Vector2Int? posicaoPlayer = null;
+        TileDefinicao pisoDoPlayer = null;
 
         for (int i = 0; i < pixels.Length; i++)
         {
             if (pixels[i].a < 10) continue;
 
-            TileDefinicao tile = EncontrarTile(pixels[i], tiles);
+            int x = i % largura;
+            int y = i / largura;
+            Color32 cor = pixels[i];
+
+            if (playerValido && posicaoPlayer == null && DiferencaCor(cor, player.cor) < ToleranciaCor)
+            {
+                posicaoPlayer = new Vector2Int(x, y);
+                pisoDoPlayer = ResolverPiso(player.piso, x, y, largura, altura, pixels);
+                if (pisoDoPlayer != null && pisoDoPlayer.prefab != null) camadaChao[i] = pisoDoPlayer;
+                continue;
+            }
+
+            InimigoDefinicao inimigo = EncontrarInimigo(cor, inimigosValidos);
+            if (inimigo != null)
+            {
+                TileDefinicao piso = ResolverPiso(inimigo.piso, x, y, largura, altura, pixels);
+                inimigosAGerar.Add((x, y, inimigo, piso));
+                if (piso != null && piso.prefab != null) camadaChao[i] = piso;
+                continue;
+            }
+
+            TileDefinicao tile = EncontrarTile(cor, tiles);
             if (tile == null) continue;
 
             if (tile.redimensionar)
@@ -74,8 +138,8 @@ public class MapaGerador : MonoBehaviour
             }
             else
             {
-                objetos.Add((i % largura, i / largura, tile));
-                if (gramaValida) camadaChao[i] = grama;
+                arvores.Add((x, y, tile, grama));
+                if (grama.prefab != null) camadaChao[i] = grama;
             }
         }
 
@@ -95,7 +159,7 @@ public class MapaGerador : MonoBehaviour
                 int w = 1;
                 while (x + w < largura && !usado[i + w] && camadaChao[i + w] == tile) w++;
 
-                // Estica para cima enquanto a linha inteira for igual
+                // Estica para baixo enquanto a linha inteira for igual
                 int h = 1;
                 while (y + h < altura && LinhaIgual(camadaChao, usado, largura, x, y + h, w, tile)) h++;
 
@@ -108,22 +172,63 @@ public class MapaGerador : MonoBehaviour
                 Encaixar(obj, CentroDaArea(x, y, w, h), tamanho, tile.offsetY);
                 total++;
 
-                if (PassouDoTempo()) { yield return null; inicioDoFrame = Time.realtimeSinceStartup; }
+                if (!instantaneo && PassouDoTempo()) { yield return null; inicioDoFrame = Time.realtimeSinceStartup; }
             }
         }
 
-        foreach (var (x, y, tile) in objetos)
+        foreach (var (x, y, tile, piso) in arvores)
         {
             GameObject obj = Instantiate(tile.prefab, transform);
-            Encaixar(obj, CentroDaArea(x, y, 1, 1), Vector3.zero, tile.offsetY);
+            Encaixar(obj, CentroDaArea(x, y, 1, 1), Vector3.zero, AlturaDoPiso(piso));
             total++;
 
-            if (PassouDoTempo()) { yield return null; inicioDoFrame = Time.realtimeSinceStartup; }
+            if (!instantaneo && PassouDoTempo()) { yield return null; inicioDoFrame = Time.realtimeSinceStartup; }
         }
 
-        StaticBatchingUtility.Combine(gameObject);
+        foreach (var (x, y, inimigo, piso) in inimigosAGerar)
+        {
+            GameObject obj = Instantiate(inimigo.prefab, transform);
+            Encaixar(obj, CentroDaArea(x, y, 1, 1), Vector3.zero, AlturaDoPiso(piso));
+            AdicionarGatilhoDeEncontro(obj, inimigo.tamanhoTrigger > 0f ? inimigo.tamanhoTrigger : TamanhoTriggerPadrao);
+            total++;
+
+            if (!instantaneo && PassouDoTempo()) { yield return null; inicioDoFrame = Time.realtimeSinceStartup; }
+        }
+
+        // Combinar meshes só faz sentido em runtime de verdade, não no preview do Editor
+        if (Application.isPlaying) StaticBatchingUtility.Combine(gameObject);
+
+        // Player fica fora da combinação acima (ele se move, não pode ser "assado" junto com o mapa)
+        if (posicaoPlayer.HasValue)
+        {
+            PlayerInstanciado = Instantiate(player.prefab);
+            Encaixar(PlayerInstanciado, CentroDaArea(posicaoPlayer.Value.x, posicaoPlayer.Value.y, 1, 1), Vector3.zero, AlturaDoPiso(pisoDoPlayer));
+        }
+        else if (playerValido)
+        {
+            Debug.LogWarning("MapaGerador: nenhum pixel com a cor do Player foi encontrado na pixel art.");
+        }
+
         Debug.Log($"MapaGerador: mapa {largura}x{altura} gerado com {total} objetos.");
         aoTerminarDeGerar?.Invoke();
+    }
+
+    // BoxCollider.size é em espaço local, mas queremos um tamanho exato no mundo.
+    // Divide pela escala do objeto pra garantir isso, não importa a escala do prefab.
+    void AdicionarGatilhoDeEncontro(GameObject obj, float tamanhoEmTiles)
+    {
+        float ladoMundo = tamanhoEmTiles * tamanhoDoTile;
+        Vector3 escala = obj.transform.lossyScale;
+
+        BoxCollider trigger = obj.AddComponent<BoxCollider>();
+        trigger.isTrigger = true;
+        trigger.size = new Vector3(
+            ladoMundo / Mathf.Max(escala.x, 0.0001f),
+            AlturaTrigger / Mathf.Max(escala.y, 0.0001f),
+            ladoMundo / Mathf.Max(escala.z, 0.0001f)
+        );
+        trigger.center = new Vector3(0f, (AlturaTrigger / 2f) / Mathf.Max(escala.y, 0.0001f), 0f);
+        obj.AddComponent<GatilhoDeEncontro>();
     }
 
     bool PassouDoTempo()
@@ -182,6 +287,63 @@ public class MapaGerador : MonoBehaviour
         return true;
     }
 
+    // Altura da superfície de cima do piso, pra apoiar árvore/inimigo/player em cima dele, não na base
+    static float AlturaDoPiso(TileDefinicao piso)
+    {
+        return piso != null ? piso.offsetY + piso.altura : 0f;
+    }
+
+    TileDefinicao ResolverPiso(PisoForcado escolha, int x, int y, int largura, int altura, Color32[] pixels)
+    {
+        switch (escolha)
+        {
+            case PisoForcado.Grama:   return grama;
+            case PisoForcado.Rua:     return rua;
+            case PisoForcado.Calcada: return calcada;
+            case PisoForcado.Chao:    return chao;
+            default:                  return PisoDoContexto(x, y, largura, altura, pixels);
+        }
+    }
+
+    // O piso embaixo do inimigo é o mais comum entre os 8 pixels vizinhos na pixel art (incluindo diagonais).
+    // Assim ele nasce disfarçado no piso que já está ao redor dele (rua, calçada, grama...).
+    // Prédio não entra na votação — não faz sentido o inimigo "parecer" prédio.
+    TileDefinicao PisoDoContexto(int x, int y, int largura, int altura, Color32[] pixels)
+    {
+        TileDefinicao[] pisos = { grama, rua, calcada, chao };
+        var votos = new Dictionary<TileDefinicao, int>();
+
+        int[] dx = { -1, 1, 0, 0, -1, -1, 1, 1 };
+        int[] dy = { 0, 0, -1, 1, -1, 1, -1, 1 };
+
+        for (int d = 0; d < 8; d++)
+        {
+            int nx = x + dx[d];
+            int ny = y + dy[d];
+            if (nx < 0 || nx >= largura || ny < 0 || ny >= altura) continue;
+
+            Color32 corVizinho = pixels[ny * largura + nx];
+            TileDefinicao pisoVizinho = EncontrarTile(corVizinho, pisos);
+            if (pisoVizinho == null) continue;
+
+            votos.TryGetValue(pisoVizinho, out int atual);
+            votos[pisoVizinho] = atual + 1;
+        }
+
+        TileDefinicao melhor = null;
+        int maisVotado = 0;
+        foreach (var par in votos)
+        {
+            if (par.Value > maisVotado)
+            {
+                maisVotado = par.Value;
+                melhor = par.Key;
+            }
+        }
+
+        return melhor ?? chao;
+    }
+
     TileDefinicao[] TilesValidos()
     {
         var todos = new[] { grama, rua, calcada, predio, chao, arvore };
@@ -194,14 +356,14 @@ public class MapaGerador : MonoBehaviour
             Color32 c = tile.cor;
             if (c.r == 0 && c.g == 0 && c.b == 0 && c.a == 0)
             {
-                Debug.LogWarning($"MapaGerador: '{Nome(tile)}' tem prefab mas a cor não foi configurada. Tile ignorado.");
+                Debug.LogWarning($"MapaGerador: '{Nome(tile.nome, tile.prefab)}' tem prefab mas a cor não foi configurada. Tile ignorado.");
                 continue;
             }
 
             foreach (TileDefinicao outro in validos)
             {
                 if (DiferencaCor(tile.cor, outro.cor) < ToleranciaCor)
-                    Debug.LogWarning($"MapaGerador: '{Nome(tile)}' e '{Nome(outro)}' têm cores iguais ou muito parecidas. Só '{Nome(outro)}' será usado.");
+                    Debug.LogWarning($"MapaGerador: '{Nome(tile.nome, tile.prefab)}' e '{Nome(outro.nome, outro.prefab)}' têm cores iguais ou muito parecidas. Só '{Nome(outro.nome, outro.prefab)}' será usado.");
             }
 
             validos.Add(tile);
@@ -210,9 +372,30 @@ public class MapaGerador : MonoBehaviour
         return validos.ToArray();
     }
 
-    static string Nome(TileDefinicao tile)
+    List<InimigoDefinicao> InimigosValidos()
     {
-        return string.IsNullOrEmpty(tile.nome) ? tile.prefab.name : tile.nome;
+        var validos = new List<InimigoDefinicao>();
+
+        foreach (InimigoDefinicao inimigo in inimigos)
+        {
+            if (inimigo == null || inimigo.prefab == null) continue;
+
+            Color32 c = inimigo.cor;
+            if (c.r == 0 && c.g == 0 && c.b == 0 && c.a == 0)
+            {
+                Debug.LogWarning($"MapaGerador: inimigo '{Nome(inimigo.nome, inimigo.prefab)}' tem prefab mas a cor não foi configurada. Ignorado.");
+                continue;
+            }
+
+            validos.Add(inimigo);
+        }
+
+        return validos;
+    }
+
+    static string Nome(string nome, GameObject prefab)
+    {
+        return string.IsNullOrEmpty(nome) ? prefab.name : nome;
     }
 
     static TileDefinicao EncontrarTile(Color32 cor, TileDefinicao[] tiles)
@@ -227,6 +410,24 @@ public class MapaGerador : MonoBehaviour
             {
                 menorDist = dist;
                 melhor = tile;
+            }
+        }
+
+        return melhor;
+    }
+
+    static InimigoDefinicao EncontrarInimigo(Color32 cor, List<InimigoDefinicao> inimigos)
+    {
+        InimigoDefinicao melhor = null;
+        int menorDist = ToleranciaCor;
+
+        foreach (InimigoDefinicao inimigo in inimigos)
+        {
+            int dist = DiferencaCor(cor, inimigo.cor);
+            if (dist < menorDist)
+            {
+                menorDist = dist;
+                melhor = inimigo;
             }
         }
 
@@ -252,6 +453,29 @@ public class TileDefinicao
     public float offsetY = 0f;
     [Tooltip("Altura final em metros (ex: rua 0.2, calçada 0.35, prédio 6). 0 = mantém a altura do prefab. Só vale para tiles redimensionados.")]
     public float altura = 0f;
-    [Tooltip("Redimensiona para cobrir a área (grama, rua, prédio...). Desative para objetos individuais como árvores, que ganham grama embaixo.")]
+    [Tooltip("Redimensiona para cobrir a área (grama, rua, prédio...). Desative para objetos individuais como árvores.")]
     public bool redimensionar = true;
+}
+
+public enum PisoForcado { Automatico, Grama, Rua, Calcada, Chao }
+
+[System.Serializable]
+public class InimigoDefinicao
+{
+    public string nome;
+    public Color32 cor;
+    public GameObject prefab;
+    [Tooltip("Tamanho do trigger de encontro, em tiles (ex: 3 = área 3x3). 0 usa o padrão do gerador.")]
+    public float tamanhoTrigger = 0f;
+    [Tooltip("Automático adivinha pelos pixels ao redor. Force um piso se ele adivinhar errado (ex: cruzamentos de rua).")]
+    public PisoForcado piso = PisoForcado.Automatico;
+}
+
+[System.Serializable]
+public class SpawnDefinicao
+{
+    public Color32 cor;
+    public GameObject prefab;
+    [Tooltip("Automático adivinha pelos pixels ao redor. Force um piso se ele adivinhar errado (ex: cruzamentos de rua).")]
+    public PisoForcado piso = PisoForcado.Automatico;
 }
