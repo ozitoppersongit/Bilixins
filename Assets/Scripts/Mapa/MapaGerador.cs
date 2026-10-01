@@ -25,8 +25,15 @@ public class MapaGerador : MonoBehaviour
     [Header("Inimigos (pontos de encontro escondidos, colocados à mão por vocês)")]
     [SerializeField] List<InimigoDefinicao> inimigos = new List<InimigoDefinicao>();
 
+    public BilixinsData[] bilixins;
+
+    
+
     [Header("Player")]
     [SerializeField] SpawnDefinicao player;
+
+    [Header("Batalha")]
+    public GameObject battlePrefab;
 
     [Header("Evento apos gerar")]
     public UnityEvent aoTerminarDeGerar;
@@ -189,7 +196,13 @@ public class MapaGerador : MonoBehaviour
         {
             GameObject obj = Instantiate(inimigo.prefab, transform);
             Encaixar(obj, CentroDaArea(x, y, 1, 1), Vector3.zero, AlturaDoPiso(piso));
-            AdicionarGatilhoDeEncontro(obj, inimigo.tamanhoTrigger > 0f ? inimigo.tamanhoTrigger : TamanhoTriggerPadrao);
+            AdicionarGatilhoDeEncontro(
+            obj,
+            inimigo,
+            inimigo.tamanhoTrigger > 0f
+                ? inimigo.tamanhoTrigger
+                : TamanhoTriggerPadrao
+        );
             total++;
 
             if (!instantaneo && PassouDoTempo()) { yield return null; inicioDoFrame = Time.realtimeSinceStartup; }
@@ -215,21 +228,42 @@ public class MapaGerador : MonoBehaviour
 
     // BoxCollider.size é em espaço local, mas queremos um tamanho exato no mundo.
     // Divide pela escala do objeto pra garantir isso, não importa a escala do prefab.
-    void AdicionarGatilhoDeEncontro(GameObject obj, float tamanhoEmTiles)
-    {
-        float ladoMundo = tamanhoEmTiles * tamanhoDoTile;
-        Vector3 escala = obj.transform.lossyScale;
+    void AdicionarGatilhoDeEncontro(
+    GameObject obj,
+    InimigoDefinicao inimigo,
+    float tamanhoEmTiles)
+{
+    float ladoMundo = tamanhoEmTiles * tamanhoDoTile;
+    Vector3 escala = obj.transform.lossyScale;
 
-        BoxCollider trigger = obj.AddComponent<BoxCollider>();
-        trigger.isTrigger = true;
-        trigger.size = new Vector3(
-            ladoMundo / Mathf.Max(escala.x, 0.0001f),
-            AlturaTrigger / Mathf.Max(escala.y, 0.0001f),
-            ladoMundo / Mathf.Max(escala.z, 0.0001f)
-        );
-        trigger.center = new Vector3(0f, (AlturaTrigger / 2f) / Mathf.Max(escala.y, 0.0001f), 0f);
+    BoxCollider trigger = obj.AddComponent<BoxCollider>();
+    trigger.isTrigger = true;
+
+    trigger.size = new Vector3(
+        ladoMundo / Mathf.Max(escala.x, 0.0001f),
+        AlturaTrigger / Mathf.Max(escala.y, 0.0001f),
+        ladoMundo / Mathf.Max(escala.z, 0.0001f)
+    );
+
+    trigger.center = new Vector3(
+        0f,
+        (AlturaTrigger / 2f) / Mathf.Max(escala.y, 0.0001f),
+        0f
+    );
+
+    GatilhoDeEncontro gatilho =
         obj.AddComponent<GatilhoDeEncontro>();
+
+    if (bilixins != null &&
+        inimigo.idBilixin >= 0 &&
+        inimigo.idBilixin < bilixins.Length)
+    {
+        gatilho.bilixinInimigo =
+            bilixins[inimigo.idBilixin];
     }
+
+    gatilho.battlePrefab = battlePrefab;
+}
 
     bool PassouDoTempo()
     {
@@ -464,6 +498,7 @@ public class InimigoDefinicao
 {
     public string nome;
     public Color32 cor;
+    public int idBilixin;
     public GameObject prefab;
     [Tooltip("Tamanho do trigger de encontro, em tiles (ex: 3 = área 3x3). 0 usa o padrão do gerador.")]
     public float tamanhoTrigger = 0f;
@@ -479,3 +514,5 @@ public class SpawnDefinicao
     [Tooltip("Automático adivinha pelos pixels ao redor. Force um piso se ele adivinhar errado (ex: cruzamentos de rua).")]
     public PisoForcado piso = PisoForcado.Automatico;
 }
+
+

@@ -1,16 +1,16 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// O MapaGerador gruda isso em cada inimigo do mapa, com o trigger já do tamanho certo.
-// Oziel, a batalha é na mesma cena — só ouve o aoEncontrarPlayer aqui embaixo (ou no
-// Inspector mesmo) e faz a tua parte. Só dispara uma vez, pra não ficar chamando de
-// novo se o player ficar parado em cima. Quando resolver a luta: Vencer() some com o
-// bicho, Reativar() destrava de novo se o player perder ou correr.
 public class GatilhoDeEncontro : MonoBehaviour
 {
     public UnityEvent aoEncontrarPlayer;
 
-    Collider gatilho;
+    public BilixinsData bilixinInimigo;
+
+    [Header("Batalha")]
+    public GameObject battlePrefab;
+
+    private Collider gatilho;
 
     void Awake()
     {
@@ -19,11 +19,49 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (!other.CompareTag("Player"))
+            return;
 
         Debug.Log($"GatilhoDeEncontro: player encontrou '{gameObject.name}'.");
-        if (gatilho != null) gatilho.enabled = false;
-        aoEncontrarPlayer?.Invoke();
+
+        if (gatilho != null)
+            gatilho.enabled = false;
+
+        // Inicia a batalha
+        IniciarBatalha();
+    }
+
+    void IniciarBatalha()
+    {
+        if (battlePrefab == null)
+        {
+            Debug.LogError("BattlePrefab não foi configurado no GatilhoDeEncontro!");
+            return;
+        }
+
+        if (bilixinInimigo == null)
+        {
+            Debug.LogError("Nenhum BilixinsData foi atribuído a este inimigo!");
+            return;
+        }
+
+        GameObject batalha = Instantiate(battlePrefab);
+
+        BattleScript battleScript =
+            batalha.GetComponent<BattleScript>();
+
+        if (battleScript == null)
+        {
+            Debug.LogError(
+                "BattlePrefab não possui um BattleScript!"
+            );
+            return;
+        }
+
+        battleScript.IniciarBatalha(
+            bilixinInimigo,
+            this
+        );
     }
 
     public void Vencer()
@@ -33,6 +71,7 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     public void Reativar()
     {
-        if (gatilho != null) gatilho.enabled = true;
+        if (gatilho != null)
+            gatilho.enabled = true;
     }
 }

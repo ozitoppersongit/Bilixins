@@ -13,6 +13,7 @@ public class BattleScript : MonoBehaviour
 
     [Header("UI")]
     public Button botaoLutar;
+    public Button botaoFugir;
     public Typewriter typewriter;
 
     [Header("UI Jogador")]
@@ -25,6 +26,10 @@ public class BattleScript : MonoBehaviour
     public TextMeshProUGUI hpTextoInimigo;
     public Slider hpBarraInimigo;
 
+    [Header("Fill das barras")]
+    public Image fillBarraJogador;
+    public Image fillBarraInimigo;
+
     [Header("Ícones dos tipos")]
     public RawImage iconeTipoJogador;
     public RawImage iconeTipoInimigo;
@@ -35,12 +40,11 @@ public class BattleScript : MonoBehaviour
     public Texture2D iconePlastico;
     public Texture2D iconePapel;
 
-    [Header("HP")]
-    public float hpJogador;
-    public float hpInimigo;
+    private int hpJogador;
+    private int hpInimigo;
 
-    public float maxHpJogador;
-    public float maxHpInimigo;
+    public int maxHpJogador;
+    public int maxHpInimigo;
 
     [Header("Ataque")]
     public float power = 40f;
@@ -48,29 +52,42 @@ public class BattleScript : MonoBehaviour
     private bool batalhaTerminou = false;
     private bool turnoJogador = false;
 
+
+private GatilhoDeEncontro gatilhoEncontro;
+
+public void IniciarBatalha(
+    BilixinsData inimigo,
+    GatilhoDeEncontro gatilho)
+{
+    bilixinInimigo = inimigo;
+    gatilhoEncontro = gatilho;
+
+    spriteJogador.sprite = bilixinJogador.spr;
+    spriteInimigo.sprite = bilixinInimigo.spr;
+
+    iconeTipoJogador.texture = PegarIconeTipo(bilixinJogador.tipo);
+    iconeTipoInimigo.texture = PegarIconeTipo(bilixinInimigo.tipo);
+
+    maxHpJogador = bilixinJogador.hp;
+    maxHpInimigo = bilixinInimigo.hp;
+
+    hpJogador = maxHpJogador;
+    hpInimigo = maxHpInimigo;
+
+    AtualizarUI();
+
+    botaoLutar.interactable = false;
+
+    typewriter.Escrever(
+        "Um bilixin selvagem apareceu!"
+    );
+
+    StartCoroutine(IniciarBatalha());
+}
     void Start()
     {
-        spriteJogador.sprite = bilixinJogador.spr;
-        spriteInimigo.sprite = bilixinInimigo.spr;
-
-        iconeTipoJogador.texture = PegarIconeTipo(bilixinJogador.tipo);
-        iconeTipoInimigo.texture = PegarIconeTipo(bilixinInimigo.tipo);
-
-        maxHpJogador = CalcularHP(bilixinJogador);
-        maxHpInimigo = CalcularHP(bilixinInimigo);
-
-        hpJogador = maxHpJogador;
-        hpInimigo = maxHpInimigo;
-
-        AtualizarUI();
-
-        // Começa desabilitado
         botaoLutar.interactable = false;
-
-        typewriter.Escrever("Um bilixin selvagem apareceu!");
-
-        // Espera a mensagem terminar antes de começar
-        StartCoroutine(IniciarBatalha());
+        botaoFugir.interactable = false;
     }
 
     Texture2D PegarIconeTipo(TipoLixo tipo)
@@ -126,12 +143,11 @@ public class BattleScript : MonoBehaviour
 
     hpBarraInimigo.maxValue = maxHpInimigo;
     hpBarraInimigo.value = hpInimigo;
-}
 
-    float CalcularHP(BilixinsData bilixin)
-    {
-        return (2f * bilixin.nivel) + 50f;
-    }
+    // Esconde a barra quando o HP chegar a 0
+    fillBarraJogador.gameObject.SetActive(hpJogador > 0);
+    fillBarraInimigo.gameObject.SetActive(hpInimigo > 0);
+}
 
 float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 {
@@ -184,26 +200,106 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     float power)
 {
     float danoBase =
-    (((2f * atacante.nivel / 5f) + 2f)
-    * power
-    * atacante.ataque
-    / defensor.defesa)
-    / 50f
-    + 2f;
+        (((2f * atacante.nivel / 5f) + 2f)
+        * power
+        * atacante.ataque
+        / defensor.defesa)
+        / 50f
+        + 2f;
 
     float multiplicador =
         MultiplicadorTipo(atacante.tipo, defensor.tipo);
 
-    return danoBase * multiplicador;
+    float danoFinal = danoBase * multiplicador;
+
+    Debug.Log(
+        $"ATAQUE: {atacante.name} | " +
+        $"ATK: {atacante.ataque} | " +
+        $"DEF: {defensor.defesa} | " +
+        $"Nível: {atacante.nivel} | " +
+        $"Dano Base: {danoBase:F2} | " +
+        $"Multiplicador: {multiplicador} | " +
+        $"Dano Final: {danoFinal:F2}"
+    );
+
+    return danoFinal;
 }
 
     IEnumerator IniciarBatalha()
-    {
-        yield return new WaitForSeconds(2f);
+{
+    yield return new WaitForSeconds(2f);
 
-        // Começa o turno do jogador
+    if (Random.value < 0.5f)
+    {
+        // Jogador começa
         IniciarTurnoJogador();
     }
+    else
+    {
+        // Inimigo começa
+        StartCoroutine(TurnoInimigo());
+    }
+}
+
+IEnumerator TurnoInimigo()
+{
+    if (batalhaTerminou)
+        yield break;
+
+    turnoJogador = false;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    typewriter.Escrever(
+        bilixinInimigo.name + " está atacando!"
+    );
+
+    yield return new WaitForSeconds(1.5f);
+
+    int danoInimigo = Mathf.RoundToInt(
+        CalcularDano(
+            bilixinInimigo,
+            bilixinJogador,
+            power
+        )
+    );
+
+    hpJogador -= danoInimigo;
+    hpJogador = Mathf.Max(hpJogador, 0);
+
+    AtualizarUI();
+
+    typewriter.Escrever(
+        bilixinInimigo.name +
+        " causou " +
+        danoInimigo +
+        " de dano!"
+    );
+
+    yield return new WaitForSeconds(1.5f);
+
+    if (hpJogador <= 0)
+    {
+        typewriter.Escrever(
+            bilixinJogador.name + " foi derrotado!"
+        );
+
+        batalhaTerminou = true;
+
+        botaoLutar.interactable = false;
+        botaoFugir.interactable = false;
+
+        yield return new WaitForSeconds(2f);
+
+        gatilhoEncontro.Reativar();
+
+        Destroy(gameObject);
+        yield break;
+    }
+
+    IniciarTurnoJogador();
+}
 
     void IniciarTurnoJogador()
     {
@@ -213,6 +309,7 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
         turnoJogador = true;
 
         botaoLutar.interactable = true;
+        botaoFugir.interactable = true;
 
         typewriter.Escrever(
             "O que " + bilixinJogador.name + " fará?"
@@ -222,13 +319,11 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     // Essa função será chamada pelo botão LUTAR
     public void Jogar()
     {
-        // Segurança para impedir clicar fora do turno
         if (!turnoJogador || batalhaTerminou)
             return;
 
-        // Desabilita imediatamente
         botaoLutar.interactable = false;
-
+        botaoFugir.interactable = false;
         turnoJogador = false;
 
         StartCoroutine(TurnoDeBatalha());
@@ -246,11 +341,11 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 
         yield return new WaitForSeconds(1.5f);
 
-        float danoJogador = CalcularDano(
+        int danoJogador = Mathf.RoundToInt(CalcularDano(
             bilixinJogador,
             bilixinInimigo,
             power
-        );
+        ));
 
         float multiplicador = MultiplicadorTipo(
         bilixinJogador.tipo,
@@ -284,10 +379,7 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 
         yield return new WaitForSeconds(1.5f);
 
-        // =========================
-        // INIMIGO MORREU?
-        // =========================
-
+        // VERIFICAÇÃO DA MORTE
         if (hpInimigo <= 0)
         {
             typewriter.Escrever(
@@ -295,8 +387,15 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
             );
 
             batalhaTerminou = true;
-            botaoLutar.interactable = false;
 
+            botaoLutar.interactable = false;
+            botaoFugir.interactable = false;
+
+            gatilhoEncontro.Vencer();
+
+            yield return new WaitForSeconds(1.5f);
+
+            Destroy(gameObject);
             yield break;
         }
 
@@ -313,11 +412,11 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 
         yield return new WaitForSeconds(1.5f);
 
-        float danoInimigo = CalcularDano(
+        int danoInimigo = Mathf.RoundToInt(CalcularDano(
             bilixinInimigo,
             bilixinJogador,
             power
-        );
+        ));
 
         hpJogador -= danoInimigo;
         hpJogador = Mathf.Max(hpJogador, 0);
@@ -333,10 +432,6 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 
         yield return new WaitForSeconds(1.5f);
 
-        // =========================
-        // JOGADOR MORREU?
-        // =========================
-
         if (hpJogador <= 0)
         {
             typewriter.Escrever(
@@ -344,7 +439,15 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
             );
 
             batalhaTerminou = true;
+
             botaoLutar.interactable = false;
+            botaoFugir.interactable = false;
+
+            yield return new WaitForSeconds(2f);
+
+            gatilhoEncontro.Reativar();
+
+            Destroy(gameObject);
 
             yield break;
         }
@@ -355,4 +458,28 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 
         IniciarTurnoJogador();
     }
+
+    public void Fugir()
+{
+    if (batalhaTerminou)
+        return;
+
+    batalhaTerminou = true;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    StartCoroutine(FinalizarFuga());
+}
+
+IEnumerator FinalizarFuga()
+{
+    typewriter.Escrever("Você fugiu da batalha!");
+
+    yield return new WaitForSeconds(1.5f);
+
+    gatilhoEncontro.Reativar();
+
+    Destroy(gameObject);
+}
 }

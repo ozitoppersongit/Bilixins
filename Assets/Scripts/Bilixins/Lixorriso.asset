@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Lixorriso
   m_EditorClassIdentifier: Assembly-CSharp::BilixinsData
   nome: Lixorriso
+  hp: 10
   nivel: 1
-  ataque: 8
-  defesa: 4
+  ataque: 30
+  defesa: 20
   tipo: 1
   spr: {fileID: 21300000, guid: 168fa1b53bb6e644fbb7b5685602c1bd, type: 3}
