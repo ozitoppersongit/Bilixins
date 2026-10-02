@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Unity.Cinemachine;
 
 public class BattleScript : MonoBehaviour
 {
@@ -16,12 +17,16 @@ public class BattleScript : MonoBehaviour
     public Button botaoFugir;
     public Typewriter typewriter;
 
+    [Header("Câmera")]
+    public CinemachineCamera camera;
+    private CameraSeguirPlayer cameraScript;
+
     [Header("UI Jogador")]
     public TextMeshProUGUI nomeJogador;
     public TextMeshProUGUI hpTextoJogador;
     public Slider hpBarraJogador;
 
-[Header("UI Inimigo")]
+    [Header("UI Inimigo")]
     public TextMeshProUGUI nomeInimigo;
     public TextMeshProUGUI hpTextoInimigo;
     public Slider hpBarraInimigo;
@@ -53,12 +58,44 @@ public class BattleScript : MonoBehaviour
     private bool turnoJogador = false;
 
 
-private GatilhoDeEncontro gatilhoEncontro;
+    private GatilhoDeEncontro gatilhoEncontro;
+
+    private bool batalhaPausada = false;
+
+    public void PausarBatalha()
+    {
+        batalhaPausada = true;
+    }
+
+    public void RetomarBatalha()
+    {
+        batalhaPausada = false;
+    }
+
+    private IEnumerator EsperarBatalha(float segundos)
+{
+    float tempo = 0f;
+
+    while (tempo < segundos)
+    {
+        if (!batalhaPausada)
+        {
+            tempo += Time.unscaledDeltaTime;
+        }
+
+        yield return null;
+    }
+}
 
 public void IniciarBatalha(
     BilixinsData inimigo,
     GatilhoDeEncontro gatilho)
 {
+    camera = Object.FindAnyObjectByType<CinemachineCamera>();
+    cameraScript = camera.GetComponent<CameraSeguirPlayer>();
+    cameraScript.enabled = false;
+
+
     bilixinInimigo = inimigo;
     gatilhoEncontro = gatilho;
 
@@ -74,10 +111,14 @@ public void IniciarBatalha(
     hpJogador = maxHpJogador;
     hpInimigo = maxHpInimigo;
 
+
     AtualizarUI();
 
     botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
 
+    Time.timeScale = 0f;
+    
     typewriter.Escrever(
         "Um bilixin selvagem apareceu!"
     );
@@ -227,7 +268,7 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 
     IEnumerator IniciarBatalha()
 {
-    yield return new WaitForSeconds(2f);
+    yield return EsperarBatalha(2f);
 
     if (Random.value < 0.5f)
     {
@@ -255,7 +296,7 @@ IEnumerator TurnoInimigo()
         bilixinInimigo.name + " está atacando!"
     );
 
-    yield return new WaitForSeconds(1.5f);
+    yield return EsperarBatalha(1.5f);
 
     int danoInimigo = Mathf.RoundToInt(
         CalcularDano(
@@ -277,7 +318,7 @@ IEnumerator TurnoInimigo()
         " de dano!"
     );
 
-    yield return new WaitForSeconds(1.5f);
+    yield return EsperarBatalha(1.5f);
 
     if (hpJogador <= 0)
     {
@@ -290,11 +331,14 @@ IEnumerator TurnoInimigo()
         botaoLutar.interactable = false;
         botaoFugir.interactable = false;
 
-        yield return new WaitForSeconds(2f);
+        yield return EsperarBatalha(2f);
 
         gatilhoEncontro.Reativar();
 
         Destroy(gameObject);
+
+        Time.timeScale = 1f;
+
         yield break;
     }
 
@@ -339,7 +383,7 @@ IEnumerator TurnoInimigo()
             bilixinJogador.name + " atacou!"
         );
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
 
         int danoJogador = Mathf.RoundToInt(CalcularDano(
             bilixinJogador,
@@ -356,13 +400,13 @@ IEnumerator TurnoInimigo()
     {
         typewriter.Escrever("É super efetivo!");
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
     }
     else if (multiplicador < 1f)
     {
         typewriter.Escrever("Não foi muito efetivo...");
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
     }
 
         hpInimigo -= danoJogador;
@@ -377,7 +421,7 @@ IEnumerator TurnoInimigo()
             " de dano!"
         );
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
 
         // VERIFICAÇÃO DA MORTE
         if (hpInimigo <= 0)
@@ -391,11 +435,16 @@ IEnumerator TurnoInimigo()
             botaoLutar.interactable = false;
             botaoFugir.interactable = false;
 
+            Time.timeScale = 1f;
+            cameraScript.enabled = true;
+
             gatilhoEncontro.Vencer();
 
-            yield return new WaitForSeconds(1.5f);
+            yield return EsperarBatalha(1.5f);
 
             Destroy(gameObject);
+
+
             yield break;
         }
 
@@ -410,7 +459,7 @@ IEnumerator TurnoInimigo()
         // Botão continua desabilitado
         botaoLutar.interactable = false;
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
 
         int danoInimigo = Mathf.RoundToInt(CalcularDano(
             bilixinInimigo,
@@ -430,7 +479,7 @@ IEnumerator TurnoInimigo()
             " de dano!"
         );
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
 
         if (hpJogador <= 0)
         {
@@ -443,7 +492,10 @@ IEnumerator TurnoInimigo()
             botaoLutar.interactable = false;
             botaoFugir.interactable = false;
 
-            yield return new WaitForSeconds(2f);
+            Time.timeScale = 1f;
+            cameraScript.enabled = true;
+
+            yield return EsperarBatalha(2f);
 
             gatilhoEncontro.Reativar();
 
@@ -469,6 +521,9 @@ IEnumerator TurnoInimigo()
     botaoLutar.interactable = false;
     botaoFugir.interactable = false;
 
+    Time.timeScale = 1f;
+    cameraScript.enabled = true;
+
     StartCoroutine(FinalizarFuga());
 }
 
@@ -476,7 +531,7 @@ IEnumerator FinalizarFuga()
 {
     typewriter.Escrever("Você fugiu da batalha!");
 
-    yield return new WaitForSeconds(1.5f);
+    yield return EsperarBatalha(1.5f);
 
     gatilhoEncontro.Reativar();
 

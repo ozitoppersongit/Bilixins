@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using Unity.Cinemachine;
 
 public class GatilhoDeEncontro : MonoBehaviour
 {
@@ -19,6 +20,7 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+
         if (!other.CompareTag("Player"))
             return;
 
@@ -26,6 +28,7 @@ public class GatilhoDeEncontro : MonoBehaviour
 
         if (gatilho != null)
             gatilho.enabled = false;
+
 
         // Inicia a batalha
         IniciarBatalha();
@@ -45,7 +48,12 @@ public class GatilhoDeEncontro : MonoBehaviour
             return;
         }
 
-        GameObject batalha = Instantiate(battlePrefab);
+        Transform battleParent = GameObject.Find("Batalha").transform;
+
+        GameObject batalha = Instantiate(
+            battlePrefab,
+            battleParent
+        );
 
         BattleScript battleScript =
             batalha.GetComponent<BattleScript>();
@@ -62,6 +70,7 @@ public class GatilhoDeEncontro : MonoBehaviour
             bilixinInimigo,
             this
         );
+        
     }
 
     public void Vencer()
@@ -71,7 +80,7 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     public void Reativar()
     {
-        if (gatilho != null)
-            gatilho.enabled = true;
+        if (gatilho != null) {gatilho.enabled = true;}
+
     }
 }
