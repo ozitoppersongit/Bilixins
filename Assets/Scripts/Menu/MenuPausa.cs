@@ -1,6 +1,8 @@
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class MenuPausa : MonoBehaviour
 {
@@ -18,6 +20,9 @@ public class MenuPausa : MonoBehaviour
     [Header("Botões")]
     public Button botaoPausa;
     public Button botaoRetomar;
+
+    [Header("Menu de Opções")]
+    public GameObject opcoesPrefab;
 
     [Header("Câmera")]
     public CinemachineCamera camera;
@@ -74,6 +79,18 @@ public class MenuPausa : MonoBehaviour
         }
     }
 
+    public void AbrirOpcoes()
+{
+    if (opcoesPrefab == null)
+    {
+        Debug.LogError("O prefab de opções não foi definido!");
+        return;
+    }
+
+    EventSystem.current.SetSelectedGameObject(null);
+    Instantiate(opcoesPrefab);
+}
+
     public void Pausar()
 {
     if (pausado || animando)
@@ -113,4 +130,9 @@ public class MenuPausa : MonoBehaviour
         batalha.RetomarBatalha();
     }
 }
+
+    public void Sair()
+    {
+        SceneManager.LoadScene("MainMenu");
+    }
 }

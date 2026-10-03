@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
+using System.Collections;
 using Unity.Cinemachine;
 
 public class GatilhoDeEncontro : MonoBehaviour
@@ -10,12 +11,14 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     [Header("Batalha")]
     public GameObject battlePrefab;
-
+    private GerenciadorBatalha gB;
     private Collider gatilho;
 
     void Awake()
     {
         gatilho = GetComponent<Collider>();
+
+        gB = Object.FindAnyObjectByType<GerenciadorBatalha>();
     }
 
     void OnTriggerEnter(Collider other)
@@ -31,8 +34,32 @@ public class GatilhoDeEncontro : MonoBehaviour
 
 
         // Inicia a batalha
-        IniciarBatalha();
+        StartCoroutine(IniciarBatalhaComTransicao());
     }
+
+    private IEnumerator IniciarBatalhaComTransicao()
+{
+    // A bolinha cresce e cobre a tela
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
+
+    // Instancia a batalha
+    GameObject batalha = Instantiate(battlePrefab);
+
+    BattleScript battleScript =
+        batalha.GetComponent<BattleScript>();
+
+    battleScript.IniciarBatalha(
+        bilixinInimigo,
+        this
+    );
+
+    // A bolinha diminui revelando a batalha
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Fechar()
+    );
+}
 
     void IniciarBatalha()
     {
@@ -75,6 +102,7 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     public void Vencer()
     {
+        gB.BilixinDerrotado();
         Destroy(gameObject);
     }
 

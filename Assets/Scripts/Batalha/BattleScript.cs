@@ -311,6 +311,8 @@ IEnumerator TurnoInimigo()
 
     AtualizarUI();
 
+    StartCoroutine(EfeitoDano(spriteJogador));
+
     typewriter.Escrever(
         bilixinInimigo.name +
         " causou " +
@@ -322,22 +324,14 @@ IEnumerator TurnoInimigo()
 
     if (hpJogador <= 0)
     {
-        typewriter.Escrever(
-            bilixinJogador.name + " foi derrotado!"
-        );
-
         batalhaTerminou = true;
 
         botaoLutar.interactable = false;
         botaoFugir.interactable = false;
 
-        yield return EsperarBatalha(2f);
+        yield return StartCoroutine(EfeitoDesmaio(spriteJogador));
 
-        gatilhoEncontro.Reativar();
-
-        Destroy(gameObject);
-
-        Time.timeScale = 1f;
+        StartCoroutine(FinalizarDerrota());
 
         yield break;
     }
@@ -414,6 +408,8 @@ IEnumerator TurnoInimigo()
 
         AtualizarUI();
 
+        StartCoroutine(EfeitoDano(spriteInimigo));
+
         typewriter.Escrever(
             bilixinJogador.name +
             " causou " +
@@ -426,24 +422,14 @@ IEnumerator TurnoInimigo()
         // VERIFICAÇÃO DA MORTE
         if (hpInimigo <= 0)
         {
-            typewriter.Escrever(
-                bilixinInimigo.name + " foi derrotado!"
-            );
-
             batalhaTerminou = true;
 
             botaoLutar.interactable = false;
             botaoFugir.interactable = false;
 
-            Time.timeScale = 1f;
-            cameraScript.enabled = true;
+            yield return StartCoroutine(EfeitoDesmaio(spriteInimigo));
 
-            gatilhoEncontro.Vencer();
-
-            yield return EsperarBatalha(1.5f);
-
-            Destroy(gameObject);
-
+            StartCoroutine(FinalizarVitoria());
 
             yield break;
         }
@@ -472,6 +458,8 @@ IEnumerator TurnoInimigo()
 
         AtualizarUI();
 
+        StartCoroutine(EfeitoDano(spriteJogador));
+
         typewriter.Escrever(
             bilixinInimigo.name +
             " causou " +
@@ -483,23 +471,14 @@ IEnumerator TurnoInimigo()
 
         if (hpJogador <= 0)
         {
-            typewriter.Escrever(
-                bilixinJogador.name + " foi derrotado!"
-            );
-
             batalhaTerminou = true;
 
             botaoLutar.interactable = false;
             botaoFugir.interactable = false;
 
-            Time.timeScale = 1f;
-            cameraScript.enabled = true;
+            yield return StartCoroutine(EfeitoDesmaio(spriteJogador));
 
-            yield return EsperarBatalha(2f);
-
-            gatilhoEncontro.Reativar();
-
-            Destroy(gameObject);
+            StartCoroutine(FinalizarDerrota());
 
             yield break;
         }
@@ -521,9 +500,6 @@ IEnumerator TurnoInimigo()
     botaoLutar.interactable = false;
     botaoFugir.interactable = false;
 
-    Time.timeScale = 1f;
-    cameraScript.enabled = true;
-
     StartCoroutine(FinalizarFuga());
 }
 
@@ -533,8 +509,162 @@ IEnumerator FinalizarFuga()
 
     yield return EsperarBatalha(1.5f);
 
-    gatilhoEncontro.Reativar();
+    // Cobre a tela
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
+
+    // Volta para o mapa
+    Time.timeScale = 1f;
+
+    if (cameraScript != null)
+        cameraScript.enabled = true;
+
+    // Reativa o inimigo
+    if (gatilhoEncontro != null)
+        gatilhoEncontro.Reativar();
+
+    // Destrói a batalha
+    Destroy(gameObject);
+
+    // Pede para a transição revelar o mapa
+    TransicaoBatalha.instancia.FecharDepoisDaFuga();
+}
+public void Vitoria()
+{
+    if (batalhaTerminou)
+        return;
+
+    batalhaTerminou = true;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    StartCoroutine(FinalizarVitoria());
+}
+
+private IEnumerator FinalizarVitoria()
+{
+    typewriter.Escrever("Você venceu a batalha!");
+
+    yield return EsperarBatalha(1.5f);
+
+    // Cobre a tela
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
+
+    Time.timeScale = 1f;
+
+    if (cameraScript != null)
+        cameraScript.enabled = true;
+
+    // Avisa que o Bilixin foi derrotado
+    if (gatilhoEncontro != null)
+        gatilhoEncontro.Vencer();
+
+    // Destrói a tela de batalha
+    Destroy(gameObject);
+
+    // Revela o mapa
+    TransicaoBatalha.instancia.FecharDepoisDaVitoria();
+}
+
+public void Derrota()
+{
+    if (batalhaTerminou)
+        return;
+
+    batalhaTerminou = true;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    StartCoroutine(FinalizarDerrota());
+}
+
+private IEnumerator FinalizarDerrota()
+{
+    typewriter.Escrever("Você perdeu a batalha!");
+
+    yield return EsperarBatalha(1.5f);
+
+    // Cobre a tela
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
+
+    Time.timeScale = 1f;
+
+    if (cameraScript != null)
+        cameraScript.enabled = true;
+
+    // Aqui você decide o que acontece depois da derrota.
+    // Exemplo: voltar para uma cena de Game Over.
 
     Destroy(gameObject);
+
+    TransicaoBatalha.instancia.FecharDepoisDaDerrota();
+}
+
+private IEnumerator EfeitoDano(Image imagem)
+{
+    RectTransform rect = imagem.rectTransform;
+    Vector2 posicaoOriginal = rect.anchoredPosition;
+
+    // Pisca vermelho
+    imagem.color = Color.red;
+
+    // Tremidinha
+    float duracao = 0.15f;
+    float intensidade = 8f;
+    float tempo = 0f;
+
+    while (tempo < duracao)
+    {
+        tempo += Time.unscaledDeltaTime;
+
+        float x = Random.Range(-intensidade, intensidade);
+        float y = Random.Range(-intensidade, intensidade);
+
+        rect.anchoredPosition = posicaoOriginal + new Vector2(x, y);
+
+        yield return null;
+    }
+
+    // Volta para a posição normal
+    rect.anchoredPosition = posicaoOriginal;
+
+    // Volta para a cor normal
+    imagem.color = Color.white;
+}
+private IEnumerator EfeitoDesmaio(Image imagem)
+{
+    RectTransform rect = imagem.rectTransform;
+
+    Vector2 posicaoOriginal = rect.anchoredPosition;
+
+    Color corOriginal = imagem.color;
+
+    float duracao = 0.5f;
+    float tempo = 0f;
+
+    while (tempo < duracao)
+    {
+        tempo += Time.unscaledDeltaTime;
+
+        float progresso = tempo / duracao;
+
+        // Desaparece aos poucos
+        Color cor = imagem.color;
+        cor.a = Mathf.Lerp(1f, 0f, progresso);
+        imagem.color = cor;
+
+        yield return null;
+    }
+
+    Color corFinal = imagem.color;
+    corFinal.a = 0f;
+    imagem.color = corFinal;
 }
 }
