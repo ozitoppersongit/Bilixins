@@ -997,6 +997,7 @@ GameObject:
   - component: {fileID: 593390300}
   - component: {fileID: 593390299}
   - component: {fileID: 593390298}
+  - component: {fileID: 593390301}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: Untagged
@@ -1080,9 +1081,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
-<<<<<<< HEAD
---- !u!1 &593818790
-=======
 --- !u!114 &593390301
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1093,7 +1091,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
     BindingMode: 4
@@ -1103,7 +1101,6 @@ MonoBehaviour:
     QuaternionDamping: 1
   FollowOffset: {x: 0, y: 6, z: -6}
 --- !u!1 &665124783
->>>>>>> 6f82fbe6627a847b4e0d054539126ae3914029ed
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
