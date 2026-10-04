@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c022b85f6ac385d48b1260271f606f14, type: 3}
-  m_Name: Pipagaio
+  m_Name: Boladro
   m_EditorClassIdentifier: Assembly-CSharp::BilixinsData
-  nome: Pipagaio
-  hp: 20
+  nome: Boladro
+  hp: 10
   nivel: 1
-  ataque: 40
+  ataque: 30
   defesa: 20
-  tipo: 4
-  spr: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
+  tipo: 2
+  spr: {fileID: 21300000, guid: fe9339f46610cfc4b8b21834b93d15dc, type: 3}

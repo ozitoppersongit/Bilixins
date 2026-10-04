@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Unity.Cinemachine;
 
 public class BattleScript : MonoBehaviour
 {
@@ -13,17 +14,26 @@ public class BattleScript : MonoBehaviour
 
     [Header("UI")]
     public Button botaoLutar;
+    public Button botaoFugir;
     public Typewriter typewriter;
+
+    [Header("Câmera")]
+    public CinemachineCamera camera;
+    private CameraSeguirPlayer cameraScript;
 
     [Header("UI Jogador")]
     public TextMeshProUGUI nomeJogador;
     public TextMeshProUGUI hpTextoJogador;
     public Slider hpBarraJogador;
 
-[Header("UI Inimigo")]
+    [Header("UI Inimigo")]
     public TextMeshProUGUI nomeInimigo;
     public TextMeshProUGUI hpTextoInimigo;
     public Slider hpBarraInimigo;
+
+    [Header("Fill das barras")]
+    public Image fillBarraJogador;
+    public Image fillBarraInimigo;
 
     [Header("Ícones dos tipos")]
     public RawImage iconeTipoJogador;
@@ -35,12 +45,11 @@ public class BattleScript : MonoBehaviour
     public Texture2D iconePlastico;
     public Texture2D iconePapel;
 
-    [Header("HP")]
-    public float hpJogador;
-    public float hpInimigo;
+    private int hpJogador;
+    private int hpInimigo;
 
-    public float maxHpJogador;
-    public float maxHpInimigo;
+    public int maxHpJogador;
+    public int maxHpInimigo;
 
     [Header("Ataque")]
     public float power = 40f;
@@ -48,29 +57,78 @@ public class BattleScript : MonoBehaviour
     private bool batalhaTerminou = false;
     private bool turnoJogador = false;
 
+
+    private GatilhoDeEncontro gatilhoEncontro;
+
+    private bool batalhaPausada = false;
+
+    public void PausarBatalha()
+    {
+        batalhaPausada = true;
+    }
+
+    public void RetomarBatalha()
+    {
+        batalhaPausada = false;
+    }
+
+    private IEnumerator EsperarBatalha(float segundos)
+{
+    float tempo = 0f;
+
+    while (tempo < segundos)
+    {
+        if (!batalhaPausada)
+        {
+            tempo += Time.unscaledDeltaTime;
+        }
+
+        yield return null;
+    }
+}
+
+public void IniciarBatalha(
+    BilixinsData inimigo,
+    GatilhoDeEncontro gatilho)
+{
+    camera = Object.FindAnyObjectByType<CinemachineCamera>();
+    cameraScript = camera.GetComponent<CameraSeguirPlayer>();
+    cameraScript.enabled = false;
+
+
+    bilixinInimigo = inimigo;
+    gatilhoEncontro = gatilho;
+
+    spriteJogador.sprite = bilixinJogador.spr;
+    spriteInimigo.sprite = bilixinInimigo.spr;
+
+    iconeTipoJogador.texture = PegarIconeTipo(bilixinJogador.tipo);
+    iconeTipoInimigo.texture = PegarIconeTipo(bilixinInimigo.tipo);
+
+    maxHpJogador = bilixinJogador.hp;
+    maxHpInimigo = bilixinInimigo.hp;
+
+    hpJogador = maxHpJogador;
+    hpInimigo = maxHpInimigo;
+
+
+    AtualizarUI();
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    Time.timeScale = 0f;
+    
+    typewriter.Escrever(
+        "Um bilixin selvagem apareceu!"
+    );
+
+    StartCoroutine(IniciarBatalha());
+}
     void Start()
     {
-        spriteJogador.sprite = bilixinJogador.spr;
-        spriteInimigo.sprite = bilixinInimigo.spr;
-
-        iconeTipoJogador.texture = PegarIconeTipo(bilixinJogador.tipo);
-        iconeTipoInimigo.texture = PegarIconeTipo(bilixinInimigo.tipo);
-
-        maxHpJogador = CalcularHP(bilixinJogador);
-        maxHpInimigo = CalcularHP(bilixinInimigo);
-
-        hpJogador = maxHpJogador;
-        hpInimigo = maxHpInimigo;
-
-        AtualizarUI();
-
-        // Começa desabilitado
         botaoLutar.interactable = false;
-
-        typewriter.Escrever("Um bilixin selvagem apareceu!");
-
-        // Espera a mensagem terminar antes de começar
-        StartCoroutine(IniciarBatalha());
+        botaoFugir.interactable = false;
     }
 
     Texture2D PegarIconeTipo(TipoLixo tipo)
@@ -126,12 +184,11 @@ public class BattleScript : MonoBehaviour
 
     hpBarraInimigo.maxValue = maxHpInimigo;
     hpBarraInimigo.value = hpInimigo;
-}
 
-    float CalcularHP(BilixinsData bilixin)
-    {
-        return (2f * bilixin.nivel) + 50f;
-    }
+    // Esconde a barra quando o HP chegar a 0
+    fillBarraJogador.gameObject.SetActive(hpJogador > 0);
+    fillBarraInimigo.gameObject.SetActive(hpInimigo > 0);
+}
 
 float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 {
@@ -184,26 +241,103 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     float power)
 {
     float danoBase =
-    (((2f * atacante.nivel / 5f) + 2f)
-    * power
-    * atacante.ataque
-    / defensor.defesa)
-    / 50f
-    + 2f;
+        (((2f * atacante.nivel / 5f) + 2f)
+        * power
+        * atacante.ataque
+        / defensor.defesa)
+        / 50f
+        + 2f;
 
     float multiplicador =
         MultiplicadorTipo(atacante.tipo, defensor.tipo);
 
-    return danoBase * multiplicador;
+    float danoFinal = danoBase * multiplicador;
+
+    Debug.Log(
+        $"ATAQUE: {atacante.name} | " +
+        $"ATK: {atacante.ataque} | " +
+        $"DEF: {defensor.defesa} | " +
+        $"Nível: {atacante.nivel} | " +
+        $"Dano Base: {danoBase:F2} | " +
+        $"Multiplicador: {multiplicador} | " +
+        $"Dano Final: {danoFinal:F2}"
+    );
+
+    return danoFinal;
 }
 
     IEnumerator IniciarBatalha()
-    {
-        yield return new WaitForSeconds(2f);
+{
+    yield return EsperarBatalha(2f);
 
-        // Começa o turno do jogador
+    if (Random.value < 0.5f)
+    {
+        // Jogador começa
         IniciarTurnoJogador();
     }
+    else
+    {
+        // Inimigo começa
+        StartCoroutine(TurnoInimigo());
+    }
+}
+
+IEnumerator TurnoInimigo()
+{
+    if (batalhaTerminou)
+        yield break;
+
+    turnoJogador = false;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    typewriter.Escrever(
+        bilixinInimigo.name + " está atacando!"
+    );
+
+    yield return EsperarBatalha(1.5f);
+
+    int danoInimigo = Mathf.RoundToInt(
+        CalcularDano(
+            bilixinInimigo,
+            bilixinJogador,
+            power
+        )
+    );
+
+    hpJogador -= danoInimigo;
+    hpJogador = Mathf.Max(hpJogador, 0);
+
+    AtualizarUI();
+
+    StartCoroutine(EfeitoDano(spriteJogador));
+
+    typewriter.Escrever(
+        bilixinInimigo.name +
+        " causou " +
+        danoInimigo +
+        " de dano!"
+    );
+
+    yield return EsperarBatalha(1.5f);
+
+    if (hpJogador <= 0)
+    {
+        batalhaTerminou = true;
+
+        botaoLutar.interactable = false;
+        botaoFugir.interactable = false;
+
+        yield return StartCoroutine(EfeitoDesmaio(spriteJogador));
+
+        StartCoroutine(FinalizarDerrota());
+
+        yield break;
+    }
+
+    IniciarTurnoJogador();
+}
 
     void IniciarTurnoJogador()
     {
@@ -213,6 +347,7 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
         turnoJogador = true;
 
         botaoLutar.interactable = true;
+        botaoFugir.interactable = true;
 
         typewriter.Escrever(
             "O que " + bilixinJogador.name + " fará?"
@@ -222,13 +357,11 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     // Essa função será chamada pelo botão LUTAR
     public void Jogar()
     {
-        // Segurança para impedir clicar fora do turno
         if (!turnoJogador || batalhaTerminou)
             return;
 
-        // Desabilita imediatamente
         botaoLutar.interactable = false;
-
+        botaoFugir.interactable = false;
         turnoJogador = false;
 
         StartCoroutine(TurnoDeBatalha());
@@ -244,13 +377,13 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
             bilixinJogador.name + " atacou!"
         );
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
 
-        float danoJogador = CalcularDano(
+        int danoJogador = Mathf.RoundToInt(CalcularDano(
             bilixinJogador,
             bilixinInimigo,
             power
-        );
+        ));
 
         float multiplicador = MultiplicadorTipo(
         bilixinJogador.tipo,
@@ -261,19 +394,21 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     {
         typewriter.Escrever("É super efetivo!");
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
     }
     else if (multiplicador < 1f)
     {
         typewriter.Escrever("Não foi muito efetivo...");
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
     }
 
         hpInimigo -= danoJogador;
         hpInimigo = Mathf.Max(hpInimigo, 0);
 
         AtualizarUI();
+
+        StartCoroutine(EfeitoDano(spriteInimigo));
 
         typewriter.Escrever(
             bilixinJogador.name +
@@ -282,20 +417,19 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
             " de dano!"
         );
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
 
-        // =========================
-        // INIMIGO MORREU?
-        // =========================
-
+        // VERIFICAÇÃO DA MORTE
         if (hpInimigo <= 0)
         {
-            typewriter.Escrever(
-                bilixinInimigo.name + " foi derrotado!"
-            );
-
             batalhaTerminou = true;
+
             botaoLutar.interactable = false;
+            botaoFugir.interactable = false;
+
+            yield return StartCoroutine(EfeitoDesmaio(spriteInimigo));
+
+            StartCoroutine(FinalizarVitoria());
 
             yield break;
         }
@@ -311,18 +445,20 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
         // Botão continua desabilitado
         botaoLutar.interactable = false;
 
-        yield return new WaitForSeconds(1.5f);
+        yield return EsperarBatalha(1.5f);
 
-        float danoInimigo = CalcularDano(
+        int danoInimigo = Mathf.RoundToInt(CalcularDano(
             bilixinInimigo,
             bilixinJogador,
             power
-        );
+        ));
 
         hpJogador -= danoInimigo;
         hpJogador = Mathf.Max(hpJogador, 0);
 
         AtualizarUI();
+
+        StartCoroutine(EfeitoDano(spriteJogador));
 
         typewriter.Escrever(
             bilixinInimigo.name +
@@ -331,20 +467,18 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
             " de dano!"
         );
 
-        yield return new WaitForSeconds(1.5f);
-
-        // =========================
-        // JOGADOR MORREU?
-        // =========================
+        yield return EsperarBatalha(1.5f);
 
         if (hpJogador <= 0)
         {
-            typewriter.Escrever(
-                bilixinJogador.name + " foi derrotado!"
-            );
-
             batalhaTerminou = true;
+
             botaoLutar.interactable = false;
+            botaoFugir.interactable = false;
+
+            yield return StartCoroutine(EfeitoDesmaio(spriteJogador));
+
+            StartCoroutine(FinalizarDerrota());
 
             yield break;
         }
@@ -355,4 +489,182 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 
         IniciarTurnoJogador();
     }
+
+    public void Fugir()
+{
+    if (batalhaTerminou)
+        return;
+
+    batalhaTerminou = true;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    StartCoroutine(FinalizarFuga());
+}
+
+IEnumerator FinalizarFuga()
+{
+    typewriter.Escrever("Você fugiu da batalha!");
+
+    yield return EsperarBatalha(1.5f);
+
+    // Cobre a tela
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
+
+    // Volta para o mapa
+    Time.timeScale = 1f;
+
+    if (cameraScript != null)
+        cameraScript.enabled = true;
+
+    // Reativa o inimigo
+    if (gatilhoEncontro != null)
+        gatilhoEncontro.Reativar();
+
+    // Destrói a batalha
+    Destroy(gameObject);
+
+    // Pede para a transição revelar o mapa
+    TransicaoBatalha.instancia.FecharDepoisDaFuga();
+}
+public void Vitoria()
+{
+    if (batalhaTerminou)
+        return;
+
+    batalhaTerminou = true;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    StartCoroutine(FinalizarVitoria());
+}
+
+private IEnumerator FinalizarVitoria()
+{
+    typewriter.Escrever("Você venceu a batalha!");
+
+    yield return EsperarBatalha(1.5f);
+
+    // Cobre a tela
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
+
+    Time.timeScale = 1f;
+
+    if (cameraScript != null)
+        cameraScript.enabled = true;
+
+    // Avisa que o Bilixin foi derrotado
+    if (gatilhoEncontro != null)
+        gatilhoEncontro.Vencer();
+
+    // Destrói a tela de batalha
+    Destroy(gameObject);
+
+    // Revela o mapa
+    TransicaoBatalha.instancia.FecharDepoisDaVitoria();
+}
+
+public void Derrota()
+{
+    if (batalhaTerminou)
+        return;
+
+    batalhaTerminou = true;
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    StartCoroutine(FinalizarDerrota());
+}
+
+private IEnumerator FinalizarDerrota()
+{
+    typewriter.Escrever("Você perdeu a batalha!");
+
+    yield return EsperarBatalha(1.5f);
+
+    // Cobre a tela
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
+
+    Time.timeScale = 1f;
+
+    if (cameraScript != null)
+        cameraScript.enabled = true;
+
+    // Aqui você decide o que acontece depois da derrota.
+    // Exemplo: voltar para uma cena de Game Over.
+
+    Destroy(gameObject);
+
+    TransicaoBatalha.instancia.FecharDepoisDaDerrota();
+}
+
+private IEnumerator EfeitoDano(Image imagem)
+{
+    RectTransform rect = imagem.rectTransform;
+    Vector2 posicaoOriginal = rect.anchoredPosition;
+
+    // Pisca vermelho
+    imagem.color = Color.red;
+
+    // Tremidinha
+    float duracao = 0.15f;
+    float intensidade = 8f;
+    float tempo = 0f;
+
+    while (tempo < duracao)
+    {
+        tempo += Time.unscaledDeltaTime;
+
+        float x = Random.Range(-intensidade, intensidade);
+        float y = Random.Range(-intensidade, intensidade);
+
+        rect.anchoredPosition = posicaoOriginal + new Vector2(x, y);
+
+        yield return null;
+    }
+
+    // Volta para a posição normal
+    rect.anchoredPosition = posicaoOriginal;
+
+    // Volta para a cor normal
+    imagem.color = Color.white;
+}
+private IEnumerator EfeitoDesmaio(Image imagem)
+{
+    RectTransform rect = imagem.rectTransform;
+
+    Vector2 posicaoOriginal = rect.anchoredPosition;
+
+    Color corOriginal = imagem.color;
+
+    float duracao = 0.5f;
+    float tempo = 0f;
+
+    while (tempo < duracao)
+    {
+        tempo += Time.unscaledDeltaTime;
+
+        float progresso = tempo / duracao;
+
+        // Desaparece aos poucos
+        Color cor = imagem.color;
+        cor.a = Mathf.Lerp(1f, 0f, progresso);
+        imagem.color = cor;
+
+        yield return null;
+    }
+
+    Color corFinal = imagem.color;
+    corFinal.a = 0f;
+    imagem.color = corFinal;
+}
 }

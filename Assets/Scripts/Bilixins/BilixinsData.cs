@@ -4,6 +4,7 @@ using UnityEngine;
 public class BilixinsData : ScriptableObject
 {
     public string nome;
+    public int hp;
     public int nivel;
     public int ataque;
     public int defesa;

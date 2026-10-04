@@ -20,7 +20,7 @@ public class Typewriter : MonoBehaviour
         foreach (char letra in mensagem)
         {
             texto.text += letra;
-            yield return new WaitForSeconds(velocidade);
+            yield return new WaitForSecondsRealtime(velocidade);
         }
     }
 
