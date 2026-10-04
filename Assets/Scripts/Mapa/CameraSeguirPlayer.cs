@@ -11,6 +11,7 @@ public class CameraSeguirPlayer : MonoBehaviour
     [SerializeField] float anguloMinimo = -9f;
     [SerializeField] float anguloMaximo = 60f;
     [SerializeField] float anguloInicial = 35f;
+    [SerializeField] float raioColisao = 0.3f;
 
     Transform player;
     float rotX;
@@ -55,8 +56,31 @@ public class CameraSeguirPlayer : MonoBehaviour
         rotY = Mathf.Clamp(rotY, anguloMinimo, anguloMaximo);
 
         Quaternion rotacao = Quaternion.Euler(rotY, rotX, 0);
-        transform.position = player.position - (rotacao * Vector3.forward * distancia);
+        Vector3 posicaoDesejada = player.position - (rotacao * Vector3.forward * distancia);
+
+        transform.position = EvitarParedes(player.position, posicaoDesejada);
         transform.rotation = rotacao;
+    }
+
+    // Lança um raio do player até a posição desejada da câmera. Se bater em algo no meio
+    // do caminho (parede, prédio), para a câmera ali em vez de atravessar.
+    Vector3 EvitarParedes(Vector3 origemJogador, Vector3 destino)
+    {
+        Vector3 direcao = destino - origemJogador;
+        float distanciaTotal = direcao.magnitude;
+        if (distanciaTotal < 0.01f) return destino;
+
+        Vector3 dir = direcao / distanciaTotal;
+
+        // Começa um pouco afastado do centro do player, pra não bater no próprio collider dele
+        float margem = 0.5f;
+        Vector3 origem = origemJogador + dir * margem;
+        float restante = distanciaTotal - margem;
+
+        if (restante > 0f && Physics.SphereCast(origem, raioColisao, dir, out RaycastHit hit, restante))
+            return origem + dir * Mathf.Max(hit.distance - raioColisao, 0f);
+
+        return destino;
     }
 
     Vector2 LerArrasto()

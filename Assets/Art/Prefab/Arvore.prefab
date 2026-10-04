@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1749590366594533575}
   - component: {fileID: 1186004111525813976}
   - component: {fileID: 1125484652764049744}
-  - component: {fileID: 2030467060108371595}
+  - component: {fileID: 218880869036835219}
   m_Layer: 0
   m_Name: Arvore
   m_TagString: Untagged
@@ -1302,8 +1302,8 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4790043026018858363}
   m_Mesh: {fileID: 0}
---- !u!64 &2030467060108371595
-MeshCollider:
+--- !u!136 &218880869036835219
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1320,10 +1320,11 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  serializedVersion: 2
+  m_Radius: 1.1258181
+  m_Height: 2.2516363
+  m_Direction: 1
+  m_Center: {x: 0.0144559145, y: 0, z: -0.027920008}
 --- !u!1 &9093819080946958306
 GameObject:
   m_ObjectHideFlags: 0

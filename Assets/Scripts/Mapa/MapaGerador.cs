@@ -62,13 +62,17 @@ public class MapaGerador : MonoBehaviour
             else DestroyImmediate(filho);
         }
 
-        // O player não é filho do MapaGerador (não pode entrar na combinação de meshes), então limpa à parte
-        if (PlayerInstanciado != null)
+        // O player não é filho do MapaGerador (não pode entrar na combinação de meshes), então
+        // limpa à parte. Remove qualquer Player solto na cena por tag, não só pela referência
+        // guardada — se o preview do Editor sobreviver ao entrar em Play (depende da config de
+        // Enter Play Mode Settings da Unity), a referência antiga ainda é válida, mas é mais
+        // seguro garantir que não sobra nenhum player duplicado de qualquer jeito.
+        foreach (GameObject p in GameObject.FindGameObjectsWithTag("Player"))
         {
-            if (Application.isPlaying) Destroy(PlayerInstanciado);
-            else DestroyImmediate(PlayerInstanciado);
-            PlayerInstanciado = null;
+            if (Application.isPlaying) Destroy(p);
+            else DestroyImmediate(p);
         }
+        PlayerInstanciado = null;
     }
 
     IEnumerator GerarMapaInterno(bool instantaneo)
@@ -99,7 +103,7 @@ public class MapaGerador : MonoBehaviour
         // Camada de chão (vira retângulos), árvores (um por pixel) e inimigos (um por pixel, com trigger)
         // Guarda também qual piso nasceu embaixo de cada ponto, pra apoiar o objeto na altura certa dele
         TileDefinicao[] camadaChao = new TileDefinicao[largura * altura];
-        var arvores = new List<(int x, int y, TileDefinicao tile, TileDefinicao piso)>();
+        var arvores = new List<(int x, int y, TileDefinicao tile, TileDefinicao piso, TileDefinicao contexto)>();
         var inimigosAGerar = new List<(int x, int y, InimigoDefinicao inimigo, TileDefinicao piso)>();
         Vector2Int? posicaoPlayer = null;
         TileDefinicao pisoDoPlayer = null;
@@ -138,7 +142,8 @@ public class MapaGerador : MonoBehaviour
             }
             else
             {
-                arvores.Add((x, y, tile, grama));
+                TileDefinicao contexto = PisoDoContexto(x, y, largura, altura, pixels);
+                arvores.Add((x, y, tile, grama, contexto));
                 if (grama.prefab != null) camadaChao[i] = grama;
             }
         }
@@ -176,10 +181,12 @@ public class MapaGerador : MonoBehaviour
             }
         }
 
-        foreach (var (x, y, tile, piso) in arvores)
+        foreach (var (x, y, tile, piso, contexto) in arvores)
         {
             GameObject obj = Instantiate(tile.prefab, transform);
-            Encaixar(obj, CentroDaArea(x, y, 1, 1), Vector3.zero, AlturaDoPiso(piso));
+            float baseY = AlturaDoPiso(piso);
+            Encaixar(obj, CentroDaArea(x, y, 1, 1), Vector3.zero, baseY);
+            AdicionarPreenchimentoDeColisao(x, y, baseY, AlturaDoPiso(contexto));
             total++;
 
             if (!instantaneo && PassouDoTempo()) { yield return null; inicioDoFrame = Time.realtimeSinceStartup; }
@@ -202,7 +209,17 @@ public class MapaGerador : MonoBehaviour
         if (posicaoPlayer.HasValue)
         {
             PlayerInstanciado = Instantiate(player.prefab);
+
+            // Desliga o CharacterController antes de teleportar e religa depois — mover o
+            // Transform direto com o controller ligado deixa o estado interno dele (chão,
+            // colisão) inconsistente de vez em quando, causando esse "nasce fora do mapa"
+            // só em algumas rodadas.
+            CharacterController controller = PlayerInstanciado.GetComponent<CharacterController>();
+            if (controller != null) controller.enabled = false;
+
             Encaixar(PlayerInstanciado, CentroDaArea(posicaoPlayer.Value.x, posicaoPlayer.Value.y, 1, 1), Vector3.zero, AlturaDoPiso(pisoDoPlayer));
+
+            if (controller != null) controller.enabled = true;
         }
         else if (playerValido)
         {
@@ -273,6 +290,40 @@ public class MapaGerador : MonoBehaviour
             centro.y + baseY - b.min.y,
             centro.z - b.center.z
         );
+
+        SincronizarColliders(obj);
+    }
+
+    // Prefabs do ProBuilder guardam a malha num componente próprio e recriam ela sozinhos
+    // ao nascer, mas o MeshCollider às vezes fica apontando pra malha antiga/vazia. Aqui
+    // forço o collider a usar a mesma malha que está sendo desenhada de verdade.
+    static void SincronizarColliders(GameObject obj)
+    {
+        foreach (MeshCollider colisor in obj.GetComponentsInChildren<MeshCollider>())
+        {
+            MeshFilter filtro = colisor.GetComponent<MeshFilter>();
+            if (filtro != null && filtro.sharedMesh != null)
+                colisor.sharedMesh = filtro.sharedMesh;
+        }
+    }
+
+    // Preenche, só na colisão (sem nada visível), a diferença entre a altura visual da
+    // árvore (sempre grama) e a altura real do que está ao redor dela na pixel art.
+    // Só cria o preenchimento quando faz diferença — árvore cercada de grama normal não
+    // ganha nada, só a que forma uma ilha (cercada de algo mais alto, tipo calçada).
+    void AdicionarPreenchimentoDeColisao(int x, int y, float alturaBase, float alturaContexto)
+    {
+        float alturaPreenchimento = alturaContexto - alturaBase;
+        if (alturaPreenchimento <= 0.001f) return;
+
+        GameObject preenchimento = new GameObject("ColisaoInvisivel");
+        preenchimento.transform.SetParent(transform);
+
+        Vector3 centro = CentroDaArea(x, y, 1, 1);
+        preenchimento.transform.position = new Vector3(centro.x, alturaBase + alturaPreenchimento / 2f, centro.z);
+
+        BoxCollider caixa = preenchimento.AddComponent<BoxCollider>();
+        caixa.size = new Vector3(tamanhoDoTile, alturaPreenchimento, tamanhoDoTile);
     }
 
     static bool CalcularBounds(GameObject obj, out Bounds bounds)
