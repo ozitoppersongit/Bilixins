@@ -36,6 +36,8 @@ public class BattleScript : MonoBehaviour
     public Image fillBarraInimigo;
 
     [Header("Ícones dos tipos")]
+    public RawImage fundoiconeJogador;
+    public RawImage fundoiconeInimigo;
     public RawImage iconeTipoJogador;
     public RawImage iconeTipoInimigo;
 
@@ -44,6 +46,8 @@ public class BattleScript : MonoBehaviour
     public Texture2D iconeVidro;
     public Texture2D iconePlastico;
     public Texture2D iconePapel;
+
+    private Color32 vermelhoPlastico = new Color32(255, 31, 42, 255);
 
     private int hpJogador;
     private int hpInimigo;
@@ -105,6 +109,9 @@ public void IniciarBatalha(
     iconeTipoJogador.texture = PegarIconeTipo(bilixinJogador.tipo);
     iconeTipoInimigo.texture = PegarIconeTipo(bilixinInimigo.tipo);
 
+    fundoiconeJogador.color = PegarCorTipo(bilixinJogador.tipo);
+    fundoiconeInimigo.color = PegarCorTipo(bilixinInimigo.tipo);
+
     maxHpJogador = bilixinJogador.hp;
     maxHpInimigo = bilixinInimigo.hp;
 
@@ -153,6 +160,30 @@ public void IniciarBatalha(
 
     return null;
 }
+
+Color PegarCorTipo(TipoLixo tipo)
+{
+    switch (tipo)
+    {
+        case TipoLixo.Organico:
+            return Color.black;
+
+        case TipoLixo.Metal:
+            return Color.yellow;
+
+        case TipoLixo.Vidro:
+            return Color.green;
+
+        case TipoLixo.Plastico:
+            return vermelhoPlastico;
+
+        case TipoLixo.Papel:
+            return Color.blue;
+    }
+
+    return Color.white;
+}
+
 
     void AtualizarUI()
 {
