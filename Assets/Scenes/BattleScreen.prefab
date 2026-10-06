@@ -2222,6 +2222,7 @@ MonoBehaviour:
   botaoLutar: {fileID: 5926531485880810952}
   botaoFugir: {fileID: 8873335062970371688}
   typewriter: {fileID: 8724439811265443625}
+  intervalo: 2.5
   camera: {fileID: 0}
   nomeJogador: {fileID: 4970955969295446394}
   hpTextoJogador: {fileID: 5627746393346525083}
@@ -2243,6 +2244,9 @@ MonoBehaviour:
   maxHpJogador: 100
   maxHpInimigo: 100
   power: 20
+  chanceMiss: 0.15
+  chanceCritico: 0.05
+  multiplicadorCritico: 2
 --- !u!1 &5821774123523309788
 GameObject:
   m_ObjectHideFlags: 0

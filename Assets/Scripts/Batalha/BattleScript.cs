@@ -16,6 +16,7 @@ public class BattleScript : MonoBehaviour
     public Button botaoLutar;
     public Button botaoFugir;
     public Typewriter typewriter;
+    public float intervalo;
 
     [Header("Câmera")]
     public CinemachineCamera camera;
@@ -57,6 +58,15 @@ public class BattleScript : MonoBehaviour
 
     [Header("Ataque")]
     public float power = 40f;
+
+    [Header("Chance de Ataque")]
+    [Range(0f, 1f)]
+    public float chanceMiss = 0.15f; // 15%
+
+    [Range(0f, 1f)]
+    public float chanceCritico = 0.10f; // 10%
+
+    public float multiplicadorCritico = 1.5f;
 
     private bool batalhaTerminou = false;
     private bool turnoJogador = false;
@@ -297,9 +307,19 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     return danoFinal;
 }
 
+bool AtaqueErrou()
+{
+    return Random.value < chanceMiss;
+}
+
+bool AtaqueCritico()
+{
+    return Random.value < chanceCritico;
+}
+
     IEnumerator IniciarBatalha()
 {
-    yield return EsperarBatalha(2f);
+    yield return EsperarBatalha(intervalo);
 
     if (Random.value < 0.5f)
     {
@@ -312,6 +332,7 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
         StartCoroutine(TurnoInimigo());
     }
 }
+
 
 IEnumerator TurnoInimigo()
 {
@@ -327,8 +348,22 @@ IEnumerator TurnoInimigo()
         bilixinInimigo.name + " está atacando!"
     );
 
-    yield return EsperarBatalha(1.5f);
+    yield return EsperarBatalha(intervalo);
 
+    // Verifica se o ataque errou
+    if (AtaqueErrou())
+    {
+        typewriter.Escrever(
+            bilixinInimigo.name + " errou o ataque!"
+        );
+
+        yield return EsperarBatalha(intervalo);
+
+        IniciarTurnoJogador();
+        yield break;
+    }
+
+    // Calcula o dano normal
     int danoInimigo = Mathf.RoundToInt(
         CalcularDano(
             bilixinInimigo,
@@ -337,6 +372,21 @@ IEnumerator TurnoInimigo()
         )
     );
 
+    // Verifica se foi crítico
+    bool critico = AtaqueCritico();
+
+    if (critico)
+    {
+        danoInimigo = Mathf.RoundToInt(
+            danoInimigo * multiplicadorCritico
+        );
+
+        typewriter.Escrever("ACERTO CRÍTICO!");
+
+        yield return EsperarBatalha(intervalo);
+    }
+
+    // Aplica o dano
     hpJogador -= danoInimigo;
     hpJogador = Mathf.Max(hpJogador, 0);
 
@@ -346,13 +396,12 @@ IEnumerator TurnoInimigo()
 
     typewriter.Escrever(
         bilixinInimigo.name +
-        " causou " +
-        danoInimigo +
-        " de dano!"
+        " causou " + danoInimigo + " de dano!"
     );
 
-    yield return EsperarBatalha(1.5f);
+    yield return EsperarBatalha(intervalo);
 
+    // Verifica se o jogador foi derrotado
     if (hpJogador <= 0)
     {
         batalhaTerminou = true;
@@ -360,10 +409,11 @@ IEnumerator TurnoInimigo()
         botaoLutar.interactable = false;
         botaoFugir.interactable = false;
 
-        yield return StartCoroutine(EfeitoDesmaio(spriteJogador));
+        yield return StartCoroutine(
+            EfeitoDesmaio(spriteJogador)
+        );
 
         StartCoroutine(FinalizarDerrota());
-
         yield break;
     }
 
@@ -398,42 +448,73 @@ IEnumerator TurnoInimigo()
         StartCoroutine(TurnoDeBatalha());
     }
 
-    IEnumerator TurnoDeBatalha()
-    {
-        // =========================
-        // JOGADOR
-        // =========================
+    
+IEnumerator TurnoDeBatalha()
+{
+    // =====================================
+    // ATAQUE DO JOGADOR
+    // =====================================
 
-        typewriter.Escrever(
-            bilixinJogador.name + " atacou!"
-        );
-
-        yield return EsperarBatalha(1.5f);
-
-        int danoJogador = Mathf.RoundToInt(CalcularDano(
-            bilixinJogador,
-            bilixinInimigo,
-            power
-        ));
-
-        float multiplicador = MultiplicadorTipo(
-        bilixinJogador.tipo,
-        bilixinInimigo.tipo
+    typewriter.Escrever(
+        bilixinJogador.name + " atacou!"
     );
 
-    if (multiplicador > 1f)
+    yield return EsperarBatalha(intervalo);
+
+    // MISS DO JOGADOR
+    if (AtaqueErrou())
     {
-        typewriter.Escrever("É super efetivo!");
+        typewriter.Escrever(
+            bilixinJogador.name + " errou o ataque!"
+        );
 
-        yield return EsperarBatalha(1.5f);
+        yield return EsperarBatalha(intervalo);
     }
-    else if (multiplicador < 1f)
+    else
     {
-        typewriter.Escrever("Não foi muito efetivo...");
+        // Calcula o dano, incluindo a vantagem de tipo
+        int danoJogador = Mathf.RoundToInt(
+            CalcularDano(
+                bilixinJogador,
+                bilixinInimigo,
+                power
+            )
+        );
 
-        yield return EsperarBatalha(1.5f);
-    }
+        float multiplicador = MultiplicadorTipo(
+            bilixinJogador.tipo,
+            bilixinInimigo.tipo
+        );
 
+        // CRÍTICO DO JOGADOR
+        bool critico = AtaqueCritico();
+
+        if (critico)
+        {
+            danoJogador = Mathf.RoundToInt(
+                danoJogador * multiplicadorCritico
+            );
+
+            typewriter.Escrever("ACERTO CRÍTICO!");
+
+            yield return EsperarBatalha(intervalo);
+        }
+
+        // Mensagem de vantagem de tipo
+        if (multiplicador > 1f)
+        {
+            typewriter.Escrever("É super efetivo!");
+
+            yield return EsperarBatalha(intervalo);
+        }
+        else if (multiplicador < 1f)
+        {
+            typewriter.Escrever("Não foi muito efetivo...");
+
+            yield return EsperarBatalha(intervalo);
+        }
+
+        // Aplica o dano ao inimigo
         hpInimigo -= danoJogador;
         hpInimigo = Mathf.Max(hpInimigo, 0);
 
@@ -443,14 +524,12 @@ IEnumerator TurnoInimigo()
 
         typewriter.Escrever(
             bilixinJogador.name +
-            " causou " +
-            danoJogador.ToString("F0") +
-            " de dano!"
+            " causou " + danoJogador + " de dano!"
         );
 
-        yield return EsperarBatalha(1.5f);
+        yield return EsperarBatalha(intervalo);
 
-        // VERIFICAÇÃO DA MORTE
+        // VERIFICA SE O INIMIGO FOI DERROTADO
         if (hpInimigo <= 0)
         {
             batalhaTerminou = true;
@@ -458,32 +537,63 @@ IEnumerator TurnoInimigo()
             botaoLutar.interactable = false;
             botaoFugir.interactable = false;
 
-            yield return StartCoroutine(EfeitoDesmaio(spriteInimigo));
+            yield return StartCoroutine(
+                EfeitoDesmaio(spriteInimigo)
+            );
 
             StartCoroutine(FinalizarVitoria());
-
             yield break;
         }
+    }
 
-        // =========================
-        // TURNO DO INIMIGO
-        // =========================
+    // =====================================
+    // ATAQUE DO INIMIGO
+    // =====================================
 
+    typewriter.Escrever(
+        bilixinInimigo.name + " está atacando!"
+    );
+
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    yield return EsperarBatalha(intervalo);
+
+    // MISS DO INIMIGO
+    if (AtaqueErrou())
+    {
         typewriter.Escrever(
-            bilixinInimigo.name + " está atacando!"
+            bilixinInimigo.name + " errou o ataque!"
         );
 
-        // Botão continua desabilitado
-        botaoLutar.interactable = false;
+        yield return EsperarBatalha(intervalo);
+    }
+    else
+    {
+        // Calcula o dano do inimigo
+        int danoInimigo = Mathf.RoundToInt(
+            CalcularDano(
+                bilixinInimigo,
+                bilixinJogador,
+                power
+            )
+        );
 
-        yield return EsperarBatalha(1.5f);
+        // CRÍTICO DO INIMIGO
+        bool critico = AtaqueCritico();
 
-        int danoInimigo = Mathf.RoundToInt(CalcularDano(
-            bilixinInimigo,
-            bilixinJogador,
-            power
-        ));
+        if (critico)
+        {
+            danoInimigo = Mathf.RoundToInt(
+                danoInimigo * multiplicadorCritico
+            );
 
+            typewriter.Escrever("ACERTO CRÍTICO!");
+
+            yield return EsperarBatalha(intervalo);
+        }
+
+        // Aplica o dano ao jogador
         hpJogador -= danoInimigo;
         hpJogador = Mathf.Max(hpJogador, 0);
 
@@ -493,13 +603,12 @@ IEnumerator TurnoInimigo()
 
         typewriter.Escrever(
             bilixinInimigo.name +
-            " causou " +
-            danoInimigo.ToString("F0") +
-            " de dano!"
+            " causou " + danoInimigo + " de dano!"
         );
 
-        yield return EsperarBatalha(1.5f);
+        yield return EsperarBatalha(intervalo);
 
+        // VERIFICA SE O JOGADOR FOI DERROTADO
         if (hpJogador <= 0)
         {
             batalhaTerminou = true;
@@ -507,19 +616,21 @@ IEnumerator TurnoInimigo()
             botaoLutar.interactable = false;
             botaoFugir.interactable = false;
 
-            yield return StartCoroutine(EfeitoDesmaio(spriteJogador));
+            yield return StartCoroutine(
+                EfeitoDesmaio(spriteJogador)
+            );
 
             StartCoroutine(FinalizarDerrota());
-
             yield break;
         }
-
-        // =========================
-        // NOVO TURNO DO JOGADOR
-        // =========================
-
-        IniciarTurnoJogador();
     }
+
+    // =====================================
+    // PRÓXIMO TURNO
+    // =====================================
+
+    IniciarTurnoJogador();
+}
 
     public void Fugir()
 {
@@ -538,7 +649,7 @@ IEnumerator FinalizarFuga()
 {
     typewriter.Escrever("Você fugiu da batalha!");
 
-    yield return EsperarBatalha(1.5f);
+    yield return EsperarBatalha(intervalo);
 
     // Cobre a tela
     yield return StartCoroutine(
@@ -578,7 +689,7 @@ private IEnumerator FinalizarVitoria()
 {
     typewriter.Escrever("Você venceu a batalha!");
 
-    yield return EsperarBatalha(1.5f);
+    yield return EsperarBatalha(intervalo);
 
     // Cobre a tela
     yield return StartCoroutine(
@@ -618,7 +729,7 @@ private IEnumerator FinalizarDerrota()
 {
     typewriter.Escrever("Você perdeu a batalha!");
 
-    yield return EsperarBatalha(1.5f);
+    yield return EsperarBatalha(intervalo);
 
     // Cobre a tela
     yield return StartCoroutine(

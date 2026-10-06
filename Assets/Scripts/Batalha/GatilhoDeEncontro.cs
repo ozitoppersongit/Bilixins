@@ -12,9 +12,9 @@ public class GatilhoDeEncontro : MonoBehaviour
     [Header("Batalha")]
     public GameObject battlePrefab;
     private GerenciadorBatalha gB;
-    private bool batalhaIniciada = false;
-
     private Collider gatilho;
+    private bool esperandoSair = false;
+    private bool batalhaIniciada = false;
 
     void Awake()
     {
@@ -23,9 +23,12 @@ public class GatilhoDeEncontro : MonoBehaviour
         gB = Object.FindAnyObjectByType<GerenciadorBatalha>();
     }
 
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
 {
     if (!other.CompareTag("Player"))
+        return;
+
+    if (esperandoSair)
         return;
 
     if (batalhaIniciada)
@@ -39,6 +42,23 @@ public class GatilhoDeEncontro : MonoBehaviour
         gatilho.enabled = false;
 
     StartCoroutine(IniciarBatalhaComTransicao());
+}
+
+void OnTriggerExit(Collider other)
+{
+    if (!other.CompareTag("Player"))
+        return;
+
+    if (esperandoSair)
+    {
+        esperandoSair = false;
+        batalhaIniciada = false;
+
+        if (gatilho != null)
+            gatilho.enabled = true;
+
+        Debug.Log("Player saiu do gatilho. Encontro reativado.");
+    }
 }
 
     private IEnumerator IniciarBatalhaComTransicao()
@@ -65,54 +85,35 @@ public class GatilhoDeEncontro : MonoBehaviour
     );
 }
 
-    void IniciarBatalha()
-    {
-        if (battlePrefab == null)
-        {
-            Debug.LogError("BattlePrefab não foi configurado no GatilhoDeEncontro!");
-            return;
-        }
-
-        if (bilixinInimigo == null)
-        {
-            Debug.LogError("Nenhum BilixinsData foi atribuído a este inimigo!");
-            return;
-        }
-
-        Transform battleParent = GameObject.Find("Batalha").transform;
-
-        GameObject batalha = Instantiate(
-            battlePrefab,
-            battleParent
-        );
-
-        BattleScript battleScript =
-            batalha.GetComponent<BattleScript>();
-
-        if (battleScript == null)
-        {
-            Debug.LogError(
-                "BattlePrefab não possui um BattleScript!"
-            );
-            return;
-        }
-
-        battleScript.IniciarBatalha(
-            bilixinInimigo,
-            this
-        );
-        
-    }
-
     public void Vencer()
     {
         gB.BilixinDerrotado();
         Destroy(gameObject);
     }
 
-    public void Reativar()
-    {
-        if (gatilho != null) {gatilho.enabled = true;}
+    private IEnumerator FinalizarVitoria()
+{
+    // Cobre a batalha
+    yield return StartCoroutine(
+        TransicaoBatalha.instancia.Abrir()
+    );
 
-    }
+    // Registra o Bilixin derrotado
+    if (GerenciadorBatalha.instancia != null)
+        GerenciadorBatalha.instancia.BilixinDerrotado();
+
+    // Remove o inimigo do mapa
+    Destroy(gameObject);
+
+    // Fecha a transição
+    TransicaoBatalha.instancia.FecharDepoisDaVitoria();
+}
+
+    public void Reativar()
+{
+    esperandoSair = true;
+
+    if (gatilho != null)
+        gatilho.enabled = true;
+}
 }
