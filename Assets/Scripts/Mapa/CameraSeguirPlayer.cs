@@ -83,17 +83,48 @@ public class CameraSeguirPlayer : MonoBehaviour
         return destino;
     }
 
-    Vector2 LerArrasto()
+    int toqueCamera = -1;
+
+Vector2 LerArrasto()
+{
+    if (Touchscreen.current != null)
     {
-        if (Touchscreen.current != null && Touchscreen.current.touches.Count > 0)
+        var toques = Touchscreen.current.touches;
+
+        // Procurar um toque que começou no lado direito
+        for (int i = 0; i < toques.Count; i++)
         {
-            var toque = Touchscreen.current.primaryTouch;
-            return toque.press.isPressed ? toque.delta.ReadValue() : Vector2.zero;
+            var toque = toques[i];
+
+            if (toque.press.wasPressedThisFrame)
+            {
+                Vector2 posicaoInicial = toque.position.ReadValue();
+
+                if (posicaoInicial.x > Screen.width / 2f)
+                {
+                    toqueCamera = i;
+                }
+            }
         }
 
-        if (Mouse.current != null)
-            return Mouse.current.delta.ReadValue();
+        // Se temos um toque controlando a câmera
+        if (toqueCamera >= 0 && toqueCamera < toques.Count)
+        {
+            var toque = toques[toqueCamera];
+
+            if (toque.press.isPressed)
+                return toque.delta.ReadValue();
+
+            toqueCamera = -1;
+        }
 
         return Vector2.zero;
     }
+
+    // PC continua funcionando normalmente
+    if (Mouse.current != null)
+        return Mouse.current.delta.ReadValue();
+
+    return Vector2.zero;
+}
 }
