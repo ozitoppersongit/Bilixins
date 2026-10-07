@@ -2243,7 +2243,7 @@ MonoBehaviour:
   iconePapel: {fileID: 2800000, guid: 69f5c43d37490d346af5226a1216eeca, type: 3}
   maxHpJogador: 100
   maxHpInimigo: 100
-  power: 20
+  power: 30
   chanceMiss: 0.15
   chanceCritico: 0.05
   multiplicadorCritico: 2

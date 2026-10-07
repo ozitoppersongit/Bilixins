@@ -15,7 +15,7 @@ MonoBehaviour:
   nome: Pipagaio
   hp: 20
   nivel: 1
-  ataque: 40
+  ataque: 20
   defesa: 20
   tipo: 3
   spr: {fileID: 21300000, guid: 9738d3c0b6ea14a45b44c97ccb83e58c, type: 3}

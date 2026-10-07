@@ -12,7 +12,7 @@ public class GerenciadorBatalha : MonoBehaviour
     public TextMeshProUGUI counterLabel;
 
     [Header("Cena de vitória")]
-    public string cenaVitoria = "Vitoria";
+    [SerializeField] private GameObject prefabVitoria;
 
     private void Awake()
     {
@@ -40,7 +40,7 @@ public class GerenciadorBatalha : MonoBehaviour
 
         if (bilixinsDerrotados >= totalBilixins)
         {
-            SceneManager.LoadScene(cenaVitoria);
+            Instantiate(prefabVitoria);
         }
     }
 }

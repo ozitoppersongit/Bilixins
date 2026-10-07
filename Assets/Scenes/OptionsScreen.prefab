@@ -2271,7 +2271,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1561971007157427784}
   - component: {fileID: 7356496701460500592}
-  - component: {fileID: 8453664396249994118}
+  - component: {fileID: 1838217886502211224}
   m_Layer: 5
   m_Name: Icon
   m_TagString: Untagged
@@ -2306,7 +2306,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5820950620208586932}
   m_CullTransparentMesh: 1
---- !u!114 &8453664396249994118
+--- !u!114 &1838217886502211224
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2315,9 +2315,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 5820950620208586932}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
@@ -2326,13 +2326,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
-  m_UVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
+  m_Sprite: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &5944286380772138865
 GameObject:
   m_ObjectHideFlags: 0
@@ -3488,7 +3491,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1403023635464909619}
   - component: {fileID: 1417002684641071871}
-  - component: {fileID: 5203196457268330690}
+  - component: {fileID: 4938839883459672461}
   m_Layer: 5
   m_Name: Icon
   m_TagString: Untagged
@@ -3523,7 +3526,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8822078937838339305}
   m_CullTransparentMesh: 1
---- !u!114 &5203196457268330690
+--- !u!114 &4938839883459672461
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3532,9 +3535,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 8822078937838339305}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
@@ -3543,13 +3546,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 37d688c39d8fefe499e4b50e7d57c421, type: 3}
-  m_UVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
+  m_Sprite: {fileID: 21300000, guid: 37d688c39d8fefe499e4b50e7d57c421, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &8996134078603645293
 GameObject:
   m_ObjectHideFlags: 0
@@ -3564,6 +3570,7 @@ GameObject:
   - component: {fileID: 521517738859232976}
   - component: {fileID: 4399055870574029754}
   - component: {fileID: 4453351913024900767}
+  - component: {fileID: 2326099130430181172}
   m_Layer: 5
   m_Name: OptionsScreen
   m_TagString: Untagged
@@ -3688,6 +3695,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfaa7a8a3b62bd54882456cac1362db4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpcoesMenu
+--- !u!114 &2326099130430181172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8996134078603645293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dea6626ee95c118408ddefb8492c3d59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IconesVolume
+  sliderSons: {fileID: 6978165044690514515}
+  iconeSons: {fileID: 4938839883459672461}
+  somNormal: {fileID: 21300000, guid: 37d688c39d8fefe499e4b50e7d57c421, type: 3}
+  somMutada: {fileID: 21300000, guid: 3c621a497d9b5de4a80208e92833c482, type: 3}
+  sliderDialogos: {fileID: 2395575594615701767}
+  iconeDialogos: {fileID: 1838217886502211224}
+  dialogosNormal: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
+  dialogosMutados: {fileID: 21300000, guid: 67cbc800bc26f414db38b9d969f715fa, type: 3}
 --- !u!1 &9139815295015822959
 GameObject:
   m_ObjectHideFlags: 0
