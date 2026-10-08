@@ -16,6 +16,6 @@ MonoBehaviour:
   hp: 20
   nivel: 1
   ataque: 10
-  defesa: 30
+  defesa: 25
   tipo: 1
   spr: {fileID: 21300000, guid: 0f0a04118bc73f94aa2c5529f3fcc022, type: 3}

@@ -23,6 +23,7 @@ public class MenuPausa : MonoBehaviour
 
     [Header("Menu de Opções")]
     public GameObject opcoesPrefab;
+    public GameObject sairTela;
 
     [Header("Câmera")]
     public CinemachineCamera camera;
@@ -133,6 +134,17 @@ public class MenuPausa : MonoBehaviour
 
     public void Sair()
     {
+        EventSystem.current.SetSelectedGameObject(null);
+        sairTela.SetActive(true);
+    }
+
+    public void ConfirmarSaida()
+    {
         SceneManager.LoadScene("MainMenu");
+    }
+
+    public void RecusarSaida()
+    {
+        sairTela.SetActive(false);
     }
 }
