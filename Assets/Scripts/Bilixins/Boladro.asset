@@ -15,7 +15,7 @@ MonoBehaviour:
   nome: Boladro
   hp: 10
   nivel: 1
-  ataque: 30
+  ataque: 20
   defesa: 20
   tipo: 2
   spr: {fileID: 21300000, guid: e4b1aa48b473e1d4a889d8b8342c279d, type: 3}

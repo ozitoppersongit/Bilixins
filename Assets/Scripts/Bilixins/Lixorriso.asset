@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Lixorriso
   m_EditorClassIdentifier: Assembly-CSharp::BilixinsData
   nome: Lixorriso
-  hp: 20
+  hp: 10
   nivel: 1
   ataque: 10
   defesa: 25
