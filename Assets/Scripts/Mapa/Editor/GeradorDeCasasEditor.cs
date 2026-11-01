@@ -565,36 +565,40 @@ public static partial class GeradorDeCasasEditor
         GameObject raiz = new GameObject(nome);
         var modular = raiz.AddComponent<ObjetoModular>();
 
-        Slot(modular, "Vaso",
-            Variacao(raiz.transform, "Vaso_Barro", v => Vaso(v, m.telhado, m.cumeeira, m.terra)),
-            Variacao(raiz.transform, "Vaso_Branco", v => Vaso(v, m.moldura, m.calha, m.terra)),
-            Variacao(raiz.transform, "Vaso_Azul", v => Vaso(v, m.portaAzul, m.metal, m.terra)));
+        AdicionarColisor(raiz, -2, 0, -2, 3, 4, 3);
 
+        Slot(modular, "Vaso",
+            Variacao(raiz.transform, "Vaso_Barro", v => Vaso(v, m.telhado, m.cumeeira, m.terra), 1),
+            Variacao(raiz.transform, "Vaso_Branco", v => Vaso(v, m.moldura, m.calha, m.terra), 1),
+            Variacao(raiz.transform, "Vaso_Azul", v => Vaso(v, m.portaAzul, m.metal, m.terra), 1));
+
+        // Planta: vaso de 0,5 m de altura, planta de até 1,1 m
         Slot(modular, "Planta",
-            Variacao(raiz.transform, "Planta_Folhas", v => BolaDeVoxels(v, 0, 5, 0, 2, m.folha, m.folhaEscura, 51)),
+            Variacao(raiz.transform, "Planta_Folhas", v => BolaDeVoxels(v, 0, 4, 0, 2, m.folha, m.folhaEscura, 51), 1),
             Variacao(raiz.transform, "Planta_Flor", v =>
             {
-                BolaDeVoxels(v, 0, 5, 0, 2, m.folha, m.folhaEscura, 52);
-                v.Celula(0, 10, 0, m.florRosa);
-                v.Celula(2, 8, 0, m.florAmarela);
-                v.Celula(-2, 8, 1, m.florVermelha);
-            }),
+                BolaDeVoxels(v, 0, 4, 0, 2, m.folha, m.folhaEscura, 52);
+                v.Celula(0, 9, 0, m.florRosa);
+                v.Celula(2, 7, 0, m.florAmarela);
+                v.Celula(-2, 7, 1, m.florVermelha);
+            }, 1),
             Variacao(raiz.transform, "Planta_Cacto", v =>
             {
-                v.Caixa(-1, 5, -1, 2, 7, 2, m.folhaEscura);
-                v.Caixa(1, 8, -1, 2, 1, 2, m.folhaEscura);
-                v.Caixa(3, 8, -1, 1, 3, 2, m.folhaEscura);
-                v.Caixa(-1, 12, -1, 2, 1, 2, m.florRosa);
-            }));
+                v.Caixa(0, 4, 0, 2, 5, 2, m.folhaEscura);
+                v.Caixa(2, 6, 0, 1, 1, 2, m.folhaEscura);
+                v.Caixa(3, 6, 0, 1, 2, 2, m.folhaEscura);
+                v.Caixa(0, 9, 0, 2, 1, 2, m.florRosa);
+            }, 1));
 
         Concluir(raiz, nome);
     }
 
+    // Vaso de 0,6 m de boca por 0,5 m de altura (voxel fino)
     static void Vaso(Voxels v, Material corpo, Material borda, Material terra)
     {
-        v.Caixa(-2, 0, -2, 4, 3, 4, corpo);
-        v.Caixa(-3, 3, -3, 6, 1, 6, borda);
-        v.Caixa(-2, 4, -2, 4, 1, 4, terra);
+        v.Caixa(-1, 0, -1, 3, 2, 3, corpo);
+        v.Caixa(-2, 2, -2, 5, 1, 5, borda);
+        v.Caixa(-1, 3, -1, 3, 1, 3, terra);
     }
 
     // Balde de plástico (afunilado) com alça de voxels
@@ -604,22 +608,24 @@ public static partial class GeradorDeCasasEditor
         GameObject raiz = new GameObject(nome);
         var modular = raiz.AddComponent<ObjetoModular>();
 
+        AdicionarColisor(raiz, -1, 0, -1, 2, 3, 2);
+
         Slot(modular, "Cor",
-            Variacao(raiz.transform, "Balde_Amarelo", v => Balde(v, m.faixa, m.metal)),
-            Variacao(raiz.transform, "Balde_Cinza", v => Balde(v, m.baldeCinza, m.metal)),
-            Variacao(raiz.transform, "Balde_Azul", v => Balde(v, m.portaAzul, m.metal)));
+            Variacao(raiz.transform, "Balde_Amarelo", v => Balde(v, m.faixa, m.metal), 1),
+            Variacao(raiz.transform, "Balde_Cinza", v => Balde(v, m.baldeCinza, m.metal), 1),
+            Variacao(raiz.transform, "Balde_Azul", v => Balde(v, m.portaAzul, m.metal), 1));
 
         Concluir(raiz, nome);
     }
 
+    // Balde de 0,4 m de altura (voxel fino): corpo em cruz de 3x3 e alça por cima
     static void Balde(Voxels v, Material corpo, Material alca)
     {
-        v.Caixa(-1, 0, -1, 3, 1, 3, corpo);
-        v.Caixa(-2, 1, -2, 4, 4, 4, corpo);
-        v.Caixa(-2, 5, -2, 5, 1, 5, corpo);
-        v.Caixa(-3, 5, 0, 1, 3, 1, alca);
-        v.Caixa(3, 5, 0, 1, 3, 1, alca);
-        v.Caixa(-3, 8, 0, 7, 1, 1, alca);
+        v.Caixa(-1, 0, 0, 3, 3, 1, corpo);
+        v.Caixa(0, 0, -1, 1, 3, 3, corpo);
+        v.Caixa(-1, 3, 0, 1, 1, 1, alca);
+        v.Caixa(1, 3, 0, 1, 1, 1, alca);
+        v.Caixa(-1, 4, 0, 3, 1, 1, alca);
     }
 
     // ---------------------------------------------------------------- barraco de dois andares (voxel fino, 0,125 m)
@@ -1241,120 +1247,49 @@ public static partial class GeradorDeCasasEditor
         }
     }
 
-    // Mesa de madeira com bancos dos dois lados, toalha e itens em cima. Origem no meio da base.
-    //   pernas e tampo: y 0..7 (tampo em y 6..7). Bancos: z -10..-7 e 6..9. Itens: a partir de y = 8.
-    static void MontarMesa(string nome, Materiais m)
-    {
-        Iniciar();
-        GameObject raiz = new GameObject(nome);
-        var modular = raiz.AddComponent<ObjetoModular>();
-        AdicionarColisor(raiz, -10, 0, -5, 10, 8, 5);
-
-        Slot(modular, "Mesa",
-            Variacao(raiz.transform, "Mesa_Madeira", v => Mesa(v, m, null, null), 1),
-            Variacao(raiz.transform, "Mesa_ToalhaXadrez", v => Mesa(v, m, m.roupaVermelha, m.roupaBranca), 1),
-            Variacao(raiz.transform, "Mesa_ToalhaLisa", v => Mesa(v, m, m.roupaAzul, m.roupaAzul), 1));
-
-        Slot(modular, "Bancos",
-            Variacao(raiz.transform, "Bancos_DoisLados", v =>
-            {
-                Banco(v, m, -10);
-                Banco(v, m, 6);
-            }, 1),
-            Variacao(raiz.transform, "Bancos_UmLado", v => Banco(v, m, 6), 1));
-
-        Slot(modular, "Itens",
-            Variacao(raiz.transform, "Itens_PratoECopo", v =>
-            {
-                Disco(v, -5, 0, 8, 1, 3, m.brancoToldo);
-                v.Caixa(2, 8, -1, 3, 4, 3, m.metal);
-                v.Caixa(3, 12, 0, 1, 1, 1, m.ferro);
-            }, 1),
-            Variacao(raiz.transform, "Itens_VasoComFlor", v =>
-            {
-                v.Caixa(-2, 8, -2, 4, 4, 4, m.portaAzul);
-                v.Caixa(-1, 12, -1, 2, 3, 2, m.folha);
-                v.Celula(0, 15, 0, m.florRosa);
-                v.Celula(-2, 14, 1, m.florAmarela);
-                v.Celula(2, 14, -1, m.florVermelha);
-            }, 1));
-
-        Concluir(raiz, nome);
-    }
-
-    static void Mesa(Voxels v, Materiais m, Material toalhaA, Material toalhaB)
-    {
-        foreach (int x in new[] { -9, 7 })
-            foreach (int z in new[] { -4, 2 })
-                v.Caixa(x, 0, z, 2, 6, 2, m.madeiraEscura);
-
-        v.Caixa(-10, 6, -5, 20, 2, 10, m.madeira);
-
-        if (toalhaA == null) return;
-
-        // Toalha: cobre o tampo (y = 7) e cai 3 voxels dos dois lados compridos, em xadrez de dois tons
-        for (int x = -10; x < 10; x++)
-        {
-            for (int z = -5; z < 5; z++)
-                v.Celula(x, 7, z, ((x + 10) / 2 + (z + 5) / 2) % 2 == 0 ? toalhaA : toalhaB);
-            for (int y = 4; y <= 6; y++)
-            {
-                v.Celula(x, y, -6, ((x + 10) / 2) % 2 == 0 ? toalhaA : toalhaB);
-                v.Celula(x, y, 5, ((x + 10) / 2) % 2 == 0 ? toalhaA : toalhaB);
-            }
-        }
-    }
-
-    static void Banco(Voxels v, Materiais m, int z0)
-    {
-        v.Caixa(-10, 3, z0, 20, 2, 4, m.madeira);
-        foreach (int x in new[] { -9, 7 })
-            v.Caixa(x, 0, z0 + 1, 2, 3, 2, m.madeiraEscura);
-    }
-
     // Varal de quintal: dois postes, a linha entre eles e as roupas penduradas. Origem no meio da base, varal ao longo de X.
     static void MontarVaralDeQuintal(string nome, Materiais m)
     {
         Iniciar();
         GameObject raiz = new GameObject(nome);
         var modular = raiz.AddComponent<ObjetoModular>();
-        AdicionarColisor(raiz, -26, 0, -1, -24, 26, 1);
-        AdicionarColisor(raiz, 24, 0, -1, 26, 26, 1);
+        AdicionarColisor(raiz, -26, 0, -1, -24, 18, 1);
+        AdicionarColisor(raiz, 24, 0, -1, 26, 18, 1);
 
         Slot(modular, "Poste",
             Variacao(raiz.transform, "Poste_Madeira", v =>
             {
-                v.Caixa(-26, 0, -1, 2, 26, 2, m.madeiraEscura);
-                v.Caixa(24, 0, -1, 2, 26, 2, m.madeiraEscura);
-                v.Caixa(-26, 24, 0, 52, 1, 1, m.antena);
+                v.Caixa(-26, 0, -1, 2, 18, 2, m.madeiraEscura);
+                v.Caixa(24, 0, -1, 2, 18, 2, m.madeiraEscura);
+                v.Caixa(-26, 17, 0, 52, 1, 1, m.antena);
             }, 1),
             Variacao(raiz.transform, "Poste_Ferro", v =>
             {
-                v.Caixa(-26, 0, 0, 1, 26, 1, m.ferro);
-                v.Caixa(25, 0, 0, 1, 26, 1, m.ferro);
+                v.Caixa(-26, 0, 0, 1, 18, 1, m.ferro);
+                v.Caixa(25, 0, 0, 1, 18, 1, m.ferro);
                 v.Caixa(-27, 0, -1, 3, 1, 3, m.ferro);
                 v.Caixa(24, 0, -1, 3, 1, 3, m.ferro);
-                v.Caixa(-26, 24, 0, 52, 1, 1, m.antena);
+                v.Caixa(-26, 17, 0, 52, 1, 1, m.antena);
             }, 1));
 
         Slot(modular, "Roupas",
             Variacao(raiz.transform, "Roupas_Camisas", v =>
             {
                 Material[] cores = { m.roupaAzul, m.roupaBranca, m.roupaAmarela, m.roupaVermelha };
-                for (int i = 0, x = -22; x < 16; x += 9, i++) Camisa(v, x, 23, cores[i % cores.Length]);
+                for (int i = 0, x = -22; x < 16; x += 9, i++) Camisa(v, x, 16, cores[i % cores.Length]);
             }, 1),
             Variacao(raiz.transform, "Roupas_Lencois", v =>
             {
-                v.Caixa(-22, 11, 0, 18, 13, 1, m.roupaBranca);
-                v.Caixa(0, 11, 0, 20, 13, 1, m.roupaAzul);
+                v.Caixa(-22, 4, 0, 18, 13, 1, m.roupaBranca);
+                v.Caixa(0, 4, 0, 20, 13, 1, m.roupaAzul);
             }, 1),
             Variacao(raiz.transform, "Roupas_Mistas", v =>
             {
-                Camisa(v, -22, 23, m.roupaAmarela);
-                v.Caixa(-10, 11, 0, 3, 13, 1, m.roupaAzul);
-                v.Caixa(-6, 11, 0, 3, 13, 1, m.roupaAzul);
-                v.Caixa(0, 13, 0, 16, 11, 1, m.roupaBranca);
-                Camisa(v, 16, 23, m.roupaVermelha);
+                Camisa(v, -22, 16, m.roupaAmarela);
+                v.Caixa(-10, 4, 0, 3, 13, 1, m.roupaAzul);
+                v.Caixa(-6, 4, 0, 3, 13, 1, m.roupaAzul);
+                v.Caixa(0, 6, 0, 16, 11, 1, m.roupaBranca);
+                Camisa(v, 16, 16, m.roupaVermelha);
             }, 1));
 
         Concluir(raiz, nome);
@@ -1457,45 +1392,6 @@ public static partial class GeradorDeCasasEditor
         Concluir(raiz, nome);
     }
 
-    // Roda de bicicleta em pé (aro, raios e cubo), no plano XY. Origem no meio da base.
-    static void MontarRodaDeBicicleta(string nome, Materiais m)
-    {
-        Iniciar();
-        GameObject raiz = new GameObject(nome);
-        var modular = raiz.AddComponent<ObjetoModular>();
-
-        Slot(modular, "Roda",
-            Variacao(raiz.transform, "Roda_Preta", v => Roda(v, m, m.ferro, m.antena), 1),
-            Variacao(raiz.transform, "Roda_Azul", v => Roda(v, m, m.portaAzul, m.antena), 1),
-            Variacao(raiz.transform, "Roda_Enferrujada", v => Roda(v, m, m.ferrugem, m.zincoB), 1));
-
-        Concluir(raiz, nome);
-    }
-
-    static void Roda(Voxels v, Materiais m, Material aro, Material raios)
-    {
-        const int cy = 12, raio = 12;
-
-        for (int y = -raio; y <= raio; y++)
-        {
-            for (int x = -raio; x <= raio; x++)
-            {
-                float d = Mathf.Sqrt(x * x + y * y);
-                if (d >= raio - 1.5f && d <= raio) v.Caixa(x, cy + y, 0, 1, 1, 2, aro);
-            }
-        }
-
-        // Oito raios do cubo até o aro
-        for (int a = 0; a < 8; a++)
-        {
-            float ang = a * Mathf.PI / 4f;
-            for (int r = 2; r < raio - 1; r++)
-                v.Caixa(Mathf.RoundToInt(Mathf.Cos(ang) * r), cy + Mathf.RoundToInt(Mathf.Sin(ang) * r), 0, 1, 1, 1, raios);
-        }
-
-        v.Caixa(-1, cy - 1, 0, 3, 3, 2, m.metal);
-    }
-
     // Escada metálica externa de seis degraus (0,5 m cada) com corrimão, e um patamar no topo. Sobe ao longo de +Z.
     static void MontarEscadaMetalica(string nome, Materiais m)
     {
@@ -1552,84 +1448,6 @@ public static partial class GeradorDeCasasEditor
             v.Caixa(-6, yBase + 10, z, 1, 1, 1, estrutura);
             v.Caixa(5, yBase + 10, z, 1, 1, 1, estrutura);
         }
-    }
-
-    // Pilhas de engradados: de madeira ou de plástico colorido
-    static void MontarEngradados(string nome, Materiais m)
-    {
-        Iniciar();
-        GameObject raiz = new GameObject(nome);
-        var modular = raiz.AddComponent<ObjetoModular>();
-        AdicionarColisor(raiz, 0, 0, 0, 17, 16, 8);
-
-        Slot(modular, "Pilha",
-            Variacao(raiz.transform, "Pilha_Madeira_Um", v => Engradado(v, 0, 0, 0, m.madeira, m.madeiraEscura), 1),
-            Variacao(raiz.transform, "Pilha_Madeira_Pilha", v =>
-            {
-                Engradado(v, 0, 0, 0, m.madeira, m.madeiraEscura);
-                Engradado(v, 9, 0, 0, m.madeira, m.madeiraEscura);
-                Engradado(v, 4, 8, 0, m.madeira, m.madeiraEscura);
-            }, 1),
-            Variacao(raiz.transform, "Pilha_Plastico_Azul", v =>
-            {
-                Engradado(v, 0, 0, 0, m.portaAzul, m.azulParede);
-                Engradado(v, 0, 8, 0, m.portaAzul, m.azulParede);
-            }, 1),
-            Variacao(raiz.transform, "Pilha_Plastico_Vermelho", v =>
-            {
-                Engradado(v, 0, 0, 0, m.roupaVermelha, m.vermelhoDesbotado);
-                Engradado(v, 9, 0, 0, m.roupaAmarela, m.amarelo);
-            }, 1));
-
-        Concluir(raiz, nome);
-    }
-
-    // Engradado 8x8x8: preenchido, com as arestas em outro tom
-    static void Engradado(Voxels v, int x, int y, int z, Material corpo, Material borda)
-    {
-        v.Caixa(x, y, z, 8, 8, 8, corpo);
-        for (int i = 0; i < 8; i++)
-        {
-            foreach (int a in new[] { 0, 7 })
-            {
-                foreach (int b in new[] { 0, 7 })
-                {
-                    v.Celula(x + i, y + a, z + b, borda);
-                    v.Celula(x + a, y + i, z + b, borda);
-                    v.Celula(x + a, y + b, z + i, borda);
-                }
-            }
-        }
-    }
-
-    // Tambor de 200 litros com nervuras, e a tampa fechada ou aberta
-    static void MontarTambor(string nome, Materiais m)
-    {
-        Iniciar();
-        GameObject raiz = new GameObject(nome);
-        var modular = raiz.AddComponent<ObjetoModular>();
-
-        var colisor = raiz.AddComponent<BoxCollider>();
-        colisor.center = new Vector3(0f, 0.9f, 0f);
-        colisor.size = new Vector3(1.4f, 1.8f, 1.4f);
-
-        Slot(modular, "Corpo",
-            Variacao(raiz.transform, "Tambor_Azul", v => CorpoDoTambor(v, m.portaAzul, m.azulParede), 1),
-            Variacao(raiz.transform, "Tambor_Vermelho", v => CorpoDoTambor(v, m.roupaVermelha, m.vermelhoDesbotado), 1),
-            Variacao(raiz.transform, "Tambor_Verde", v => CorpoDoTambor(v, m.folhaEscura, m.folha), 1));
-
-        Slot(modular, "Tampa",
-            Variacao(raiz.transform, "Tampa_Fechada", v => Disco(v, 0, 0, 14, 1, 5, m.metal), 1),
-            Variacao(raiz.transform, "Tampa_Aberta", v => Anel(v, 0, 0, 14, 1, 4f, 5.5f, m.metal), 1));
-
-        Concluir(raiz, nome);
-    }
-
-    static void CorpoDoTambor(Voxels v, Material corpo, Material nervura)
-    {
-        Disco(v, 0, 0, 0, 14, 5, corpo);
-        foreach (int y in new[] { 3, 10 })
-            Anel(v, 0, 0, y, 1, 5.6f, 6.4f, nervura);
     }
 
     // ---------------------------------------------------------------- modelo em voxels e malha ProBuilder

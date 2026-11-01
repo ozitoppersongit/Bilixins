@@ -54,6 +54,8 @@ public class MapaGerador : MonoBehaviour
 
     [Header("Player")]
     [SerializeField] SpawnDefinicao player;
+    [Tooltip("Se preenchido, o player nasce aqui (posição e giro do objeto) em vez de no pixel da cor do Player.")]
+    [SerializeField] Transform pontoDeSpawnDoPlayer;
 
     [Header("Batalha")]
     public GameObject battlePrefab;
@@ -312,6 +314,9 @@ public class MapaGerador : MonoBehaviour
             Encaixar(PlayerInstanciado, CentroDaArea(posicaoPlayer.Value.x, posicaoPlayer.Value.y, 1, 1), Vector3.zero,
                 AlturaDoPiso(pisoDoPlayer) + relevo.nivel[posicaoPlayer.Value.y * largura + posicaoPlayer.Value.x]);
 
+            if (pontoDeSpawnDoPlayer != null)
+                PlayerInstanciado.transform.SetPositionAndRotation(pontoDeSpawnDoPlayer.position, pontoDeSpawnDoPlayer.rotation);
+
             if (controller != null) controller.enabled = true;
         }
         else if (playerValido)
@@ -489,6 +494,17 @@ public class MapaGerador : MonoBehaviour
     // Caixa sobre o retângulo de pixels (x, y, w, h), do nível do chão menos uma folga até a altura das bordas
     void AdicionarParedeInvisivel(Transform pai, int x, int y, int w, int h, float nivel)
     {
+        // Um objeto chamado "AberturaBorda" (com colisor, ex: o início da escada de uma doca) abre um buraco na parede:
+        // o trecho é dividido em pixels e só os que tocam a abertura ficam sem parede.
+        if (TemAberturaNaBorda(x, y, w, h, nivel))
+        {
+            if (w * h == 1) return;
+            for (int i = 0; i < w; i++)
+                for (int j = 0; j < h; j++)
+                    AdicionarParedeInvisivel(pai, x + i, y + j, 1, 1, nivel);
+            return;
+        }
+
         float folga = 2f;
         float alturaTotal = alturaDasBordas + folga * 2f;
 
@@ -501,6 +517,17 @@ public class MapaGerador : MonoBehaviour
 
         BoxCollider caixa = parede.AddComponent<BoxCollider>();
         caixa.size = new Vector3(w * tamanhoDoTile, alturaTotal, h * tamanhoDoTile);
+    }
+
+    bool TemAberturaNaBorda(int x, int y, int w, int h, float nivel)
+    {
+        Vector3 centro = CentroDaArea(x, y, w, h);
+        Vector3 metade = new Vector3(w * tamanhoDoTile / 2f, 3f, h * tamanhoDoTile / 2f);
+
+        foreach (Collider c in Physics.OverlapBox(new Vector3(centro.x, nivel, centro.z), metade, Quaternion.identity, ~0, QueryTriggerInteraction.Collide))
+            if (c.gameObject.name == "AberturaBorda") return true;
+
+        return false;
     }
 
 #if UNITY_EDITOR
