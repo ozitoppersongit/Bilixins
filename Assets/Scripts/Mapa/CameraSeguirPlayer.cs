@@ -12,6 +12,8 @@ public class CameraSeguirPlayer : MonoBehaviour
     [SerializeField] float anguloMaximo = 60f;
     [SerializeField] float anguloInicial = 35f;
     [SerializeField] float raioColisao = 0.3f;
+    [Tooltip("Ponto que a câmera mira, acima do centro do player (como Genshin/Endfield, que miram o peito/cabeça).")]
+    [SerializeField] Vector3 pivo = Vector3.zero;
 
     Transform player;
     float rotX;
@@ -56,9 +58,10 @@ public class CameraSeguirPlayer : MonoBehaviour
         rotY = Mathf.Clamp(rotY, anguloMinimo, anguloMaximo);
 
         Quaternion rotacao = Quaternion.Euler(rotY, rotX, 0);
-        Vector3 posicaoDesejada = player.position - (rotacao * Vector3.forward * distancia);
+        Vector3 alvo = player.position + pivo;
+        Vector3 posicaoDesejada = alvo - (rotacao * Vector3.forward * distancia);
 
-        transform.position = EvitarParedes(player.position, posicaoDesejada);
+        transform.position = EvitarParedes(alvo, posicaoDesejada);
         transform.rotation = rotacao;
     }
 

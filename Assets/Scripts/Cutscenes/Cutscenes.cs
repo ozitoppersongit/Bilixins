@@ -22,7 +22,9 @@ public class Cutscenes : MonoBehaviour
         Esperar,     // espera "tempo" segundos
         Evento,      // dispara "aoExecutar" (ligar um objeto, desligar outro, tocar som...)
         Dialogo,     // pede um diálogo (id em "fala") e espera a UI avisar o fim com DialogoTerminado(); sem UI ouvindo, espera "tempo" segundos
-        Batalha      // o player anda até o inimigo mais perto do marcador (alvo) e a cutscene espera a batalha acabar; fuga ou derrota repete até vencer
+        Batalha,     // inimigo = o mais perto do marcador (alvo). Sem "destino": o player anda até ele. Com "destino": o inimigo é solto de "origem" e cai em "destino", sem o player andar. Espera a batalha acabar; fuga ou derrota repete até vencer
+        EsconderInimigo, // esconde e desliga o inimigo mais perto do marcador (alvo) até o passo Batalha soltá-lo (fica em "origem", se houver)
+        MoverObjeto     // leva "objeto" por cada ponto de "trajeto" na "velocidade"; "esconderAoFinal" desliga o objeto no último ponto
     }
 
     [Serializable]
@@ -33,6 +35,12 @@ public class Cutscenes : MonoBehaviour
         [Tooltip("Camera: duração da transição (0 = corta). Esperar: segundos.")] public float tempo = 1f;
         [Tooltip("AndarPlayer: metros por segundo.")] public float velocidade = 3f;
         [Tooltip("Camera/AndarPlayer: se ligado, o passo seguinte começa junto, sem esperar este acabar.")] public bool simultaneo;
+        [Tooltip("Batalha (soltar): de onde o inimigo sai (ex: o vilão).")] public Transform origem;
+        [Tooltip("Batalha (soltar): onde o inimigo cai, junto do player. Vazio = o player anda até o inimigo.")] public Transform destino;
+        [Tooltip("MoverObjeto: o que anda (ex: o vilão).")] public Transform objeto;
+        [Tooltip("MoverObjeto: pontos do caminho, em ordem (a altura do ponto é a altura do objeto).")] public Transform[] trajeto;
+        [Tooltip("MoverObjeto: desliga o objeto ao chegar no último ponto.")] public bool esconderAoFinal;
+        [Tooltip("MoverObjeto: anda no tempo real, não para quando a batalha congela o jogo.")] public bool tempoReal;
         [Tooltip("Dialogo: id da fala (a UI usa pra escolher o texto).")] public string fala;
         public UnityEvent aoExecutar;
     }
@@ -47,6 +55,17 @@ public class Cutscenes : MonoBehaviour
     }
 
     [Serializable]
+    public class GatilhoDeCutscene
+    {
+        public string nome;
+        public string cutscene;
+        [Tooltip("Volume do gatilho (um Collider, nenhum script nele). Dispara quando o player entra.")] public Collider zona;
+        [Tooltip("Só vale depois que esta cutscene terminou (vazio = sempre).")] public string depoisDe;
+        public bool umaVez = true;
+        [HideInInspector] public bool usado;
+    }
+
+    [Serializable]
     public class ZonaDeCamera
     {
         public string nome;
@@ -58,10 +77,18 @@ public class Cutscenes : MonoBehaviour
     [SerializeField] MapaGerador mapaGerador;
     [SerializeField] CameraSeguirPlayer cameraSeguir;
 
+    [Header("Inimigo solto pelo vilão")]
+    [Tooltip("Prefab do inimigo (o mesmo do tile no MapaGerador). A cutscene cria ele, em vez de ele nascer de um pixel do mapa.")] [SerializeField] GameObject inimigoPrefab;
+    [SerializeField] BilixinsData bilixinDoInimigo;
+    [SerializeField] GameObject telaDeBatalha;
+
     [Header("Cutscenes")]
     [SerializeField] List<Cutscene> cutscenes = new List<Cutscene>();
     [Tooltip("Nome da cutscene que toca sozinha quando o mapa termina de gerar (vazio = nenhuma).")]
     [SerializeField] string cutsceneAoGerarMapa;
+
+    [Header("Gatilhos de cutscene")]
+    [SerializeField] List<GatilhoDeCutscene> gatilhos = new List<GatilhoDeCutscene>();
 
     [Header("Câmera fixa por zona")]
     [SerializeField] bool cameraFixaAtiva = true;
@@ -76,6 +103,7 @@ public class Cutscenes : MonoBehaviour
     public void DialogoTerminado() { dialogoAberto = false; }
 
     bool tocando;
+    readonly HashSet<string> concluidas = new HashSet<string>();
     ZonaDeCamera zonaAtual;
     Behaviour seguirCinemachine;
 
@@ -139,11 +167,14 @@ public class Cutscenes : MonoBehaviour
                 case Tipo.Evento: p.aoExecutar?.Invoke(); break;
                 case Tipo.Dialogo: rodando = StartCoroutine(Dialogo(p)); break;
                 case Tipo.Batalha: rodando = StartCoroutine(Batalha(player, p)); break;
+                case Tipo.EsconderInimigo: { GatilhoDeEncontro e = AcharInimigo(p.alvo); MostrarInimigo(e, false); if (e != null && p.origem != null) e.transform.position = p.origem.position; break; }
+                case Tipo.MoverObjeto: rodando = StartCoroutine(MoverObjeto(p)); break;
             }
             if (rodando != null && !p.simultaneo) yield return rodando;
         }
 
         Travar(false);
+        concluidas.Add(c.nome);
         tocando = false;       // antes do aoTerminar, pra quem ele chamar (ex: AtivarCameraFixa) já ver a cutscene como acabada
         c.aoTerminar?.Invoke();
         aoTerminarCutscene?.Invoke(c.nome);
@@ -217,6 +248,7 @@ public class Cutscenes : MonoBehaviour
     {
         if (aoPedirDialogo == null)
         {
+            Debug.Log($"[Cutscene] Diálogo '{p.fala}' (sem UI ligada, espera {p.tempo}s)");
             yield return new WaitForSeconds(p.tempo); // ninguém da UI ouvindo ainda: só espera
             yield break;
         }
@@ -227,21 +259,129 @@ public class Cutscenes : MonoBehaviour
 
     // O player anda até o inimigo (GatilhoDeEncontro) mais perto do marcador "alvo"; a batalha (sistema à parte, com timeScale 0) começa quando ele encosta.
     // Vitória destrói o gatilho e termina o passo. Fuga ou derrota reativam o gatilho e o player tenta de novo.
-    IEnumerator Batalha(Transform player, Passo p)
+    // O MapaGerador recria os inimigos a cada Play, então o alvo é um marcador: vale o gatilho mais próximo dele (até 3 m).
+    // Um inimigo escondido (EsconderInimigo) é lembrado pelo nome do marcador, porque sai de perto dele.
+    readonly Dictionary<Transform, GatilhoDeEncontro> inimigosEscondidos = new Dictionary<Transform, GatilhoDeEncontro>();
+
+    GatilhoDeEncontro AcharInimigo(Transform marcador)
     {
-        // o MapaGerador recria os inimigos a cada Play, então o alvo é um marcador: vale o gatilho mais próximo dele (até 3 m)
+        if (marcador == null) return null;
+        if (inimigosEscondidos.TryGetValue(marcador, out GatilhoDeEncontro guardado) && guardado != null) return guardado;
+
         GatilhoDeEncontro gatilho = null;
         float melhor = 3f;
-        if (p.alvo != null)
-            foreach (GatilhoDeEncontro g in FindObjectsByType<GatilhoDeEncontro>(FindObjectsSortMode.None))
+        foreach (GatilhoDeEncontro g in FindObjectsByType<GatilhoDeEncontro>(FindObjectsSortMode.None))
+        {
+            float d = Vector3.Distance(g.transform.position, marcador.position);
+            if (d < melhor) { melhor = d; gatilho = g; }
+        }
+        if (gatilho != null) inimigosEscondidos[marcador] = gatilho;
+        return gatilho;
+    }
+
+    void MostrarInimigo(GatilhoDeEncontro g, bool mostrar)
+    {
+        if (g == null) return;
+        foreach (Renderer r in g.GetComponentsInChildren<Renderer>()) r.enabled = mostrar;
+        // o inimigo tem uma cápsula sólida e uma caixa de gatilho (6 m): todos precisam ligar e desligar juntos
+        foreach (Collider c in g.GetComponents<Collider>()) c.enabled = mostrar;
+    }
+
+    // O inimigo aparece em "de". Se "para" for outro ponto ele cai num arco até lá; se for o mesmo, só surge ali (pop).
+    // Depois de "espera" segundos a batalha começa.
+    IEnumerator Soltar(GatilhoDeEncontro g, Vector3 de, Vector3 para, Collider player, float espera)
+    {
+        MostrarInimigo(g, false);
+        g.transform.position = de;
+        Vector3 escala = g.transform.localScale;
+        bool surgir = (de - para).sqrMagnitude < 0.01f;
+        if (surgir) g.transform.localScale = Vector3.zero;
+        foreach (Renderer r in g.GetComponentsInChildren<Renderer>()) r.enabled = true;
+
+        float duracao = surgir ? 0.3f : 0.9f;
+        const float altura = 1.6f;
+        for (float t = 0f; t < duracao && g != null; t += Time.deltaTime)
+        {
+            float k = t / duracao;
+            if (surgir) g.transform.localScale = escala * Mathf.SmoothStep(0f, 1f, k);
+            else
             {
-                float d = Vector3.Distance(g.transform.position, p.alvo.position);
-                if (d < melhor) { melhor = d; gatilho = g; }
+                Vector3 pos = Vector3.Lerp(de, para, k);
+                pos.y += Mathf.Sin(k * Mathf.PI) * altura;
+                g.transform.position = pos;
             }
+            yield return null;
+        }
+        if (g == null) yield break;
+        g.transform.position = para;
+        g.transform.localScale = escala;
+        yield return new WaitForSeconds(espera);
+        if (g == null) yield break;
+        // O player tem dois colliders (cápsula e CharacterController), então ligar o collider encostado dispararia o encontro duas vezes.
+        // Chama o OnTriggerEnter uma vez só; ele mesmo desliga o collider e inicia a batalha.
+        g.SendMessage("OnTriggerEnter", player, SendMessageOptions.DontRequireReceiver);
+    }
+
+    IEnumerator MoverObjeto(Passo p)
+    {
+        if (p.objeto == null || p.trajeto == null) yield break;
+        foreach (Transform ponto in p.trajeto)
+        {
+            if (ponto == null) continue;
+            while (p.objeto != null && Vector3.Distance(p.objeto.position, ponto.position) > 0.05f)
+            {
+                float dt = p.tempoReal ? Time.unscaledDeltaTime : Time.deltaTime;
+                Vector3 dir = ponto.position - p.objeto.position;
+                p.objeto.position = Vector3.MoveTowards(p.objeto.position, ponto.position, p.velocidade * dt);
+                dir.y = 0f;
+                if (dir.sqrMagnitude > 0.0001f) p.objeto.rotation = Quaternion.LookRotation(dir);
+                yield return null;
+            }
+        }
+        if (p.esconderAoFinal && p.objeto != null) p.objeto.gameObject.SetActive(false);
+    }
+
+    // Cria o inimigo da cutscene no ponto dado. Ele não vem do mapa: em Play o MapaGerador junta as malhas do cenário num lote
+    // estático, e um objeto desse lote não se mexe na tela, só o collider dele.
+    GatilhoDeEncontro CriarInimigo(Vector3 pos)
+    {
+        GameObject go = Instantiate(inimigoPrefab, pos, Quaternion.identity);
+        go.name = "Inimigo_" + inimigoPrefab.name;
+        GatilhoDeEncontro g = go.AddComponent<GatilhoDeEncontro>();
+        g.bilixinInimigo = bilixinDoInimigo;
+        g.battlePrefab = telaDeBatalha;
+        return g;
+    }
+
+    IEnumerator Batalha(Transform player, Passo p)
+    {
+        GatilhoDeEncontro gatilho = inimigoPrefab != null && p.origem != null ? CriarInimigo(p.origem.position) : AcharInimigo(p.alvo);
         Collider col = gatilho != null ? gatilho.GetComponent<Collider>() : null;
         if (player == null || gatilho == null || col == null)
         {
             Debug.LogWarning("Cutscenes: passo Batalha não achou um GatilhoDeEncontro com Collider a menos de 3 m do alvo.");
+            yield break;
+        }
+
+        // vilão solta o inimigo: o player fica parado
+        if (p.origem != null)
+        {
+            Vector3 pouso = p.destino != null ? p.destino.position : p.origem.position;
+            while (gatilho != null)
+            {
+                yield return Soltar(gatilho, p.origem.position, pouso, player.GetComponent<Collider>(), p.tempo);
+                if (gatilho == null) break;
+
+                float espera = 0f;
+                while (gatilho != null && FindFirstObjectByType<BattleScript>() == null && espera < 3f)
+                {
+                    espera += Time.unscaledDeltaTime;
+                    yield return null;
+                }
+                while (FindFirstObjectByType<BattleScript>() != null) yield return null;
+                if (gatilho == null) break; // venceu
+
+            }
             yield break;
         }
 
@@ -268,6 +408,22 @@ public class Cutscenes : MonoBehaviour
         }
     }
 
+    // Dispara a cutscene do gatilho quando o player entra no volume (e a cutscene anterior, se houver, já terminou).
+    void VerificarGatilhos()
+    {
+        if (tocando || mapaGerador == null || mapaGerador.PlayerInstanciado == null) return;
+        Vector3 pos = mapaGerador.PlayerInstanciado.transform.position;
+        foreach (GatilhoDeCutscene g in gatilhos)
+        {
+            if (g.zona == null || (g.umaVez && g.usado)) continue;
+            if (!string.IsNullOrEmpty(g.depoisDe) && !concluidas.Contains(g.depoisDe)) continue;
+            if (!g.zona.bounds.Contains(pos)) continue;
+            g.usado = true;
+            Tocar(g.cutscene);
+            return;
+        }
+    }
+
     // A batalha e o menu de pausa usam botões, e a CameraSeguirPlayer trava o cursor no PC: com ele travado não dá pra clicar.
     // Enquanto um dos dois existir o cursor fica solto, e volta ao estado de antes no fim.
     bool batalhaAberta;
@@ -284,6 +440,8 @@ public class Cutscenes : MonoBehaviour
 
     void Update()
     {
+        VerificarGatilhos();
+
         // ESC abre e fecha o menu de pausa durante uma cutscene (o botão de pausa na tela só dá pra usar com toque)
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
