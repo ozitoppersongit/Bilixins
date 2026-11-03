@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Calha
+    second: {fileID: 2100000, guid: 56d33d3b1af87cf408ebcf8f69ad466c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Concreto
     second: {fileID: 2100000, guid: 31874bdaf5e1cd04db549f1f731f3063, type: 2}
   - first:
@@ -19,11 +24,6 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: MadeiraEscura
     second: {fileID: 2100000, guid: 6d4483ea83c7b3046ad3e515956975ac, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Metal
-    second: {fileID: 2100000, guid: 7575fad5e2483da4ba40f52244a6a74f, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
