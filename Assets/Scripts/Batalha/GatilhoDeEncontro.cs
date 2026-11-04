@@ -14,6 +14,9 @@ public class GatilhoDeEncontro : MonoBehaviour
     private GerenciadorBatalha gB;
     private Collider gatilho;
 
+    [Header("Tutorial")]
+    public bool tutorialBatalha = false;
+
     void Awake()
     {
         gatilho = GetComponent<Collider>();
@@ -49,6 +52,8 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     BattleScript battleScript =
         batalha.GetComponent<BattleScript>();
+
+    battleScript.modoTutorial = tutorialBatalha;
 
     battleScript.IniciarBatalha(
         bilixinInimigo,

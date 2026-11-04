@@ -350,6 +350,9 @@ public class Cutscenes : MonoBehaviour
         GatilhoDeEncontro g = go.AddComponent<GatilhoDeEncontro>();
         g.bilixinInimigo = bilixinDoInimigo;
         g.battlePrefab = telaDeBatalha;
+
+        // Ativa o tutorial automaticamente
+        g.tutorialBatalha = true;
         return g;
     }
 

@@ -24,16 +24,12 @@ public class BattleScript : MonoBehaviour
     [Header("UI Jogador")]
     public TextMeshProUGUI nomeJogador;
     public TextMeshProUGUI hpTextoJogador;
-    public Slider hpBarraJogador;
+    public Image hpBarraJogador;
 
     [Header("UI Inimigo")]
     public TextMeshProUGUI nomeInimigo;
     public TextMeshProUGUI hpTextoInimigo;
-    public Slider hpBarraInimigo;
-
-    [Header("Fill das barras")]
-    public Image fillBarraJogador;
-    public Image fillBarraInimigo;
+    public Image hpBarraInimigo;
 
     [Header("Ícones dos tipos")]
     public RawImage iconeTipoJogador;
@@ -62,6 +58,96 @@ public class BattleScript : MonoBehaviour
 
     private bool batalhaPausada = false;
 
+    [Header("Tutorial")]
+    public bool modoTutorial = false;
+    private bool tutorialConcluido = false;
+    public Typewriter typewriterTutorial;
+    public Transform personagemNome;
+    public Image destaqueLutar;
+    public Image destaqueItens;
+    public Image destaqueFugir;
+    public Image destaqueStatus;
+    public Image destaqueTipo;
+
+    [Header("Menu de Ataques")]
+    public GameObject painelAtaques;
+    public Button botaoAtaque1;
+    public Button botaoAtaque2;
+    public TextMeshProUGUI textoAtaque1;
+    public TextMeshProUGUI textoAtaque2;
+
+    [Header("Menu de Itens")]
+    public Button botaoItens;
+    public GameObject painelItens;
+    public Transform conteudoItens;
+    public GameObject prefabBotaoItem;
+
+
+    private IEnumerator ExecutarTutorial()
+{
+    botaoLutar.interactable = false;
+    botaoFugir.interactable = false;
+
+    destaqueLutar.gameObject.SetActive(false);
+    destaqueItens.gameObject.SetActive(false);
+    destaqueFugir.gameObject.SetActive(false);
+
+    personagemNome.gameObject.SetActive(true);
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nEnfim Galego, eu vou te ensinar a batalhar contra qualquer Bilixim."
+    );
+
+    destaqueLutar.gameObject.SetActive(true);
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nPara atacar seu adversário, toque no botão LUTAR.\nVocê pode escolher entre 2 ataques."
+    );
+
+    destaqueLutar.gameObject.SetActive(false);
+    destaqueItens.gameObject.SetActive(true);
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nVocê também pode usar itens durante a batalha.\nPara isso, toque em ITENS para utilizar um item que esteja na sua mochila."
+    );
+
+    destaqueItens.gameObject.SetActive(false);
+    destaqueFugir.gameObject.SetActive(true);
+    
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nO botão FUGIR encerra a batalha e te leva de volta ao mapa."
+    );
+
+    destaqueFugir.gameObject.SetActive(false);
+    destaqueStatus.gameObject.SetActive(true);
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nAqui você pode ver o status dos Bilixins que estão lutando, como o nome e a vida de cada um deles."
+    );
+
+    destaqueStatus.gameObject.SetActive(false);
+    destaqueTipo.gameObject.SetActive(true);
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nE por último, esses ícones representam o tipo de cada Bilixim. Como você pode ver, eu sou de tipo plástico e o do inimigo sendo tipo metal."
+    );
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nAlém disso, certos tipos de Bilixins contra outros tipos possuem vantagens e desvantagens."
+    );
+
+    destaqueTipo.gameObject.SetActive(false);
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nPronto! Agora você já sabe o básico. Boa batalha!"
+    );
+
+    personagemNome.gameObject.SetActive(false);
+
+    tutorialConcluido = true;
+
+    IniciarTurnoJogador();
+}
     public void PausarBatalha()
     {
         batalhaPausada = true;
@@ -111,23 +197,33 @@ public void IniciarBatalha(
     hpJogador = maxHpJogador;
     hpInimigo = maxHpInimigo;
 
-
     AtualizarUI();
 
+    painelAtaques.SetActive(false);
+    painelItens.SetActive(false);
     botaoLutar.interactable = false;
     botaoFugir.interactable = false;
 
     Time.timeScale = 0f;
-    
-    typewriter.Escrever(
-        "Um bilixin selvagem apareceu!"
-    );
 
-    StartCoroutine(IniciarBatalha());
+    tutorialConcluido = !modoTutorial;
+
+    if (modoTutorial)
+    {
+        StartCoroutine(ExecutarTutorial());
+    }
+    else
+    {
+        typewriter.Escrever("Um bilixin selvagem apareceu!");
+        StartCoroutine(IniciarBatalha());
+    }
 }
     void Start()
     {
+        painelAtaques.SetActive(false);
+        painelItens.SetActive(false);
         botaoLutar.interactable = false;
+        botaoItens.interactable = false;
         botaoFugir.interactable = false;
     }
 
@@ -167,9 +263,7 @@ public void IniciarBatalha(
         hpJogador.ToString("F0") + " / " +
         maxHpJogador.ToString("F0");
 
-    hpBarraJogador.maxValue = maxHpJogador;
-    hpBarraJogador.value = hpJogador;
-
+    hpBarraJogador.fillAmount = Mathf.Clamp01((float)hpJogador / maxHpJogador);
 
     // =========================
     // INIMIGO
@@ -182,12 +276,7 @@ public void IniciarBatalha(
         hpInimigo.ToString("F0") + " / " +
         maxHpInimigo.ToString("F0");
 
-    hpBarraInimigo.maxValue = maxHpInimigo;
-    hpBarraInimigo.value = hpInimigo;
-
-    // Esconde a barra quando o HP chegar a 0
-    fillBarraJogador.gameObject.SetActive(hpJogador > 0);
-    fillBarraInimigo.gameObject.SetActive(hpInimigo > 0);
+    hpBarraInimigo.fillAmount = Mathf.Clamp01((float)hpInimigo / maxHpInimigo);
 }
 
 float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
@@ -270,6 +359,10 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
 {
     yield return EsperarBatalha(2f);
 
+    ScreenCapture.CaptureScreenshot(
+                "Screenshot.png"
+            );
+
     if (Random.value < 0.5f)
     {
         // Jogador começa
@@ -282,6 +375,7 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     }
 }
 
+
 IEnumerator TurnoInimigo()
 {
     if (batalhaTerminou)
@@ -289,34 +383,61 @@ IEnumerator TurnoInimigo()
 
     turnoJogador = false;
 
-    botaoLutar.interactable = false;
-    botaoFugir.interactable = false;
+    painelAtaques.SetActive(false);
+    painelItens.SetActive(false);
+
+    BloquearBotoes(true);
+
+    // 75% de chance de escolher o primeiro ataque.
+    // 25% de chance de escolher o segundo.
+    AtaqueBilixin ataqueEscolhido =
+        Random.value < 0.75f
+        ? bilixinInimigo.ataque1
+        : bilixinInimigo.ataque2;
 
     typewriter.Escrever(
-        bilixinInimigo.name + " está atacando!"
+        bilixinInimigo.nome +
+        " usou " +
+        ataqueEscolhido.nome +
+        "!"
     );
 
     yield return EsperarBatalha(1.5f);
 
-    int danoInimigo = Mathf.RoundToInt(
+    int dano = Mathf.RoundToInt(
         CalcularDano(
             bilixinInimigo,
             bilixinJogador,
-            power
+            ataqueEscolhido.poder
         )
     );
 
-    hpJogador -= danoInimigo;
-    hpJogador = Mathf.Max(hpJogador, 0);
+    float multiplicador = MultiplicadorTipo(
+        bilixinInimigo.tipo,
+        bilixinJogador.tipo
+    );
+
+    if (multiplicador > 1f)
+    {
+        typewriter.Escrever("É super efetivo!");
+        yield return EsperarBatalha(1.5f);
+    }
+    else if (multiplicador < 1f)
+    {
+        typewriter.Escrever("Não foi muito efetivo...");
+        yield return EsperarBatalha(1.5f);
+    }
+
+    hpJogador = Mathf.Max(0, hpJogador - dano);
 
     AtualizarUI();
 
     StartCoroutine(EfeitoDano(spriteJogador));
 
     typewriter.Escrever(
-        bilixinInimigo.name +
+        bilixinInimigo.nome +
         " causou " +
-        danoInimigo +
+        dano +
         " de dano!"
     );
 
@@ -326,45 +447,269 @@ IEnumerator TurnoInimigo()
     {
         batalhaTerminou = true;
 
-        botaoLutar.interactable = false;
-        botaoFugir.interactable = false;
-
         yield return StartCoroutine(EfeitoDesmaio(spriteJogador));
 
         StartCoroutine(FinalizarDerrota());
-
         yield break;
     }
 
     IniciarTurnoJogador();
 }
 
-    void IniciarTurnoJogador()
+
+void IniciarTurnoJogador()
+{
+    if (batalhaTerminou) return;
+    if (modoTutorial && !tutorialConcluido) return;
+
+    turnoJogador = true;
+
+    painelAtaques.SetActive(false);
+    painelItens.SetActive(false);
+
+    BloquearBotoes(false);
+
+    typewriter.Escrever("O que " + bilixinJogador.nome + " fará?");
+
+    ScreenCapture.CaptureScreenshot("Screenshot.png");
+}
+
+void MostrarAtaques()
+{
+    if (!turnoJogador || batalhaTerminou) return;
+
+    painelAtaques.SetActive(true);
+    painelItens.SetActive(false);
+
+    botaoAtaque1.interactable = true;
+    botaoAtaque2.interactable = true;
+
+    textoAtaque1.text = bilixinJogador.ataque1.nome;
+    textoAtaque2.text = bilixinJogador.ataque2.nome;
+
+    typewriter.Escrever("Escolha o tipo de ataque.");
+}
+
+public void EscolherAtaque(int numero)
+{
+    if (!turnoJogador || batalhaTerminou)
+        return;
+
+    AtaqueBilixin ataqueEscolhido;
+
+    if (numero == 1)
+        ataqueEscolhido = bilixinJogador.ataque1;
+    else
+        ataqueEscolhido = bilixinJogador.ataque2;
+
+    turnoJogador = false;
+
+    painelAtaques.SetActive(false);
+
+    botaoAtaque1.interactable = false;
+    botaoAtaque2.interactable = false;
+
+    StartCoroutine(
+        ExecutarAtaqueJogador(ataqueEscolhido)
+    );
+}
+
+
+IEnumerator ExecutarAtaqueJogador(AtaqueBilixin ataque)
+{
+    BloquearBotoes(true);
+
+    typewriter.Escrever(
+        bilixinJogador.nome + " usou " + ataque.nome + "!"
+    );
+
+    yield return EsperarBatalha(1.5f);
+
+    int dano = Mathf.RoundToInt(
+        CalcularDano(
+            bilixinJogador,
+            bilixinInimigo,
+            ataque.poder
+        )
+    );
+
+    float multiplicador = MultiplicadorTipo(
+        bilixinJogador.tipo,
+        bilixinInimigo.tipo
+    );
+
+    if (multiplicador > 1f)
     {
-        if (batalhaTerminou)
-            return;
+        typewriter.Escrever("É super efetivo!");
+        yield return EsperarBatalha(1.5f);
+    }
+    else if (multiplicador < 1f)
+    {
+        typewriter.Escrever("Não foi muito efetivo...");
+        yield return EsperarBatalha(1.5f);
+    }
 
-        turnoJogador = true;
+    hpInimigo = Mathf.Max(0, hpInimigo - dano);
 
-        botaoLutar.interactable = true;
-        botaoFugir.interactable = true;
+    AtualizarUI();
 
-        typewriter.Escrever(
-            "O que " + bilixinJogador.name + " fará?"
+    StartCoroutine(EfeitoDano(spriteInimigo));
+
+    typewriter.Escrever(
+        bilixinJogador.nome + " causou " + dano + " de dano!"
+    );
+
+    yield return EsperarBatalha(1.5f);
+
+    if (hpInimigo <= 0)
+    {
+        batalhaTerminou = true;
+
+        yield return StartCoroutine(EfeitoDesmaio(spriteInimigo));
+
+        StartCoroutine(FinalizarVitoria());
+        yield break;
+    }
+
+    StartCoroutine(TurnoInimigo());
+}
+
+
+public void MostrarItens()
+{
+    if (!turnoJogador || batalhaTerminou) return;
+
+    painelItens.SetActive(true);
+    painelAtaques.SetActive(false);
+
+    typewriter.Escrever("Qual item usar?");
+
+    // Limpa os botões anteriores.
+    foreach (Transform filho in conteudoItens)
+    {
+        Destroy(filho.gameObject);
+    }
+
+    InventoryManager inventario = InventoryManager.instancia;
+
+    if (inventario == null)
+    {
+        typewriter.Escrever("Inventário não encontrado!");
+        return;
+    }
+
+    bool encontrouItem = false;
+
+    foreach (ItemStack stack in inventario.ObterItens())
+    {
+        if (stack.item == null || stack.quantidade <= 0)
+            continue;
+
+        encontrouItem = true;
+
+        ItemData itemAtual = stack.item;
+        int quantidadeAtual = stack.quantidade;
+
+        GameObject objeto = Instantiate(
+            prefabBotaoItem,
+            conteudoItens
+        );
+
+        ItemBotaoUI botaoUI = objeto.GetComponent<ItemBotaoUI>();
+
+        botaoUI.Configurar(
+            itemAtual,
+            quantidadeAtual,
+            () => UsarItem(itemAtual)
         );
     }
+
+    if (!encontrouItem)
+    {
+        typewriter.Escrever("Você não possui itens!");
+        painelItens.SetActive(false);
+
+        botaoLutar.interactable = true;
+        botaoItens.interactable = true;
+        botaoFugir.interactable = true;
+    }
+}
+
+
+public void UsarItem(ItemData item)
+{
+    if (!turnoJogador || batalhaTerminou || item == null)
+        return;
+
+    if (item.efeito == null)
+    {
+        typewriter.Escrever("Esse item não possui um efeito!");
+        return;
+    }
+
+    // Tenta aplicar o efeito antes de consumir.
+    bool sucesso = item.efeito.Aplicar(this);
+
+    if (!sucesso)
+    {
+        typewriter.Escrever("Não foi possível usar esse item!");
+        return;
+    }
+
+    // Consome somente se for consumível.
+    if (item.consumivel)
+    {
+        bool removido = InventoryManager.instancia.RemoverItem(item, 1);
+
+        if (!removido)
+        {
+            typewriter.Escrever("Você não possui esse item!");
+            return;
+        }
+    }
+
+    turnoJogador = false;
+
+    painelItens.SetActive(false);
+
+    typewriter.Escrever(
+        bilixinJogador.nome + " utilizou " + item.nome + "!"
+    );
+
+    AtualizarUI();
+
+    StartCoroutine(PassarTurnoAposItem());
+}
+
+IEnumerator PassarTurnoAposItem()
+{
+    yield return EsperarBatalha(1.5f);
+
+    if (batalhaTerminou)
+        yield break;
+
+    StartCoroutine(TurnoInimigo());
+}
+
+
+public void VoltarMenuPrincipal()
+{
+    if (!turnoJogador || batalhaTerminou) return;
+
+    painelAtaques.SetActive(false);
+    painelItens.SetActive(false);
+
+    botaoLutar.interactable = true;
+    botaoItens.interactable = true;
+    botaoFugir.interactable = true;
+
+    typewriter.Escrever("O que " + bilixinJogador.nome + " fará?");
+}
 
     // Essa função será chamada pelo botão LUTAR
     public void Jogar()
     {
-        if (!turnoJogador || batalhaTerminou)
-            return;
-
-        botaoLutar.interactable = false;
-        botaoFugir.interactable = false;
-        turnoJogador = false;
-
-        StartCoroutine(TurnoDeBatalha());
+        MostrarAtaques();
     }
 
     IEnumerator TurnoDeBatalha()
@@ -494,9 +839,17 @@ IEnumerator TurnoInimigo()
 {
     if (batalhaTerminou)
         return;
+    
+    if (modoTutorial)
+        {
+            typewriter.Escrever("Você não pode escapar agora.");
+            return;
+        }
 
     batalhaTerminou = true;
 
+    painelAtaques.SetActive(false);
+    painelItens.SetActive(false);
     botaoLutar.interactable = false;
     botaoFugir.interactable = false;
 
@@ -577,8 +930,7 @@ public void Derrota()
 
     batalhaTerminou = true;
 
-    botaoLutar.interactable = false;
-    botaoFugir.interactable = false;
+    BloquearBotoes(true);
 
     StartCoroutine(FinalizarDerrota());
 }
@@ -666,5 +1018,27 @@ private IEnumerator EfeitoDesmaio(Image imagem)
     Color corFinal = imagem.color;
     corFinal.a = 0f;
     imagem.color = corFinal;
+}
+
+public bool RecuperarHpJogador(int quantidade)
+{
+    if (hpJogador >= maxHpJogador || quantidade <= 0)
+        return false;
+
+    hpJogador = Mathf.Min(
+        hpJogador + quantidade,
+        maxHpJogador
+    );
+
+    AtualizarUI();
+
+    return true;
+}
+
+void BloquearBotoes(bool bloquear)
+{
+    botaoLutar.interactable = !bloquear;
+    botaoItens.interactable = !bloquear;
+    botaoFugir.interactable = !bloquear;
 }
 }

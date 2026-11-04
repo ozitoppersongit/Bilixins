@@ -1,11 +1,17 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Typewriter : MonoBehaviour
 {
     public TMP_Text texto;
     public float velocidade = 0.05f;
+
+    [Header("Tutorial")]
+    public Button botaoContinuar;
+
+    private bool aguardandoContinuar;
 
     public void Escrever(string mensagem)
     {
@@ -24,8 +30,34 @@ public class Typewriter : MonoBehaviour
         }
     }
 
-    void Start()
+    public IEnumerator EscreverTutorial(string mensagem)
     {
-        Escrever("Um bilixin selvagem apareceu!");
+        aguardandoContinuar = false;
+
+        botaoContinuar.gameObject.SetActive(false);
+
+        texto.text = "";
+
+        foreach (char letra in mensagem)
+        {
+            texto.text += letra;
+            yield return new WaitForSecondsRealtime(velocidade);
+        }
+
+        botaoContinuar.gameObject.SetActive(true);
+
+        aguardandoContinuar = true;
+
+        while (aguardandoContinuar)
+        {
+            yield return null;
+        }
+
+        botaoContinuar.gameObject.SetActive(false);
+    }
+
+    public void ContinuarTutorial()
+    {
+        aguardandoContinuar = false;
     }
 }
