@@ -7,12 +7,10 @@ public class GerenciadorBatalha : MonoBehaviour
     public static GerenciadorBatalha instancia;
 
     [Header("Contagem")]
-    public int bilixinsDerrotados = 0;
-    public int totalBilixins = 4;
+    private Missoes m;
+    public int lixoColetado;
+    public int totalLixos;
     public TextMeshProUGUI counterLabel;
-
-    [Header("Cena de vitória")]
-    public string cenaVitoria = "Vitoria";
 
     private void Awake()
     {
@@ -25,22 +23,12 @@ public class GerenciadorBatalha : MonoBehaviour
         {
             Destroy(gameObject);
         }
-
-        counterLabel.text = bilixinsDerrotados.ToString() + " / " + totalBilixins.ToString();
+ 
+        m = FindAnyObjectByType<Missoes>();
     }
 
-    public void BilixinDerrotado()
+    private void Update()
     {
-        bilixinsDerrotados++;
-
-        Debug.Log("Bilixins derrotados: " +
-                  bilixinsDerrotados + "/" + totalBilixins);
-
-        counterLabel.text = bilixinsDerrotados.ToString() + " / " + totalBilixins.ToString();
-
-        if (bilixinsDerrotados >= totalBilixins)
-        {
-            SceneManager.LoadScene(cenaVitoria);
-        }
+        counterLabel.text = m.coletados.ToString() + " / " + m.total.ToString();
     }
 }

@@ -10,6 +10,8 @@ using UnityEngine.Events;
 public class Missoes : MonoBehaviour
 {
     public static Missoes Instance { get; private set; }
+    // painel de missao
+    public Transform missionPanel;
 
     [Serializable]
     public class Missao
@@ -36,8 +38,8 @@ public class Missoes : MonoBehaviour
 
     Missao atual;
     Estado estado = Estado.Parada;
-    int coletados;
-    int total;
+    public int coletados;
+    public int total;
 
     void Awake()
     {
@@ -60,6 +62,7 @@ public class Missoes : MonoBehaviour
         total = m.quantidade > 0 ? m.quantidade : (m.itens != null ? m.itens.childCount : 0);
         estado = Estado.Coletando;
         Debug.Log($"[Missão] NOVA: {m.titulo} (0/{total})");
+        missionPanel.gameObject.SetActive(true);
         m.aoIniciar?.Invoke();
         aoMudarProgresso?.Invoke(m.nome, coletados, total);
     }
@@ -110,5 +113,6 @@ public class Missoes : MonoBehaviour
         atual = null;
         aoMissaoConcluida?.Invoke(m.nome);
         m.aoConcluir?.Invoke();
+        missionPanel.gameObject.SetActive(false);
     }
 }

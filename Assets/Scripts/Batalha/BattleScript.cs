@@ -49,9 +49,17 @@ public class BattleScript : MonoBehaviour
 
     [Header("Ataque")]
     public float power = 40f;
-
     private bool batalhaTerminou = false;
     private bool turnoJogador = false;
+
+    [Header("Dano Crítico e Miss")]
+[Range(0f, 1f)]
+public float chanceMiss = 0.15f;
+
+[Range(0f, 1f)]
+public float chanceCritico = 0.10f;
+
+public float multiplicadorCritico = 1.5f;
 
 
     private GatilhoDeEncontro gatilhoEncontro;
@@ -355,6 +363,16 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     return danoFinal;
 }
 
+bool AtaqueErrou()
+{
+    return Random.value < chanceMiss;
+}
+
+bool AtaqueCritico()
+{
+    return Random.value < chanceCritico;
+}
+
     IEnumerator IniciarBatalha()
 {
     yield return EsperarBatalha(2f);
@@ -404,13 +422,37 @@ IEnumerator TurnoInimigo()
 
     yield return EsperarBatalha(1.5f);
 
-    int dano = Mathf.RoundToInt(
-        CalcularDano(
-            bilixinInimigo,
-            bilixinJogador,
-            ataqueEscolhido.poder
-        )
+// Verifica se o inimigo errou
+if (AtaqueErrou())
+{
+    typewriter.Escrever(
+        bilixinInimigo.nome + " errou o ataque!"
     );
+
+    yield return EsperarBatalha(1.5f);
+
+    IniciarTurnoJogador();
+    yield break;
+}
+
+// Calcula o dano normal
+int dano = Mathf.RoundToInt(
+    CalcularDano(
+        bilixinInimigo,
+        bilixinJogador,
+        ataqueEscolhido.poder
+    )
+);
+
+// Verifica crítico
+bool critico = AtaqueCritico();
+
+if (critico)
+{
+    dano = Mathf.RoundToInt(
+        dano * multiplicadorCritico
+    );
+}
 
     float multiplicador = MultiplicadorTipo(
         bilixinInimigo.tipo,
@@ -434,12 +476,25 @@ IEnumerator TurnoInimigo()
 
     StartCoroutine(EfeitoDano(spriteJogador));
 
+    if (critico)
+{
+    typewriter.Escrever(
+        "ACERTO CRÍTICO! " +
+        bilixinInimigo.nome +
+        " causou " +
+        dano +
+        " de dano!"
+    );
+}
+else
+{
     typewriter.Escrever(
         bilixinInimigo.nome +
         " causou " +
         dano +
         " de dano!"
     );
+}
 
     yield return EsperarBatalha(1.5f);
 
@@ -470,8 +525,6 @@ void IniciarTurnoJogador()
     BloquearBotoes(false);
 
     typewriter.Escrever("O que " + bilixinJogador.nome + " fará?");
-
-    ScreenCapture.CaptureScreenshot("Screenshot.png");
 }
 
 void MostrarAtaques()
@@ -525,13 +578,37 @@ IEnumerator ExecutarAtaqueJogador(AtaqueBilixin ataque)
 
     yield return EsperarBatalha(1.5f);
 
-    int dano = Mathf.RoundToInt(
-        CalcularDano(
-            bilixinJogador,
-            bilixinInimigo,
-            ataque.poder
-        )
+// Verifica se o ataque errou
+if (AtaqueErrou())
+{
+    typewriter.Escrever(
+        bilixinJogador.nome + " errou o ataque!"
     );
+
+    yield return EsperarBatalha(1.5f);
+
+    StartCoroutine(TurnoInimigo());
+    yield break;
+}
+
+// Calcula o dano normal
+int dano = Mathf.RoundToInt(
+    CalcularDano(
+        bilixinJogador,
+        bilixinInimigo,
+        ataque.poder
+    )
+);
+
+// Verifica crítico
+bool critico = AtaqueCritico();
+
+if (critico)
+{
+    dano = Mathf.RoundToInt(
+        dano * multiplicadorCritico
+    );
+}
 
     float multiplicador = MultiplicadorTipo(
         bilixinJogador.tipo,
@@ -555,9 +632,25 @@ IEnumerator ExecutarAtaqueJogador(AtaqueBilixin ataque)
 
     StartCoroutine(EfeitoDano(spriteInimigo));
 
+    if (critico)
+{
     typewriter.Escrever(
-        bilixinJogador.nome + " causou " + dano + " de dano!"
+        "ACERTO CRÍTICO! " +
+        bilixinJogador.nome +
+        " causou " +
+        dano +
+        " de dano!"
     );
+}
+else
+{
+    typewriter.Escrever(
+        bilixinJogador.nome +
+        " causou " +
+        dano +
+        " de dano!"
+    );
+}
 
     yield return EsperarBatalha(1.5f);
 

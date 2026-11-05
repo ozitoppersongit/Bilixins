@@ -13,6 +13,7 @@ public class GatilhoDeEncontro : MonoBehaviour
     public GameObject battlePrefab;
     private GerenciadorBatalha gB;
     private Collider gatilho;
+    private bool batalhaIniciada = false;
 
     [Header("Tutorial")]
     public bool tutorialBatalha = false;
@@ -23,22 +24,25 @@ public class GatilhoDeEncontro : MonoBehaviour
 
         gB = Object.FindAnyObjectByType<GerenciadorBatalha>();
     }
+    
 
-    void OnTriggerEnter(Collider other)
-    {
+void OnTriggerEnter(Collider other)
+{
+    if (!other.CompareTag("Player"))
+        return;
 
-        if (!other.CompareTag("Player"))
-            return;
+    if (batalhaIniciada)
+        return;
 
-        Debug.Log($"GatilhoDeEncontro: player encontrou '{gameObject.name}'.");
+    batalhaIniciada = true;
 
-        if (gatilho != null)
-            gatilho.enabled = false;
+    Debug.Log($"GatilhoDeEncontro: player encontrou '{gameObject.name}'.");
 
+    if (gatilho != null)
+        gatilho.enabled = false;
 
-        // Inicia a batalha
-        StartCoroutine(IniciarBatalhaComTransicao());
-    }
+    StartCoroutine(IniciarBatalhaComTransicao());
+}
 
     private IEnumerator IniciarBatalhaComTransicao()
 {
@@ -107,13 +111,14 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     public void Vencer()
     {
-        gB.BilixinDerrotado();
         Destroy(gameObject);
     }
 
     public void Reativar()
-    {
-        if (gatilho != null) {gatilho.enabled = true;}
+{
+    batalhaIniciada = false;
 
-    }
+    if (gatilho != null)
+        gatilho.enabled = true;
+}
 }

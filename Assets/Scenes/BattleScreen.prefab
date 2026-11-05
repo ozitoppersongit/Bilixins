@@ -3197,6 +3197,9 @@ MonoBehaviour:
   maxHpJogador: 100
   maxHpInimigo: 100
   power: 20
+  chanceMiss: 0.15
+  chanceCritico: 1
+  multiplicadorCritico: 2
   modoTutorial: 0
   typewriterTutorial: {fileID: 8724439811265443625}
   personagemNome: {fileID: 651525870992560706}
