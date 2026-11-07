@@ -1,0 +1,4 @@
+BalancoMadeira_Tora=6A4A2E
+BalancoMadeira_Travessa=7A5636
+BalancoMadeira_Corrente=2B2B2B
+BalancoMadeira_Assento=3F6FA8

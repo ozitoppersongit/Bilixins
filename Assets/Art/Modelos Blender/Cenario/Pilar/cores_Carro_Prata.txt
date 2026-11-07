@@ -1,0 +1,6 @@
+CarroPrata_Lataria=A6ABB0
+CarroPrata_Cabine=A6ABB0
+CarroPrata_Vidro=3A4A52
+CarroPrata_Roda=202226
+CarroPrata_Farol=E8E4D0
+CarroPrata_Lanterna=A02020

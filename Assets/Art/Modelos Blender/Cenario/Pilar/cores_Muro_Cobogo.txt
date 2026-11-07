@@ -1,0 +1,5 @@
+MuroCobogo_Base=B8B2A2
+MuroCobogo_Topo=9C9686
+MuroCobogo_Cobogo=6F6C62
+MuroCobogo_Vazado=CFC9BA
+MuroCobogo_Pilar=A8A290

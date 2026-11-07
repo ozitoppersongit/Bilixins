@@ -1,0 +1,3 @@
+Telhado_Telha=B8562F
+Telhado_Cumeeira=8A3E22
+Telhado_Forro=D9D5C8

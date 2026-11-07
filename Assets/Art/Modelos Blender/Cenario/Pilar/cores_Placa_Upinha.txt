@@ -1,0 +1,4 @@
+UpinhaProp_Poste=3B3B3B
+UpinhaProp_Placa=2A55C0
+UpinhaProp_Faixa=F2F2EC
+UpinhaProp_Logo=8FB4F0

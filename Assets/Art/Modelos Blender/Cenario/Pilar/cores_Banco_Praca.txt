@@ -1,0 +1,2 @@
+BancoPraca_Madeira=7A5230
+BancoPraca_Metal=2B2B2B

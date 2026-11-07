@@ -1,0 +1,4 @@
+TrepaTrepa_Base=2B2B2B
+TrepaTrepa_Tora=6A4A2E
+TrepaTrepa_Travessa=7A5636
+TrepaTrepa_Tapete=34569A

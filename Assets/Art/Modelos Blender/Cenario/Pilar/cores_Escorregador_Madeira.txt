@@ -1,0 +1,5 @@
+EscorregadorMadeira_Tora=6A4A2E
+EscorregadorMadeira_Plataforma=7A5636
+EscorregadorMadeira_Grade=7A5636
+EscorregadorMadeira_Rampa=F2C418
+EscorregadorMadeira_Borda=D9A400

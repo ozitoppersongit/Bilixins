@@ -1,0 +1,3 @@
+TorreVidroA_Vidro=6F93B8
+TorreVidroA_Faixa=C9CED3
+TorreVidroA_Estrutura=9AA3AB

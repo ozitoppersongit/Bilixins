@@ -1,0 +1,9 @@
+MuroEstac_Parede=CDBF93
+MuroEstac_Topo=4A4338
+MuroEstac_Pilar=BFAE82
+MuroEstac_Azul=5F8FC4
+MuroEstac_AzulFiso=3F6FA8
+MuroEstac_Painel=2F5FB0
+MuroEstac_Borda=F2F2EC
+MuroEstac_Letra=F4F1E8
+MuroEstac_Tijolo=B8694C

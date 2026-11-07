@@ -1,0 +1,6 @@
+CarroPreto_Lataria=2B2D32
+CarroPreto_Cabine=2B2D32
+CarroPreto_Vidro=3A4A52
+CarroPreto_Roda=202226
+CarroPreto_Farol=E8E4D0
+CarroPreto_Lanterna=A02020

@@ -1,0 +1,4 @@
+PosteLuz_Base=6E7074
+PosteLuz_Poste=5E6166
+PosteLuz_Braco=5E6166
+PosteLuz_Lampada=F2EFD8

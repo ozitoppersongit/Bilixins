@@ -1,0 +1,7 @@
+SobradoPilarA_Parede=7FA9C9
+SobradoPilarA_Laje=C9C4B8
+SobradoPilarA_Telhado=A8452F
+SobradoPilarA_Porta=5B3A29
+SobradoPilarA_Faixa=E8E2D0
+SobradoPilarA_Janela=4A4F4C
+SobradoPilarA_Vidro=7C9AA2

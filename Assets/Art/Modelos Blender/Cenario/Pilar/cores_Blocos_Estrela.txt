@@ -1,0 +1,2 @@
+BlocosEstrela_Azul=2A66B8
+Estrela_Estrela=F7D117

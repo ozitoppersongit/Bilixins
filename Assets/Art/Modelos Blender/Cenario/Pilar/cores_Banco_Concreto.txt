@@ -1,0 +1,3 @@
+BancoConcreto_Assento=E4E0D4
+BancoConcreto_Encosto=E4E0D4
+BancoConcreto_Perna=CFCABB

@@ -1,0 +1,6 @@
+Praca_Calcada=E4DFD0
+Praca_Areia=E3CE9A
+Praca_Junta=C6C0AE
+Praca_Preto=2E2E2E
+Praca_TijoloA=B9674B
+Praca_TijoloB=A65A41

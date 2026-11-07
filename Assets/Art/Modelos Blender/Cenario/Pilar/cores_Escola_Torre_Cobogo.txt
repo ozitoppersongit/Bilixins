@@ -1,0 +1,4 @@
+EscTorre_Fundo=2A2622
+EscTorre_Estrutura=2F5DAA
+EscTorre_Diagonal=2F5DAA
+EscTorre_Cobogo=D2C6A6

@@ -1,0 +1,3 @@
+PlacaAviso_Poste=6B6F73
+PlacaAviso_Verde=7FA06A
+PlacaAviso_Faixa=F2F2EC

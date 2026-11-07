@@ -1,0 +1,4 @@
+Vaso_Amarelo=E5B73B
+Vaso_Terra=5A3E28
+Vaso_Folha=3F8C35
+Vaso_FolhaClara=6FB04A

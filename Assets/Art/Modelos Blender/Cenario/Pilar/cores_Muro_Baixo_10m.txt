@@ -1,0 +1,4 @@
+MuroBaixo_Parede=E9E3CF
+MuroBaixo_Rodape=D5CFBA
+MuroBaixo_Pilastra=DDD6BF
+MuroBaixo_Capa=CFC8B4

@@ -1,0 +1,2 @@
+BlocosCruz_Cubo=E04542
+BlocosCruz_Cruz=3A2A2A

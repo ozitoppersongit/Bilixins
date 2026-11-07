@@ -1,0 +1,7 @@
+Tijolo=B5573C
+Concreto=B0AEAA
+PortinhaLixeira=D8D2C0
+Junta=8A4A33
+Zinco=9AA0A4
+ZincoEscuro=858B90
+Madeira=6B4A2E

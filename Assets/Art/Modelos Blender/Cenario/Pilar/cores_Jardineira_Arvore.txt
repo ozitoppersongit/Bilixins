@@ -1,0 +1,5 @@
+Jardineira_Muretinha=E4E0D4
+Jardineira_Terra=5A3E28
+Jardineira_Tronco=6B4A2B
+Jardineira_Folha=3F8C35
+Jardineira_FolhaClara=55A843

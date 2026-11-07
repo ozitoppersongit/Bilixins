@@ -1,0 +1,14 @@
+EscCobogo_Parede=DCCDAA
+EscCobogo_Rodape=BDB8AB
+EscCobogo_Laje=C9BD9C
+EscCobogo_Moldura=F4F4EE
+EscCobogo_Vidro=3C4A5A
+EscCobogo_Grade=F4F4EE
+EscCobogo_Peitoril=CFCABB
+EscCobogo_Porta=5C6E5F
+EscCobogo_Fundo=2A2622
+EscCobogo_Armacao=2F5DAA
+EscCobogo_ArCond=E4E2DA
+EscCobogo_Platibanda=8D857A
+EscCobogo_CaixaDagua=2A66B8
+EscCobogo_Perna=6E7074

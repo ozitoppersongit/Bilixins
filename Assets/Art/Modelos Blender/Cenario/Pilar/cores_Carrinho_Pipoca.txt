@@ -1,0 +1,9 @@
+Pipoca_Corpo=D8403C
+Pipoca_Vidro=BFD6E0
+Pipoca_Teto=F2C418
+Pipoca_Roda=2A2A2A
+Pipoca_Eixo=3A3A3A
+Pipoca_Cabo=3A3A3A
+Pipoca_Mastro=3A3A3A
+Pipoca_Toldo0=D8403C
+Pipoca_Toldo1=F4F1E8

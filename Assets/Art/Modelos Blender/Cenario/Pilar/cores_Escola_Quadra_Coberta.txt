@@ -1,0 +1,6 @@
+QuadraCob_Piso=3A74B8
+QuadraCob_Linha=F4F4EE
+QuadraCob_Estrutura=2F5DAA
+QuadraCob_Tela=8FA9C9
+QuadraCob_Metal=B8BDC4
+QuadraCob_Metal2=ADB3BB

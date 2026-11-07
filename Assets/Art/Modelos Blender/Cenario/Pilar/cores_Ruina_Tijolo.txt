@@ -1,0 +1,3 @@
+RuinaTijolo_Tijolo=A8553A
+RuinaTijolo_Reboco=D9CFA8
+RuinaTijolo_Entulho=8A5A44

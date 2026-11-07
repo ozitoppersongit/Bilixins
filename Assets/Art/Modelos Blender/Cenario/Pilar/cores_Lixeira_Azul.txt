@@ -1,0 +1,3 @@
+LixeiraAzul_Corpo=2A66B8
+LixeiraAzul_Tampa=1F4F94
+LixeiraAzul_Logo=F4F1E8

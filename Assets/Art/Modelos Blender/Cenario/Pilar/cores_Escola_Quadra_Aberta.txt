@@ -1,0 +1,6 @@
+QuadraAb_Piso=4F8F55
+QuadraAb_Linha=F4F4EE
+QuadraAb_Trave=F4F4EE
+QuadraAb_Poste=2F5DAA
+QuadraAb_Travessa=2F5DAA
+QuadraAb_Tela=A9B7C9

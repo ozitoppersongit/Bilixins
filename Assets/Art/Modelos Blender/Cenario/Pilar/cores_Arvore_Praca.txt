@@ -1,0 +1,6 @@
+ArvorePraca_Meio=D9D4C4
+ArvorePraca_Grama=5E8F4A
+ArvorePraca_Tronco=5A4630
+ArvorePraca_Copa1=2F6B2A
+ArvorePraca_Copa2=3E8A34
+ArvorePraca_Copa3=2A5A28

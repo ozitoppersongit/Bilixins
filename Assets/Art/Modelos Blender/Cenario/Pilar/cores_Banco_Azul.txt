@@ -1,0 +1,3 @@
+BancoAzul_Assento=2F5FB0
+BancoAzul_Encosto=2F5FB0
+BancoAzul_Perna=3B3B3B

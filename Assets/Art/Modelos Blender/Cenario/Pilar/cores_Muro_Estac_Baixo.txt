@@ -1,0 +1,9 @@
+MuroBaixo_Parede=E9E3CF
+MuroBaixo_Rodape=D5CFBA
+MuroBaixo_Pilastra=DDD6BF
+MuroBaixo_Capa=CFC8B4
+MuroBaixo_Azul=5F8FC4
+MuroBaixo_AzulFiso=3F6FA8
+MuroBaixo_Painel=2F5FB0
+MuroBaixo_Borda=F2F2EC
+MuroBaixo_Letra=F4F1E8

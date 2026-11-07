@@ -1,0 +1,9 @@
+MuroBrum_Parede=CDBF93
+MuroBrum_Topo=4A4338
+MuroBrum_Pilar=BFAE82
+MuroBrum_Nicho=C4B78C
+MuroBrum_Buraco=3A322A
+MuroBrum_Tijolo=B8694C
+MuroBrum_Mancha=B8AB7C
+MuroBrum_Azul=5F8FC4
+MuroBrum_AzulFiso=3F6FA8

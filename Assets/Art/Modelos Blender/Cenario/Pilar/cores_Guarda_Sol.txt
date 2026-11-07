@@ -1,0 +1,4 @@
+GuardaSol_Mastro=3A3A3A
+GuardaSol_Base=6E7074
+GuardaSol_Gomo0=D8403C
+GuardaSol_Gomo1=F4F1E8

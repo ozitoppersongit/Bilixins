@@ -1,0 +1,17 @@
+PisoOeste_Amarelo=F7D117
+PisoOeste_Azul=1F6DC4
+PisoOeste_Branco=F4F1E8
+PisoOeste_Nuvem=7CB6EE
+PisoOeste_Vermelho=E8504A
+PisoOeste_Marrom=5E3B3B
+PisoOeste_Verde=3C9A47
+PisoOeste_Rosa=F0708A
+PisoOeste_Verde2=358040
+PisoOeste_Cel3C9A47=3C9A47
+PisoOeste_CelE8504A=E8504A
+PisoOeste_Cel1F6DC4=1F6DC4
+PisoOeste_Cel5E3B3B=5E3B3B
+PisoOeste_Bola5E3B3B=5E3B3B
+PisoOeste_BolaE8504A=E8504A
+PisoOeste_Bola3C9A47=3C9A47
+PisoOeste_Bola1F6DC4=1F6DC4

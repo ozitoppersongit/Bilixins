@@ -1,0 +1,2 @@
+UpinhaProp_Azul=2F5FB0
+UpinhaProp_Malha=5E6870

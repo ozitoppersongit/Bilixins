@@ -1,0 +1,4 @@
+MesaRedonda_Pe=C9C6BC
+MesaRedonda_Tampo=F1EFE6
+MesaRedonda_PeBanco=C9C6BC
+MesaRedonda_BancoVerde=3E9A45

@@ -1,0 +1,6 @@
+EscolaAla_Parede=E9E0C4
+EscolaAla_Faixa=2F5FB0
+EscolaAla_Telha=B5593A
+EscolaAla_Beiral=D9B04A
+EscolaAla_Veneziana=7A7F86
+EscolaAla_Porta=3E6AB8

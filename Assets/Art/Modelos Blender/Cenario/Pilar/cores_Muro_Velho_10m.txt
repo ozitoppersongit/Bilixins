@@ -1,0 +1,17 @@
+MuroVelho_Parede=CBBF9B
+MuroVelho_Capa=7A7260
+MuroVelho_Mato0=4E7A38
+MuroVelho_Mato1=3F6A2E
+MuroVelho_TijoloTopo=B26A4A
+MuroVelho_Pilastra=B7A97E
+MuroVelho_SujeiraPe=A99F82
+MuroVelho_Musgo0=5E6B3E
+MuroVelho_Musgo1=6E6A4A
+MuroVelho_Mancha0=B8AC86
+MuroVelho_Mancha1=7F8660
+MuroVelho_Mancha2=A8A080
+MuroVelho_Tijolo=B26A4A
+MuroVelho_Umidade=9D9477
+MuroVelho_Buraco=3A322A
+MuroVelho_Rachadura=3E382E
+MuroVelho_TijoloSolto=B26A4A

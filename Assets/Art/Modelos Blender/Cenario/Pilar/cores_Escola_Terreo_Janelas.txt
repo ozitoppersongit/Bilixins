@@ -1,0 +1,9 @@
+EscTerreo_Parede=ECE9E0
+EscTerreo_Rodape=BDB8AB
+EscTerreo_Faixa=F2C418
+EscTerreo_Pilastra=3F44A8
+EscTerreo_Moldura=F4F4EE
+EscTerreo_Vidro=3C4A5A
+EscTerreo_Grade=F4F4EE
+EscTerreo_Peitoril=CFCABB
+EscTerreo_ArCond=E4E2DA

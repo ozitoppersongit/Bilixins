@@ -1,0 +1,6 @@
+CarroBranco_Lataria=E8E8E4
+CarroBranco_Cabine=E8E8E4
+CarroBranco_Vidro=3A4A52
+CarroBranco_Roda=202226
+CarroBranco_Farol=E8E4D0
+CarroBranco_Lanterna=A02020

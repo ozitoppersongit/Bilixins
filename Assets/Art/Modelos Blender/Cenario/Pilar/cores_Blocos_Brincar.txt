@@ -1,0 +1,4 @@
+Blocos_Vermelho=D8403C
+Blocos_Cruz=3A2A2A
+Blocos_Azul=2E6BC0
+Blocos_Estrela=F2C21B
