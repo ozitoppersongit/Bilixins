@@ -53,13 +53,13 @@ public class BattleScript : MonoBehaviour
     private bool turnoJogador = false;
 
     [Header("Dano Crítico e Miss")]
-[Range(0f, 1f)]
-public float chanceMiss = 0.15f;
+    [Range(0f, 1f)]
+    public float chanceMiss = 0.15f;
 
-[Range(0f, 1f)]
-public float chanceCritico = 0.10f;
+    [Range(0f, 1f)]
+    public float chanceCritico = 0.10f;
 
-public float multiplicadorCritico = 1.5f;
+    public float multiplicadorCritico = 1.5f;
 
 
     private GatilhoDeEncontro gatilhoEncontro;
@@ -90,6 +90,72 @@ public float multiplicadorCritico = 1.5f;
     public Transform conteudoItens;
     public GameObject prefabBotaoItem;
 
+    [Header("Cooldown do Ataque Forte")]
+    public TextMeshProUGUI textoCooldownAtaque2;
+
+    private int cooldownAtaque2 = 0;
+    private bool pularReducaoCooldown = false;
+
+    void AtualizarCooldownAtaque2()
+    {
+        if (cooldownAtaque2 > 0)
+        {
+            textoCooldownAtaque2.text =
+                cooldownAtaque2 == 1
+                ? "1 turno"
+                : cooldownAtaque2 + " turnos";
+        }
+        else
+        {
+            textoCooldownAtaque2.text = "";
+        }
+
+        botaoAtaque2.interactable = cooldownAtaque2 <= 0;
+    }
+
+    void ReiniciarBatalhaTutorial()
+    {
+        // Restaura a batalha
+        batalhaTerminou = false;
+        batalhaPausada = false;
+        turnoJogador = false;
+
+        // Restaura a vida dos Bilixins
+        hpJogador = maxHpJogador;
+        hpInimigo = maxHpInimigo;
+
+        // Reseta o cooldown do ataque forte
+        cooldownAtaque2 = 0;
+        pularReducaoCooldown = false;
+
+        // Restaura a aparência dos sprites
+        Color corJogador = spriteJogador.color;
+        corJogador.a = 1f;
+        spriteJogador.color = corJogador;
+
+        Color corInimigo = spriteInimigo.color;
+        corInimigo.a = 1f;
+        spriteInimigo.color = corInimigo;
+
+        // Atualiza a interface
+        AtualizarUI();
+        AtualizarCooldownAtaque2();
+
+        // Fecha os painéis
+        painelAtaques.SetActive(false);
+        painelItens.SetActive(false);
+
+        // Bloqueia os botões durante a preparação
+        BloquearBotoes(true);
+
+        // O tutorial explicativo já foi concluído
+        tutorialConcluido = true;
+
+        typewriter.Escrever("Vamos tentar novamente!");
+
+        // Começa uma nova batalha
+        StartCoroutine(IniciarBatalha());
+    }
 
     private IEnumerator ExecutarTutorial()
 {
@@ -109,7 +175,11 @@ public float multiplicadorCritico = 1.5f;
     destaqueLutar.gameObject.SetActive(true);
 
     yield return typewriterTutorial.EscreverTutorial(
-        "\nPara atacar seu adversário, toque no botão LUTAR.\nVocê pode escolher entre 2 ataques."
+        "\nPara atacar seu adversário, toque no botão LUTAR.\nVocê pode escolher entre 2 ataques: um mediano e um mais forte."
+    );
+
+    yield return typewriterTutorial.EscreverTutorial(
+        "\nPorém, utilizando o ataque forte, você só poderá usar novamente após 2 turnos."
     );
 
     destaqueLutar.gameObject.SetActive(false);
@@ -517,6 +587,21 @@ void IniciarTurnoJogador()
     if (batalhaTerminou) return;
     if (modoTutorial && !tutorialConcluido) return;
 
+    // Atualiza o cooldown ao começar um novo turno.
+    if (cooldownAtaque2 > 0)
+    {
+        if (pularReducaoCooldown)
+        {
+            pularReducaoCooldown = false;
+        }
+        else
+        {
+            cooldownAtaque2--;
+        }
+    }
+
+    AtualizarCooldownAtaque2();
+
     turnoJogador = true;
 
     painelAtaques.SetActive(false);
@@ -535,7 +620,7 @@ void MostrarAtaques()
     painelItens.SetActive(false);
 
     botaoAtaque1.interactable = true;
-    botaoAtaque2.interactable = true;
+    AtualizarCooldownAtaque2();
 
     textoAtaque1.text = bilixinJogador.ataque1.nome;
     textoAtaque2.text = bilixinJogador.ataque2.nome;
@@ -548,12 +633,22 @@ public void EscolherAtaque(int numero)
     if (!turnoJogador || batalhaTerminou)
         return;
 
+    // Impede o uso do ataque forte durante o cooldown.
+    if (numero == 2 && cooldownAtaque2 > 0)
+        return;
+
     AtaqueBilixin ataqueEscolhido;
 
     if (numero == 1)
         ataqueEscolhido = bilixinJogador.ataque1;
     else
         ataqueEscolhido = bilixinJogador.ataque2;
+
+    if (numero == 2)
+    {
+        cooldownAtaque2 = 2;
+        pularReducaoCooldown = true;
+    }
 
     turnoJogador = false;
 
@@ -1034,7 +1129,14 @@ private IEnumerator FinalizarDerrota()
 
     yield return EsperarBatalha(1.5f);
 
-    // Cobre a tela
+    // Se estiver no tutorial, reinicia a batalha.
+    if (modoTutorial)
+    {
+        ReiniciarBatalhaTutorial();
+        yield break;
+    }
+
+    // Comportamento normal fora do tutorial
     yield return StartCoroutine(
         TransicaoBatalha.instancia.Abrir()
     );
@@ -1043,9 +1145,6 @@ private IEnumerator FinalizarDerrota()
 
     if (cameraScript != null)
         cameraScript.enabled = true;
-
-    // Aqui você decide o que acontece depois da derrota.
-    // Exemplo: voltar para uma cena de Game Over.
 
     Destroy(gameObject);
 

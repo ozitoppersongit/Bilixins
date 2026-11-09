@@ -28,16 +28,42 @@ public class MenuPausa : MonoBehaviour
     public CinemachineCamera camera;
     private CameraSeguirPlayer cameraScript;
 
+    [Header("Confirmação de saída")]
+    public GameObject painelConfirmarSaida;
+
     private bool pausado = false;
     private bool animando = false;
     private bool abrindo = false;
     private BattleScript batalha;
+
+    public void Sair()
+    {
+        painelConfirmarSaida.SetActive(true);
+
+        EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    public void ConfirmarSaida()
+    {
+        Time.timeScale = 1f;
+
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void CancelarSaida()
+    {
+        painelConfirmarSaida.SetActive(false);
+
+        EventSystem.current.SetSelectedGameObject(null);
+    }
 
     void Start()
     {
         cameraScript = camera.GetComponent<CameraSeguirPlayer>();
 
         celular.anchoredPosition = posicaoFechado;
+
+        painelConfirmarSaida.SetActive(false);
     }
 
     void Update()
@@ -130,9 +156,4 @@ public class MenuPausa : MonoBehaviour
         batalha.RetomarBatalha();
     }
 }
-
-    public void Sair()
-    {
-        SceneManager.LoadScene("MainMenu");
-    }
 }
