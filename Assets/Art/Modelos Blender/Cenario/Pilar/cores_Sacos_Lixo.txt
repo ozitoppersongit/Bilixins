@@ -1,0 +1,5 @@
+SacoLixo_Preto=1E1E22
+SacoLixo_Azul=3A5FA0
+SacoLixo_Branco=E6E6DE
+SacoLixo_Verde=2F6B3A
+SacoLixo_Cinza=7E858C

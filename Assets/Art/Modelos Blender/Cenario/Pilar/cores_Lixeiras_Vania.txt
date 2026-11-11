@@ -1,0 +1,9 @@
+LixVan_Azul=2F5DAA
+LixVan_Tampa=2B2F36
+LixVan_Etiqueta=23272D
+LixVan_Letra=F8F6EC
+LixVan_Roda=1B1B1B
+LixVan_Vermelha=D8403C
+LixVan_Amarela=F2C21B
+LixVan_Verde=3C9A47
+LixVan_Marrom=7A4A2E

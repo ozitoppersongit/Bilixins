@@ -1,0 +1,4 @@
+LetCol_Verde=1F6B3A
+LetCol_Moldura=F2C21B
+LetCol_Letra=F8F6EC
+LetCol_Poste=3A3F47

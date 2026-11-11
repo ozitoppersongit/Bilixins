@@ -1,0 +1,1 @@
+CrechePortao_Barra=F4F4EE

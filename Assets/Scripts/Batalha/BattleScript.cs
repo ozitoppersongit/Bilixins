@@ -377,10 +377,6 @@ bool AtaqueCritico()
 {
     yield return EsperarBatalha(2f);
 
-    ScreenCapture.CaptureScreenshot(
-                "Screenshot.png"
-            );
-
     if (Random.value < 0.5f)
     {
         // Jogador começa

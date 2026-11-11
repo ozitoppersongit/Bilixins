@@ -1,0 +1,8 @@
+Boladro_Bola=F4F1E8
+Boladro_Remendo=2B2B2B
+Boladro_Olho=FFFFFF
+Boladro_Pupila=111111
+Boladro_Vidro1=7FD1C0
+Boladro_Vidro2=B8E3F2
+Boladro_GarrafaVerde=3E9A45
+Boladro_GarrafaMarrom=8A5A2A

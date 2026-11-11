@@ -1,0 +1,3 @@
+Pote_Vidro=F2F0E4
+Pote_Tampa=E6B422
+Pote_Rotulo=D8403C

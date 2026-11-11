@@ -16,7 +16,6 @@ Creche_PlacaLaranja=E87A3A
 Creche_Emblema=F4F4EE
 Creche_TextoPlaca=F4F4EE
 Creche_PilarVermelho=D8574F
-Creche_Portao=F4F4EE
 Creche_PilarAzul=3A6FD0
 Creche_Mureta=E8DDB5
 Creche_CobogoFundo=8A5A44

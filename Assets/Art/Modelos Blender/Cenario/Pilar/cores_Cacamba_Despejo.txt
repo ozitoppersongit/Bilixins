@@ -1,0 +1,6 @@
+Cacamba_Verde=3FA13F
+Cacamba_VerdeEscuro=2A6B2D
+Cacamba_Interior=2D5A2E
+Cacamba_Ferro=3A3F47
+Cacamba_Ferrugem=8B4A2B
+Cacamba_Letra=F8F6EC

@@ -32,6 +32,9 @@ public class Missoes : MonoBehaviour
     [SerializeField] MapaGerador mapaGerador;
     [SerializeField] List<Missao> missoes = new List<Missao>();
 
+    /// oziel, aqui é o efeito de coleta (opcional): prefab com ParticleSystem de uma rajada que se destrói sozinho. Vazio = nada.
+    [SerializeField] GameObject efeitoColeta;
+
     // missão, coletados, total
     public event Action<string, int, int> aoMudarProgresso;
     public event Action<string> aoMissaoConcluida;
@@ -84,6 +87,7 @@ public class Missoes : MonoBehaviour
                 if (d.magnitude > atual.raioColeta) continue;
 
                 item.gameObject.SetActive(false);
+                if (efeitoColeta != null) Instantiate(efeitoColeta, item.position + Vector3.up * 1.9f, Quaternion.identity);
                 coletados++;
                 Debug.Log($"[Missão] Lixo coletado: {coletados}/{total}");
                 aoMudarProgresso?.Invoke(atual.nome, coletados, total);

@@ -1,0 +1,3 @@
+LetRec_Verde=1F6B3A
+LetRec_Moldura=F2C21B
+LetRec_Letra=F8F6EC
