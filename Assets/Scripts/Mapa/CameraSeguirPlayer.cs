@@ -54,6 +54,7 @@ public class CameraSeguirPlayer : MonoBehaviour
     static float sensibilidadeOpcao = 1f;
     static bool inverterYOpcao = false;
     static bool opcoesCarregadas = false;
+    private bool cameraControladaPorToque;
 
     public static float SensibilidadeOpcao
     {
@@ -430,32 +431,32 @@ public class CameraSeguirPlayer : MonoBehaviour
         foreach (var toque in Touchscreen.current.touches)
         {
             int id = toque.touchId.ReadValue();
-
             Vector2 posicao = toque.position.ReadValue();
-
             var fase = toque.phase.ReadValue();
 
-            // O dedo precisa começar no lado direito.
+            // Registrar somente quando um novo toque começa.
             if (fase == UnityEngine.InputSystem.TouchPhase.Began)
             {
                 if (posicao.x > Screen.width / 2f && dedoCamera == -1)
                 {
                     dedoCamera = id;
+                    cameraControladaPorToque = true;
                 }
             }
 
-            // Somente o dedo registrado controla a câmera.
-            if (id == dedoCamera)
+            // Apenas o dedo que começou na metade direita controla a câmera.
+            if (cameraControladaPorToque && id == dedoCamera)
             {
                 if (fase == UnityEngine.InputSystem.TouchPhase.Moved)
                 {
-                    deltaCameraMobile = toque.delta.ReadValue();
+                    deltaCameraMobile += toque.delta.ReadValue();
                 }
 
                 if (fase == UnityEngine.InputSystem.TouchPhase.Ended ||
                     fase == UnityEngine.InputSystem.TouchPhase.Canceled)
                 {
                     dedoCamera = -1;
+                    cameraControladaPorToque = false;
                 }
             }
         }

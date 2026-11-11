@@ -138,7 +138,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemBotaoUI
   icone: {fileID: 3204302486695817755}
   nome: {fileID: 4477939882604570940}
-  quantidade: {fileID: 4477939882604570940}
+  quantidade: {fileID: 4917451135166988186}
   botao: {fileID: 3612594675906451373}
 --- !u!1 &2560754879284682268
 GameObject:
@@ -446,8 +446,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 40
-  m_fontSizeBase: 40
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

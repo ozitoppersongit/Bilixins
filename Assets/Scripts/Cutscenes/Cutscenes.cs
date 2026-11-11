@@ -107,6 +107,18 @@ public class Cutscenes : MonoBehaviour
     ZonaDeCamera zonaAtual;
     Behaviour seguirCinemachine;
 
+    [Header("Controles")]
+    [SerializeField] CanvasGroup joystickCanvas;
+
+    void ControlarJoystick(bool ativo)
+{
+    if (joystickCanvas == null) return;
+
+    joystickCanvas.alpha = ativo ? 1f : 0f;
+    joystickCanvas.interactable = ativo;
+    joystickCanvas.blocksRaycasts = ativo;
+}
+
     void Awake()
     {
         Instance = this;
@@ -144,7 +156,9 @@ public class Cutscenes : MonoBehaviour
         Cutscene c = cutscenes.Find(x => x.nome == nome);
         if (c == null) { Debug.LogWarning($"Cutscenes: não existe cutscene chamada '{nome}'."); return; }
         if (tocando) { Debug.LogWarning($"Cutscenes: '{nome}' ignorada, já tem uma cutscene tocando."); return; }
+        ControlarJoystick(false);
         StartCoroutine(Executar(c));
+        
     }
 
     IEnumerator Executar(Cutscene c)
@@ -178,6 +192,7 @@ public class Cutscenes : MonoBehaviour
         tocando = false;       // antes do aoTerminar, pra quem ele chamar (ex: AtivarCameraFixa) já ver a cutscene como acabada
         c.aoTerminar?.Invoke();
         aoTerminarCutscene?.Invoke(c.nome);
+        ControlarJoystick(true);
     }
 
     // Liga/desliga o que controla player e câmera. Durante a cutscene a câmera é movida direto pelo passo.
