@@ -67,43 +67,60 @@ public class MenuPausa : MonoBehaviour
     }
 
     void Update()
+{
+    if (!animando)
+        return;
+
+    float passo = velocidade * Time.unscaledDeltaTime;
+
+    Vector2 destino;
+
+    if (abrindo)
+        destino = posicaoAberto;
+    else
+        destino = posicaoFechado;
+
+    celular.anchoredPosition = Vector2.MoveTowards(
+        celular.anchoredPosition,
+        destino,
+        passo
+    );
+
+    if (celular.anchoredPosition == destino)
     {
-        if (!animando)
-            return;
-
-        float passo = velocidade * Time.unscaledDeltaTime;
-
-        Vector2 destino;
+        animando = false;
 
         if (abrindo)
-            destino = posicaoAberto;
-        else
-            destino = posicaoFechado;
-
-        celular.anchoredPosition = Vector2.MoveTowards(
-            celular.anchoredPosition,
-            destino,
-            passo
-        );
-
-        if (celular.anchoredPosition == destino)
         {
-            animando = false;
+            // Terminou de abrir
+            botaoRetomar.gameObject.SetActive(true);
+        }
+        else
+        {
+            // Terminou de fechar
+            pausado = false;
 
-            if (abrindo)
+            // Verifica se ainda existe uma batalha
+            batalha = Object.FindAnyObjectByType<BattleScript>();
+
+            if (batalha != null)
             {
-                // Terminou de abrir
-                botaoRetomar.gameObject.SetActive(true);
+                // Continua com o mundo congelado
+                Time.timeScale = 0f;
+
+                // A câmera continua desativada
+                cameraScript.enabled = false;
             }
             else
             {
-                // Terminou de fechar
-                pausado = false;
+                // Fora da batalha, volta ao normal
                 Time.timeScale = 1f;
+
                 cameraScript.enabled = true;
             }
         }
     }
+}
 
     public void AbrirOpcoes()
 {

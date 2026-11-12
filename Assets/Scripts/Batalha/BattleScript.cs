@@ -26,6 +26,9 @@ public class BattleScript : MonoBehaviour
     public TextMeshProUGUI hpTextoJogador;
     public Image hpBarraJogador;
 
+    public Button botaoPularTutorial;
+    private Coroutine coroutineTutorial;
+
     [Header("UI Inimigo")]
     public TextMeshProUGUI nomeInimigo;
     public TextMeshProUGUI hpTextoInimigo;
@@ -76,6 +79,7 @@ public class BattleScript : MonoBehaviour
     public Image destaqueFugir;
     public Image destaqueStatus;
     public Image destaqueTipo;
+    public Button botaoProximoDialogo;
 
     [Header("Menu de Ataques")]
     public GameObject painelAtaques;
@@ -222,10 +226,47 @@ public class BattleScript : MonoBehaviour
 
     personagemNome.gameObject.SetActive(false);
 
+    botaoPularTutorial.gameObject.SetActive(false);
+
     tutorialConcluido = true;
+
+    coroutineTutorial = null;
 
     IniciarTurnoJogador();
 }
+
+    public void PularTutorial()
+    {
+        if (!modoTutorial || tutorialConcluido)
+            return;
+
+        // Interrompe a sequência de falas do tutorial
+        if (coroutineTutorial != null)
+        {
+            StopCoroutine(coroutineTutorial);
+            coroutineTutorial = null;
+        }
+
+        // Esconde os destaques
+        destaqueLutar.gameObject.SetActive(false);
+        destaqueItens.gameObject.SetActive(false);
+        destaqueFugir.gameObject.SetActive(false);
+        destaqueStatus.gameObject.SetActive(false);
+        destaqueTipo.gameObject.SetActive(false);
+
+        // Esconde o Pipagaio
+        personagemNome.gameObject.SetActive(false);
+
+        // Esconde os botões do tutorial
+        botaoPularTutorial.gameObject.SetActive(false);
+        botaoProximoDialogo.gameObject.SetActive(false);
+
+        // Marca o tutorial como concluído
+        tutorialConcluido = true;
+
+        // Inicia o turno do jogador
+        IniciarTurnoJogador();
+    }
     public void PausarBatalha()
     {
         batalhaPausada = true;
@@ -286,9 +327,11 @@ public void IniciarBatalha(
 
     tutorialConcluido = !modoTutorial;
 
+    botaoPularTutorial.gameObject.SetActive(modoTutorial);
+
     if (modoTutorial)
     {
-        StartCoroutine(ExecutarTutorial());
+        coroutineTutorial = StartCoroutine(ExecutarTutorial());
     }
     else
     {
@@ -298,6 +341,8 @@ public void IniciarBatalha(
 }
     void Start()
     {
+        botaoPularTutorial.gameObject.SetActive(modoTutorial && !tutorialConcluido);
+        botaoProximoDialogo.gameObject.SetActive(false);
         painelAtaques.SetActive(false);
         painelItens.SetActive(false);
         botaoLutar.interactable = false;
@@ -1059,7 +1104,21 @@ IEnumerator FinalizarFuga()
 
     // Reativa o inimigo
     if (gatilhoEncontro != null)
-        gatilhoEncontro.Reativar();
+{
+    Ferralha ferralha =
+        gatilhoEncontro.GetComponent<Ferralha>();
+
+    if (ferralha == null)
+        ferralha = gatilhoEncontro.GetComponentInChildren<Ferralha>();
+
+    if (ferralha == null)
+        ferralha = gatilhoEncontro.GetComponentInParent<Ferralha>();
+
+    if (ferralha != null)
+        ferralha.JogadorFugiu();
+
+    gatilhoEncontro.Reativar();
+}
 
     // Destrói a batalha
     Destroy(gameObject);

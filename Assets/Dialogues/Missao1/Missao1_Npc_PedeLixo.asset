@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e61313f2065207a4bb061dbb5d3e66ef, type: 3}
+  m_Name: Missao1_Npc_PedeLixo
+  m_EditorClassIdentifier: Assembly-CSharp::DialogoData
+  id: Missao1_Npc_PedeLixo
+  falas:
+  - nomePersonagem: NPC sem nome
+    texto: "Opa Galego, beleza? Ent\xE3o, se voc\xEA n\xE3o se importar, eu preciso da sua ajuda."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0
+  - nomePersonagem: NPC sem nome
+    texto: "Voc\xEA precisa achar 12 lixos que est\xE3o espalhados pela cidade."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0
+  - nomePersonagem: NPC sem nome
+    texto: "Tranquilo para voc\xEA?"
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0

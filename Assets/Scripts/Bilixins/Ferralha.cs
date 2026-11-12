@@ -19,7 +19,30 @@ public class Ferralha : MonoBehaviour, IDerrotaAnimada, IAntesDaBatalha
     [Tooltip("Opcional: o que mais acontece quando ela começa o ataque, antes da batalha.")]
     public UnityEvent aoAtacar;
 
+    [Header("Controle de perseguição")]
+    private bool ignorandoJogador = false;
+
     bool derrotada;
+
+public void JogadorFugiu()
+{
+    // Impede uma nova perseguição
+    ignorandoJogador = true;
+
+    // Volta a zanzar normalmente
+    VoltarAoNormal();
+}
+
+public bool PodePerseguir()
+{
+    return !derrotada && !ignorandoJogador;
+}
+
+public void JogadorSaiuDaVisao()
+{
+    // Só libera quando o jogador sair do gatilho
+    ignorandoJogador = false;
+}
 
     void Reset()
     {
@@ -29,7 +52,8 @@ public class Ferralha : MonoBehaviour, IDerrotaAnimada, IAntesDaBatalha
     // ---------- antes da batalha: encara o player e ataca; a batalha abre quando o ataque termina ----------
     public float IniciarAntesDaBatalha(Transform player)
     {
-        if (derrotada) return 0f;
+        if (!PodePerseguir())
+            return 0f;
         if (animator == null) animator = GetComponentInParent<Animator>();
         if (animator == null) return 0f;
 

@@ -175,11 +175,6 @@ public class DialogoUI : MonoBehaviour
 
     void EncerrarDialogo()
     {
-        if (Cutscenes.Instance != null)
-        {
-            Cutscenes.Instance.DialogoTerminado();
-        }
-
-        Destroy(gameObject);
+        DialogoManager.Instance.FinalizarDialogo();
     }
 }

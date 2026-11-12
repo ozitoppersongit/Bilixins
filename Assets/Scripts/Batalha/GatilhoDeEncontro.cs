@@ -15,6 +15,8 @@ public class GatilhoDeEncontro : MonoBehaviour
     private Collider gatilho;
     private bool batalhaIniciada = false;
 
+    private Ferralha ferralha;
+
     [Header("Tutorial")]
     public bool tutorialBatalha = false;
 
@@ -23,12 +25,21 @@ public class GatilhoDeEncontro : MonoBehaviour
         gatilho = GetComponent<Collider>();
 
         gB = Object.FindAnyObjectByType<GerenciadorBatalha>();
+
+        ferralha = GetComponent<Ferralha>();
+
+        if (ferralha == null)
+            ferralha = GetComponentInParent<Ferralha>();
     }
     
 
 void OnTriggerEnter(Collider other)
 {
     if (!other.CompareTag("Player"))
+        return;
+
+    // Ferralha ainda está ignorando o jogador?
+    if (ferralha != null && !ferralha.PodePerseguir())
         return;
 
     if (batalhaIniciada)
@@ -42,6 +53,17 @@ void OnTriggerEnter(Collider other)
         gatilho.enabled = false;
 
     StartCoroutine(IniciarBatalhaComTransicao(other.transform));
+}
+
+private void OnTriggerExit(Collider other)
+{
+    if (!other.CompareTag("Player"))
+        return;
+
+    if (ferralha != null)
+    {
+        ferralha.JogadorSaiuDaVisao();
+    }
 }
 
     private IEnumerator IniciarBatalhaComTransicao(Transform player = null)

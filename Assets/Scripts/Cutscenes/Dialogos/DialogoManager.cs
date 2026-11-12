@@ -99,4 +99,16 @@ public class DialogoManager : MonoBehaviour
 
         dialogoAberto.Iniciar(dados);
     }
+
+    public void FinalizarDialogo()
+{
+    if (dialogoAberto != null)
+    {
+        Destroy(dialogoAberto.gameObject);
+        dialogoAberto = null;
+    }
+
+    // Só avisa a cutscene depois de liberar o diálogo
+    Cutscenes.Instance?.DialogoTerminado();
+}
 }
