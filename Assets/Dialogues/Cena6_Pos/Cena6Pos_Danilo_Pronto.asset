@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e61313f2065207a4bb061dbb5d3e66ef, type: 3}
+  m_Name: Cena6Pos_Danilo_Pronto
+  m_EditorClassIdentifier: Assembly-CSharp::DialogoData
+  id: Cena6Pos_Danilo_Pronto
+  falas:
+  - nomePersonagem: ...
+    texto: (Galego acena para Danilo e ele se entende com o Caixorro, agora juntos eles podem mover os sacos de lixo para o local de despejo adequado)
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0

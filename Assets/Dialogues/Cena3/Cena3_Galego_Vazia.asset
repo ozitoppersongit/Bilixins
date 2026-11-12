@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e61313f2065207a4bb061dbb5d3e66ef, type: 3}
+  m_Name: Cena3_Galego_Vazia
+  m_EditorClassIdentifier: Assembly-CSharp::DialogoData
+  id: Cena3_Galego_Vazia
+  falas:
+  - nomePersonagem: Galego
+    texto: "Oxe, eu nunca vi a comunidade t\xE3o vazia assim. Como o Seu Evandro disse, eles devem estar todos dentro de suas casas."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 1
+  - nomePersonagem: Pipagaio
+    texto: "\xC9, mas, como o Seu Evandro disse, tamb\xE9m tem gente que n\xE3o \xE9 muito boa em obedecer ordens."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0

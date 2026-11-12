@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e61313f2065207a4bb061dbb5d3e66ef, type: 3}
+  m_Name: Cena5Pos_Vania_Falar
+  m_EditorClassIdentifier: Assembly-CSharp::DialogoData
+  id: Cena5Pos_Vania_Falar
+  falas:
+  - nomePersonagem: "Dona V\xE2nia"
+    texto: "Bem\u2026 eu acho que posso falar com os outros moradores para a gente come\xE7ar a separar o nosso lixo se isso vai ajudar a manter a comunidade limpa."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 1

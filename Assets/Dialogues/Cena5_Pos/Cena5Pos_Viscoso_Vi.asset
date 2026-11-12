@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e61313f2065207a4bb061dbb5d3e66ef, type: 3}
+  m_Name: Cena5Pos_Viscoso_Vi
+  m_EditorClassIdentifier: Assembly-CSharp::DialogoData
+  id: Cena5Pos_Viscoso_Vi
+  falas:
+  - nomePersonagem: Viscoso
+    texto: "Mo\xE7a, eu vi jogarem um saco do alto do pr\xE9dio, e pelo que eu posso ver tem um local para despejar o lixo logo ali do lado, se voc\xEAs n\xE3o se importam de jogar lixo por aqui, ent\xE3o por que ligam se eu espalho ele pra todo lado?"
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0
+  - nomePersonagem: "Dona V\xE2nia"
+    texto: "Eu n\xE3-."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 1

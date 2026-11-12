@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e61313f2065207a4bb061dbb5d3e66ef, type: 3}
+  m_Name: Cena3_Criancas_Monstro
+  m_EditorClassIdentifier: Assembly-CSharp::DialogoData
+  id: Cena3_Criancas_Monstro
+  falas:
+  - nomePersonagem: "Crian\xE7as"
+    texto: MONSTRO!!!
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0
+  - nomePersonagem: ...
+    texto: (Elas dizem, apontando para Pipagaio.)
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0
+  - nomePersonagem: Galego
+    texto: "Relaxa a\xED, galera. Ela t\xE1 comigo, \xE9 minha amiga."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 1
+  - nomePersonagem: Pipagaio
+    texto: "E n\xE3o sou um monstro. Me chamo Pipagaio"
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 1
+  - nomePersonagem: Michele
+    texto: "Dona Pipa, voc\xEA n\xE3o vai correr atr\xE1s da gente pra nos devorar, vai?"
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 0
+  - nomePersonagem: Pipagaio
+    texto: "Qu\xEA? Eu n\xE3o! Voc\xEAs n\xE3o s\xE3o de pl\xE1stico. Por que eu tentaria devorar voc\xEAs?"
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 1
