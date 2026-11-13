@@ -15,6 +15,8 @@ public class Cutscenes : MonoBehaviour
     public static Cutscenes Instance { get; private set; }
     public static bool EmCutscene => Instance != null && Instance.tocando;
 
+    public bool EstaTocando => tocando;
+
     public enum Tipo
     {
         Camera,      // leva a câmera até um ponto (alvo) em "tempo" segundos

@@ -1,8 +1,8 @@
-
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 // Orbita ao redor do player.
 // PC: mouse (scroll = zoom, ALT solta o cursor).
@@ -79,6 +79,7 @@ public class CameraSeguirPlayer : MonoBehaviour
     Transform player;
     PlayerMovement playerMovimento;
     Renderer[] renderersPlayer;
+    [SerializeField] private LayerMask layersIgnoradasNoFade;
     bool playerOculto;
     float ultimaTrocaVisibilidade;
 
@@ -158,16 +159,41 @@ public class CameraSeguirPlayer : MonoBehaviour
     }
 
     void PegarPlayer()
+{
+    if (mapaGerador.PlayerInstanciado != null)
     {
-        if (mapaGerador.PlayerInstanciado != null)
+        player = mapaGerador.PlayerInstanciado.transform;
+
+        playerMovimento = player.GetComponent<PlayerMovement>();
+
+        // Pega todos os renderers do jogador
+        Renderer[] todosRenderers =
+            player.GetComponentsInChildren<Renderer>();
+
+        // Filtra os que não devem receber fade
+        List<Renderer> renderersValidos = new List<Renderer>();
+
+        foreach (Renderer r in todosRenderers)
         {
-            player = mapaGerador.PlayerInstanciado.transform;
-            playerMovimento = player.GetComponent<PlayerMovement>();
-            renderersPlayer = player.GetComponentsInChildren<Renderer>();
-            playerOculto = false;
-            PrepararMateriaisDeFade();
+            if (r == null)
+                continue;
+
+            int layer = r.gameObject.layer;
+
+            // Ignora as layers selecionadas no Inspector
+            if ((layersIgnoradasNoFade.value & (1 << layer)) != 0)
+                continue;
+
+            renderersValidos.Add(r);
         }
+
+        renderersPlayer = renderersValidos.ToArray();
+
+        playerOculto = false;
+
+        PrepararMateriaisDeFade();
     }
+}
 
     // Cria, para cada material do player, uma cópia transparente (URP Lit) usada só durante o fade
     void PrepararMateriaisDeFade()

@@ -13,7 +13,9 @@ public class DialogoManager : MonoBehaviour
 
     private DialogoUI dialogoAberto;
 
-    
+    public bool TemDialogoAberto =>
+    dialogoAberto != null &&
+    dialogoAberto.gameObject.activeInHierarchy;
 
     void Awake()
     {
