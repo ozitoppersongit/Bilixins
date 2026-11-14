@@ -30,15 +30,52 @@ public class PlayerMovement : MonoBehaviour
     Vector3 ultimaDirecao = Vector3.forward;
     bool correndo;
 
+    void ProcurarJoystick()
+{
+    JoystickMovimento[] joysticks =
+        FindObjectsByType<JoystickMovimento>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None
+        );
+
+    foreach (JoystickMovimento j in joysticks)
+    {
+        if (j == null)
+            continue;
+
+        // Prioriza o analógico que está ativo na cena
+        if (j.gameObject.activeInHierarchy)
+        {
+            joystick = j;
+            Debug.Log("[PlayerMovement] Analógico ativo encontrado: " + j.name);
+            return;
+        }
+    }
+
+    // Se não houver nenhum ativo, guarda o primeiro encontrado
+    if (joysticks.Length > 0)
+    {
+        joystick = joysticks[0];
+        Debug.Log("[PlayerMovement] Analógico encontrado, mas está inativo.");
+    }
+}
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
-        joystick = FindAnyObjectByType<JoystickMovimento>();
+
         dashCargas = dashCargasMax;
+
+        ProcurarJoystick();
     }
 
     void Update()
     {
+        if (joystick == null || !joystick.gameObject.activeInHierarchy)
+        {
+            ProcurarJoystick();
+        }
+        
         // Leitura do teclado
         Vector2 inputTeclado = Vector2.zero;
 

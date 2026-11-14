@@ -168,6 +168,33 @@ public class DialogoUI : MonoBehaviour
         }
     }
 
+    public void CompletarFala()
+    {
+        // Não faz nada se o Log estiver aberto
+        if (painelLog != null && painelLog.activeSelf)
+            return;
+
+        // Não faz nada se o texto já terminou
+        if (textoTerminouDeEscrever)
+            return;
+
+        // Interrompe o efeito Typewriter
+        if (coroutineTypewriter != null)
+        {
+            StopCoroutine(coroutineTypewriter);
+            coroutineTypewriter = null;
+        }
+
+        // Revela todos os caracteres imediatamente
+        textoDialogo.maxVisibleCharacters = int.MaxValue;
+
+        // Marca a fala como concluída
+        textoTerminouDeEscrever = true;
+
+        // Libera o botão Próximo
+        botaoProximo.gameObject.SetActive(true);
+    }
+
     public void FecharLog()
     {
         painelLog.SetActive(false);
