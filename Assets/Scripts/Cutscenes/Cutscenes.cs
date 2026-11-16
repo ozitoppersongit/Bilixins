@@ -238,28 +238,92 @@ public class Cutscenes : MonoBehaviour
     }
 
     // Anda no plano XZ até o destino; "parar" (opcional) encerra antes se ficar verdadeiro.
-    IEnumerator AndarAte(Transform player, Vector3 destino, float velocidade, Func<bool> parar)
+    IEnumerator AndarAte(
+    Transform player,
+    Vector3 destino,
+    float velocidade,
+    Func<bool> parar)
+{
+    CharacterController cc =
+        player != null ? player.GetComponent<CharacterController>() : null;
+
+    if (cc == null)
+        yield break;
+
+    if (velocidade <= 0f)
     {
-        CharacterController cc = player != null ? player.GetComponent<CharacterController>() : null;
-        if (cc == null) yield break;
-
-        float velocidadeY = 0f;
-        float limite = Time.time + 60f; // segurança: nunca prende o jogo se o destino for inalcançável
-        while (Time.time < limite)
-        {
-            if (parar != null && parar()) break;
-            Vector3 falta = destino - player.position;
-            falta.y = 0f;
-            if (falta.magnitude < 0.15f) break;
-
-            Vector3 dir = falta.normalized;
-            float dt = Mathf.Min(Time.deltaTime, 0.05f);
-            velocidadeY = cc.isGrounded ? -1f : velocidadeY - 20f * dt;
-            cc.Move((dir * velocidade + Vector3.up * velocidadeY) * dt);
-            player.rotation = Quaternion.Slerp(player.rotation, Quaternion.LookRotation(dir), 10f * dt);
-            yield return null;
-        }
+        Debug.LogError("[Cutscene] Velocidade inválida em AndarAte!");
+        yield break;
     }
+
+    float velocidadeY = 0f;
+    float tempoDecorrido = 0f;
+    float tempoParado = 0f;
+
+    Vector3 posicaoAnterior = player.position;
+
+    while (tempoDecorrido < 15f)
+    {
+        if (parar != null && parar())
+            yield break;
+
+        Vector3 falta = destino - player.position;
+        falta.y = 0f;
+
+        if (falta.magnitude < 0.15f)
+            yield break;
+
+        float dt = Mathf.Min(Time.deltaTime, 0.05f);
+        tempoDecorrido += Time.unscaledDeltaTime;
+
+        if (dt <= 0f)
+        {
+            yield return null;
+            continue;
+        }
+
+        Vector3 dir = falta.normalized;
+
+        velocidadeY = cc.isGrounded
+            ? -1f
+            : velocidadeY - 20f * dt;
+
+        cc.Move(
+            (dir * velocidade + Vector3.up * velocidadeY) * dt
+        );
+
+        player.rotation = Quaternion.Slerp(
+            player.rotation,
+            Quaternion.LookRotation(dir),
+            10f * dt
+        );
+
+        Vector3 deslocamento = player.position - posicaoAnterior;
+        deslocamento.y = 0f;
+
+        if (deslocamento.magnitude < 0.001f)
+            tempoParado += Time.unscaledDeltaTime;
+        else
+            tempoParado = 0f;
+
+        if (tempoParado > 2f)
+        {
+            Debug.LogWarning(
+                $"[Cutscene] Player travado tentando chegar em {destino}"
+            );
+
+            yield break;
+        }
+
+        posicaoAnterior = player.position;
+
+        yield return null;
+    }
+
+    Debug.LogWarning(
+        $"[Cutscene] Tempo limite! Destino: {destino}, posição: {player.position}"
+    );
+}
 
     IEnumerator Dialogo(Passo p)
     {
@@ -342,6 +406,16 @@ public class Cutscenes : MonoBehaviour
     IEnumerator MoverObjeto(Passo p)
     {
         if (p.objeto == null || p.trajeto == null) yield break;
+
+        if (p.velocidade <= 0f)
+        {
+            Debug.LogError(
+                "[Cutscene] MoverObjeto com velocidade zero!"
+            );
+
+            yield break;
+        }
+        
         foreach (Transform ponto in p.trajeto)
         {
             if (ponto == null) continue;

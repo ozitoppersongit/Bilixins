@@ -10,6 +10,7 @@ public class ControleInterfaceExploracao : MonoBehaviour
     [Header("Interface")]
     public GameObject minimapa;
     public GameObject analogico;
+    public GameObject botaoDash;
 
     private bool? estadoAnterior;
 
@@ -67,5 +68,8 @@ public class ControleInterfaceExploracao : MonoBehaviour
 
         if (analogico != null)
             analogico.SetActive(mostrar);
+        
+        if (botaoDash != null)
+            botaoDash.SetActive(mostrar);
     }
 }

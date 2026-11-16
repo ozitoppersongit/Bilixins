@@ -380,7 +380,7 @@ public void IniciarBatalha(
     // =========================
 
     nomeJogador.text =
-        bilixinJogador.name + "  Lv." + bilixinJogador.nivel;
+        bilixinJogador.name + "  Nv." + bilixinJogador.nivel;
 
     hpTextoJogador.text =
         hpJogador.ToString("F0") + " / " +
@@ -393,7 +393,7 @@ public void IniciarBatalha(
     // =========================
 
     nomeInimigo.text =
-        bilixinInimigo.name + "  Lv." + bilixinInimigo.nivel;
+        bilixinInimigo.name + "  Nv." + bilixinInimigo.nivel;
 
     hpTextoInimigo.text =
         hpInimigo.ToString("F0") + " / " +

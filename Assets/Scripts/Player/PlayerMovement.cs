@@ -16,6 +16,15 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float dashDistancia = 6f;       // metros percorridos no impulso
     [SerializeField] float corridaMultiplicador = 1.5f; // velocidade da corrida depois do dash
 
+    [Header("Animação")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private float suavizacaoAnimacao = 0.1f;
+    [SerializeField] private float velocidadeMinimaAnimacao = 0.05f;
+
+    private Vector3 posicaoAnterior;
+    private static readonly int VelocidadeAnim =
+        Animator.StringToHash("Velocidade");
+
     CharacterController controller;
 
     [Header("Controles Mobile")]
@@ -29,6 +38,33 @@ public class PlayerMovement : MonoBehaviour
     Vector3 dashDirecao;
     Vector3 ultimaDirecao = Vector3.forward;
     bool correndo;
+
+void AtualizarAnimacao()
+{
+    if (animator == null)
+        return;
+
+    Vector3 deslocamento = transform.position - posicaoAnterior;
+    deslocamento.y = 0f;
+
+    float velocidadeReal = Time.deltaTime > 0f
+        ? deslocamento.magnitude / Time.deltaTime
+        : 0f;
+
+    float velocidadeNormalizada =
+        velocidadeReal > velocidadeMinimaAnimacao
+        ? Mathf.Clamp01(velocidadeReal / Mathf.Max(speed, 0.01f))
+        : 0f;
+
+    animator.SetFloat(
+        VelocidadeAnim,
+        velocidadeNormalizada,
+        suavizacaoAnimacao,
+        Time.deltaTime
+    );
+
+    animator.speed = EmMovimentoRapido ? 1.5f : 1f;
+}
 
     void ProcurarJoystick()
 {
@@ -67,6 +103,22 @@ public class PlayerMovement : MonoBehaviour
         dashCargas = dashCargasMax;
 
         ProcurarJoystick();
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        posicaoAnterior = transform.position;
+    }
+
+    void LateUpdate()
+    {
+        AtualizarAnimacao();
+        posicaoAnterior = transform.position;
+    }
+
+    void OnEnable()
+    {
+        posicaoAnterior = transform.position;
     }
 
     void Update()

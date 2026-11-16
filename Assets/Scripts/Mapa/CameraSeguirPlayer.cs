@@ -123,15 +123,26 @@ public class CameraSeguirPlayer : MonoBehaviour
     }
 
     void OnEnable()
-    {
-        if (mapaGerador != null)
-            mapaGerador.aoTerminarDeGerar.AddListener(PegarPlayer);
+{
+    dedoCamera = -1;
+    cameraControladaPorToque = false;
+    deltaCameraMobile = Vector2.zero;
 
-        TravarCursor();
+    if (mapaGerador != null)
+    {
+        mapaGerador.aoTerminarDeGerar.RemoveListener(PegarPlayer);
+        mapaGerador.aoTerminarDeGerar.AddListener(PegarPlayer);
     }
+
+    TravarCursor();
+}
 
     void OnDisable()
     {
+        dedoCamera = -1;
+        cameraControladaPorToque = false;
+        deltaCameraMobile = Vector2.zero;
+
         if (mapaGerador != null)
             mapaGerador.aoTerminarDeGerar.RemoveListener(PegarPlayer);
 
@@ -453,6 +464,27 @@ public class CameraSeguirPlayer : MonoBehaviour
 
         if (Touchscreen.current == null)
             return Vector2.zero;
+
+        if (dedoCamera != -1)
+        {
+            bool dedoAindaExiste = false;
+
+            foreach (var toque in Touchscreen.current.touches)
+            {
+                if (toque.touchId.ReadValue() == dedoCamera &&
+                    toque.press.isPressed)
+                {
+                    dedoAindaExiste = true;
+                    break;
+                }
+            }
+
+            if (!dedoAindaExiste)
+            {
+                dedoCamera = -1;
+                cameraControladaPorToque = false;
+            }
+        }
 
         foreach (var toque in Touchscreen.current.touches)
         {

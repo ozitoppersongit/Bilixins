@@ -17,7 +17,7 @@ MonoBehaviour:
   - nomePersonagem: Galego
     texto: "Que estranho... Cad\xEA todo mundo?"
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 21300000, guid: 168fa1b53bb6e644fbb7b5685602c1bd, type: 3}
+    portraitDireito: {fileID: 0}
     personagemFalando: 1
   - nomePersonagem: ...
     texto: (Galego olha em volta, confuso.)
@@ -26,8 +26,8 @@ MonoBehaviour:
     personagemFalando: 1
   - nomePersonagem: ???
     texto: Galego!
-    portraitEsquerdo: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
-    portraitDireito: {fileID: 21300000, guid: 168fa1b53bb6e644fbb7b5685602c1bd, type: 3}
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
     personagemFalando: 0
   - nomePersonagem: ...
     texto: "(Grita um homem da janela do primeiro andar do pr\xE9dio \xE0 frente de Galego.)"
@@ -36,16 +36,16 @@ MonoBehaviour:
     personagemFalando: 0
   - nomePersonagem: Galego
     texto: "Opa, Seu Evandro! Como \xE9 que o senhor t\xE1?"
-    portraitEsquerdo: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
-    portraitDireito: {fileID: 21300000, guid: 168fa1b53bb6e644fbb7b5685602c1bd, type: 3}
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
     personagemFalando: 1
   - nomePersonagem: Evandro
     texto: "Galego, cuidado! A Comunidade t\xE1 infestada de bichos feitos de lixo!"
-    portraitEsquerdo: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
-    portraitDireito: {fileID: 21300000, guid: 168fa1b53bb6e644fbb7b5685602c1bd, type: 3}
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
     personagemFalando: 0
   - nomePersonagem: Galego
     texto: "Bicho feito de lixo? O senhor t\xE1 de onda comigo de novo, Seu Evandro?"
-    portraitEsquerdo: {fileID: 21300000, guid: 6a618bbad4a4cff49889bc529cb19f76, type: 3}
-    portraitDireito: {fileID: 21300000, guid: 168fa1b53bb6e644fbb7b5685602c1bd, type: 3}
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
     personagemFalando: 1
