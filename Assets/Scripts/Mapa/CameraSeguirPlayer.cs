@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 // Orbita ao redor do player.
 // PC: mouse (scroll = zoom, ALT solta o cursor).
@@ -55,6 +56,14 @@ public class CameraSeguirPlayer : MonoBehaviour
     static bool inverterYOpcao = false;
     static bool opcoesCarregadas = false;
     private bool cameraControladaPorToque;
+
+    [Header("Zoom por pinça (Mobile)")]
+    [SerializeField] private float sensibilidadePinca = 0.015f;
+
+    private bool fazendoPinca;
+    private int dedoPinca1 = -1;
+    private int dedoPinca2 = -1;
+    private float distanciaAnteriorPinca;
 
     public static float SensibilidadeOpcao
     {
@@ -124,6 +133,8 @@ public class CameraSeguirPlayer : MonoBehaviour
 
     void OnEnable()
 {
+    ResetarToquesCamera();
+
     dedoCamera = -1;
     cameraControladaPorToque = false;
     deltaCameraMobile = Vector2.zero;
@@ -139,6 +150,8 @@ public class CameraSeguirPlayer : MonoBehaviour
 
     void OnDisable()
     {
+        ResetarToquesCamera();
+
         dedoCamera = -1;
         cameraControladaPorToque = false;
         deltaCameraMobile = Vector2.zero;
@@ -459,68 +472,184 @@ public class CameraSeguirPlayer : MonoBehaviour
     }
 
     Vector2 LerArrastoMobile()
+{
+    deltaCameraMobile = Vector2.zero;
+
+    if (Touchscreen.current == null)
+        return Vector2.zero;
+
+    var touches = Touchscreen.current.touches;
+
+    // Verifica se os dedos de uma pinça anterior ainda estão pressionados.
+    if (fazendoPinca)
     {
-        deltaCameraMobile = Vector2.zero;
+        bool encontrou1 = false;
+        bool encontrou2 = false;
 
-        if (Touchscreen.current == null)
-            return Vector2.zero;
+        Vector2 pos1 = Vector2.zero;
+        Vector2 pos2 = Vector2.zero;
 
-        if (dedoCamera != -1)
+        foreach (var toque in touches)
         {
-            bool dedoAindaExiste = false;
+            if (!toque.press.isPressed)
+                continue;
 
-            foreach (var toque in Touchscreen.current.touches)
+            int id = toque.touchId.ReadValue();
+
+            if (id == dedoPinca1)
             {
-                if (toque.touchId.ReadValue() == dedoCamera &&
-                    toque.press.isPressed)
-                {
-                    dedoAindaExiste = true;
-                    break;
-                }
+                encontrou1 = true;
+                pos1 = toque.position.ReadValue();
             }
+            else if (id == dedoPinca2)
+            {
+                encontrou2 = true;
+                pos2 = toque.position.ReadValue();
+            }
+        }
 
-            if (!dedoAindaExiste)
+        if (encontrou1 && encontrou2)
+        {
+            float distanciaAtualPinca = Vector2.Distance(pos1, pos2);
+            float diferenca = distanciaAtualPinca - distanciaAnteriorPinca;
+
+            // Afastar os dedos aproxima a câmera.
+            distanciaAlvo = Mathf.Clamp(
+                distanciaAlvo - diferenca * sensibilidadePinca,
+                distanciaMinima,
+                distanciaMaxima
+            );
+
+            distanciaAnteriorPinca = distanciaAtualPinca;
+
+            // Não permite rotação durante a pinça.
+            return Vector2.zero;
+        }
+
+        // A pinça terminou.
+        fazendoPinca = false;
+        dedoPinca1 = -1;
+        dedoPinca2 = -1;
+        dedoCamera = -1;
+        cameraControladaPorToque = false;
+
+        // Exige um novo toque para voltar a girar a câmera.
+        return Vector2.zero;
+    }
+
+    // Procura até dois dedos válidos na metade direita da tela.
+    int primeiro = -1;
+    int segundo = -1;
+
+    Vector2 posPrimeiro = Vector2.zero;
+    Vector2 posSegundo = Vector2.zero;
+
+    foreach (var toque in touches)
+    {
+        if (!toque.press.isPressed)
+            continue;
+
+        int id = toque.touchId.ReadValue();
+        Vector2 pos = toque.position.ReadValue();
+
+        // A área esquerda fica reservada para o analógico.
+        if (pos.x <= Screen.width * 0.5f)
+            continue;
+
+        // Ignora dedos sobre botões e outros elementos de UI.
+        if (EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject(id))
+            continue;
+
+        if (primeiro == -1)
+        {
+            primeiro = id;
+            posPrimeiro = pos;
+        }
+        else if (segundo == -1)
+        {
+            segundo = id;
+            posSegundo = pos;
+            break;
+        }
+    }
+
+    // Dois dedos válidos: começa o zoom.
+    if (primeiro != -1 && segundo != -1)
+    {
+        fazendoPinca = true;
+        dedoPinca1 = primeiro;
+        dedoPinca2 = segundo;
+
+        distanciaAnteriorPinca =
+            Vector2.Distance(posPrimeiro, posSegundo);
+
+        dedoCamera = -1;
+        cameraControladaPorToque = false;
+
+        return Vector2.zero;
+    }
+
+    // Apenas um dedo: mantém o controle de rotação.
+    bool dedoEncontrado = false;
+
+    foreach (var toque in touches)
+    {
+        int id = toque.touchId.ReadValue();
+        Vector2 pos = toque.position.ReadValue();
+        var fase = toque.phase.ReadValue();
+
+        if (id == dedoCamera && toque.press.isPressed)
+            dedoEncontrado = true;
+
+        if (fase == UnityEngine.InputSystem.TouchPhase.Began)
+        {
+            if (pos.x > Screen.width * 0.5f &&
+                dedoCamera == -1 &&
+                (EventSystem.current == null ||
+                 !EventSystem.current.IsPointerOverGameObject(id)))
+            {
+                dedoCamera = id;
+                cameraControladaPorToque = true;
+                dedoEncontrado = true;
+            }
+        }
+
+        if (cameraControladaPorToque && id == dedoCamera)
+        {
+            if (fase == UnityEngine.InputSystem.TouchPhase.Moved)
+                deltaCameraMobile += toque.delta.ReadValue();
+
+            if (fase == UnityEngine.InputSystem.TouchPhase.Ended ||
+                fase == UnityEngine.InputSystem.TouchPhase.Canceled)
             {
                 dedoCamera = -1;
                 cameraControladaPorToque = false;
             }
         }
-
-        foreach (var toque in Touchscreen.current.touches)
-        {
-            int id = toque.touchId.ReadValue();
-            Vector2 posicao = toque.position.ReadValue();
-            var fase = toque.phase.ReadValue();
-
-            // Registrar somente quando um novo toque começa.
-            if (fase == UnityEngine.InputSystem.TouchPhase.Began)
-            {
-                if (posicao.x > Screen.width / 2f && dedoCamera == -1)
-                {
-                    dedoCamera = id;
-                    cameraControladaPorToque = true;
-                }
-            }
-
-            // Apenas o dedo que começou na metade direita controla a câmera.
-            if (cameraControladaPorToque && id == dedoCamera)
-            {
-                if (fase == UnityEngine.InputSystem.TouchPhase.Moved)
-                {
-                    deltaCameraMobile += toque.delta.ReadValue();
-                }
-
-                if (fase == UnityEngine.InputSystem.TouchPhase.Ended ||
-                    fase == UnityEngine.InputSystem.TouchPhase.Canceled)
-                {
-                    dedoCamera = -1;
-                    cameraControladaPorToque = false;
-                }
-            }
-        }
-
-        return deltaCameraMobile;
     }
+
+    // Evita travar a câmera se o dedo desaparecer.
+    if (dedoCamera != -1 && !dedoEncontrado)
+    {
+        dedoCamera = -1;
+        cameraControladaPorToque = false;
+    }
+
+    return deltaCameraMobile;
+}
+
+void ResetarToquesCamera()
+{
+    dedoCamera = -1;
+    cameraControladaPorToque = false;
+    deltaCameraMobile = Vector2.zero;
+
+    fazendoPinca = false;
+    dedoPinca1 = -1;
+    dedoPinca2 = -1;
+    distanciaAnteriorPinca = 0f;
+}
 
     // Distância (a partir do jogador, na direção dir) até onde a câmera pode ficar sem entrar em paredes.
     float DistanciaLivre(Vector3 origemJogador, Vector3 dir, float distanciaTotal)
