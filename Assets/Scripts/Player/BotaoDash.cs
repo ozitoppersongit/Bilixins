@@ -1,52 +1,50 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using TMPro;
 
-public class BotaoDash : MonoBehaviour,
-    IPointerDownHandler, IPointerUpHandler
+[RequireComponent(typeof(Button))]
+public class BotaoDash : MonoBehaviour
 {
     [Header("Referências")]
     public MapaGerador mapaGerador;
 
     private PlayerMovement playerMovement;
-    private bool segurando;
+    private TMP_Text rotulo;
+    private Color corNormal;
+    private Button botao;
 
     void Start()
     {
         if (mapaGerador == null)
             mapaGerador = FindAnyObjectByType<MapaGerador>();
+        rotulo = GetComponentInChildren<TMP_Text>(true);
+        if (rotulo != null)
+            corNormal = rotulo.color;
+        botao = GetComponent<Button>();
+        botao.onClick.AddListener(AlternarCorrida);
     }
 
     void Update()
     {
-        if (playerMovement == null &&
-            mapaGerador != null &&
-            mapaGerador.PlayerInstanciado != null)
-        {
-            playerMovement =
-                mapaGerador.PlayerInstanciado
-                .GetComponent<PlayerMovement>();
-        }
+        GameObject player = mapaGerador != null ? mapaGerador.PlayerInstanciado : null;
+        if (playerMovement == null || playerMovement.gameObject != player)
+            playerMovement = player != null ? player.GetComponent<PlayerMovement>() : null;
+
+        if (rotulo != null)
+            rotulo.color = playerMovement != null && playerMovement.CorridaLigada
+                ? new Color(0.55f, 1f, 0.55f)
+                : corNormal;
     }
 
-    public void OnPointerDown(PointerEventData eventData)
+    void AlternarCorrida()
     {
-        if (playerMovement == null ||
-            !playerMovement.isActiveAndEnabled)
-            return;
-
-        segurando = true;
-
-        // Mesmo comportamento de apertar Shift
-        playerMovement.IniciarDash();
+        if (playerMovement != null)
+            playerMovement.AlternarCorrida();
     }
 
-    public void OnPointerUp(PointerEventData eventData)
+    void OnDestroy()
     {
-        segurando = false;
-    }
-
-    void OnDisable()
-    {
-        segurando = false;
+        if (botao != null)
+            botao.onClick.RemoveListener(AlternarCorrida);
     }
 }

@@ -152,6 +152,12 @@ public class CameraSeguirPlayer : MonoBehaviour
     {
         ResetarToquesCamera();
 
+        if (efeitoVelocidade > 0f)
+        {
+            efeitoVelocidade = 0f;
+            AplicarFov(fovBase);
+        }
+
         dedoCamera = -1;
         cameraControladaPorToque = false;
         deltaCameraMobile = Vector2.zero;
@@ -370,7 +376,7 @@ public class CameraSeguirPlayer : MonoBehaviour
             distanciaAlvo,
             1f - Mathf.Exp(-suavizacaoZoom * Time.deltaTime));
 
-        // Efeito do dash/corrida: um pouco mais de FOV e de distância
+        // A corrida amplia um pouco o FOV e a distância.
         bool rapido = playerMovimento != null && playerMovimento.EmMovimentoRapido;
         efeitoVelocidade = Mathf.Lerp(
             efeitoVelocidade,

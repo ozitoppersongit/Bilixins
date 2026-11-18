@@ -66,6 +66,7 @@ public class BattleScript : MonoBehaviour
 
 
     private GatilhoDeEncontro gatilhoEncontro;
+    private bool fugaBloqueadaPorCutscene;
 
     private bool batalhaPausada = false;
 
@@ -303,6 +304,7 @@ public void IniciarBatalha(
 
     bilixinInimigo = inimigo;
     gatilhoEncontro = gatilho;
+    fugaBloqueadaPorCutscene = gatilho != null && gatilho.FugaBloqueadaPorCutscene;
 
     spriteJogador.sprite = bilixinJogador.spr;
     spriteInimigo.sprite = bilixinInimigo.spr;
@@ -1069,7 +1071,7 @@ public void VoltarMenuPrincipal()
     if (batalhaTerminou)
         return;
     
-    if (modoTutorial)
+    if (modoTutorial || fugaBloqueadaPorCutscene)
         {
             typewriter.Escrever("Você não pode escapar agora.");
             return;
@@ -1188,6 +1190,13 @@ private IEnumerator FinalizarDerrota()
     if (modoTutorial)
     {
         ReiniciarBatalhaTutorial();
+        yield break;
+    }
+
+    if (gatilhoEncontro != null && (gatilhoEncontro.EhFerralha || gatilhoEncontro.CutsceneResponsavel != null) &&
+        TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.TemTelaDerrota)
+    {
+        TransicaoBatalha.instancia.MostrarDerrota(this, gatilhoEncontro, cameraScript);
         yield break;
     }
 

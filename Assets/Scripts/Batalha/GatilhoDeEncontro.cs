@@ -20,6 +20,19 @@ public class GatilhoDeEncontro : MonoBehaviour
     [Header("Tutorial")]
     public bool tutorialBatalha = false;
 
+    public bool FugaBloqueadaPorCutscene { get; private set; }
+    public Cutscenes CutsceneResponsavel { get; private set; }
+    public bool EhFerralha => ferralha != null;
+    Transform jogadorDoEncontro;
+    Pose poseDoEncontro;
+    bool aguardandoSaidaAposDerrota;
+
+    public void MarcarBatalhaDeCutscene(Cutscenes responsavel)
+    {
+        FugaBloqueadaPorCutscene = ferralha == null;
+        CutsceneResponsavel = FugaBloqueadaPorCutscene ? responsavel : null;
+    }
+
     void Awake()
     {
         gatilho = GetComponent<Collider>();
@@ -30,12 +43,17 @@ public class GatilhoDeEncontro : MonoBehaviour
 
         if (ferralha == null)
             ferralha = GetComponentInParent<Ferralha>();
+        if (ferralha == null)
+            ferralha = GetComponentInChildren<Ferralha>(true);
     }
     
 
 void OnTriggerEnter(Collider other)
 {
     if (!other.CompareTag("Player"))
+        return;
+    if (aguardandoSaidaAposDerrota ||
+        (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota))
         return;
 
     // Ferralha ainda está ignorando o jogador?
@@ -46,6 +64,8 @@ void OnTriggerEnter(Collider other)
         return;
 
     batalhaIniciada = true;
+    jogadorDoEncontro = other.transform;
+    poseDoEncontro = new Pose(jogadorDoEncontro.position, jogadorDoEncontro.rotation);
 
     Debug.Log($"GatilhoDeEncontro: player encontrou '{gameObject.name}'.");
 
@@ -159,4 +179,65 @@ private void OnTriggerExit(Collider other)
     if (gatilho != null)
         gatilho.enabled = true;
 }
+
+    public void ReposicionarAposDerrota()
+    {
+        if (jogadorDoEncontro == null) { Reativar(); return; }
+
+        Pose retorno = poseDoEncontro;
+        CharacterController controller = jogadorDoEncontro.GetComponent<CharacterController>();
+        if (gatilho != null && controller != null)
+        {
+            // O collider está desligado durante a batalha. Rearmá-lo aqui ainda está
+            // protegido pelo estado de retorno e permite calcular seus limites atuais.
+            gatilho.enabled = true;
+            Physics.SyncTransforms();
+            Bounds volume = gatilho.bounds;
+            Vector3 direcao = retorno.position - volume.center;
+            direcao.y = 0f;
+            if (direcao.sqrMagnitude < 0.001f) direcao = -jogadorDoEncontro.forward;
+            direcao.y = 0f;
+            direcao.Normalize();
+            float raioPlayer = Mathf.Max(controller.bounds.extents.x, controller.bounds.extents.z);
+            float distancia = new Vector2(volume.extents.x, volume.extents.z).magnitude + raioPlayer + 0.75f;
+            float alturaDosPes = jogadorDoEncontro.position.y - controller.bounds.min.y;
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 lado = Quaternion.Euler(0f, i * 45f, 0f) * direcao;
+                Vector3 ponto = volume.center + lado * distancia;
+                ponto.y = retorno.position.y + 1.5f;
+                if (!Physics.Raycast(ponto, Vector3.down, out RaycastHit chao, 4f, Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore) || chao.normal.y < 0.65f) continue;
+                float altura = controller.bounds.size.y;
+                Vector3 baseCapsula = chao.point + Vector3.up * (raioPlayer + 0.08f);
+                Vector3 topoCapsula = chao.point + Vector3.up * (Mathf.Max(raioPlayer, altura - raioPlayer) + 0.08f);
+                if (Physics.CheckCapsule(baseCapsula, topoCapsula, raioPlayer, Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore)) continue;
+                retorno.position = chao.point + Vector3.up * (alturaDosPes + 0.08f);
+                break;
+            }
+        }
+        ReposicionarJogador(jogadorDoEncontro, retorno);
+        aguardandoSaidaAposDerrota = gatilho != null && controller != null;
+        if (ferralha != null) ferralha.JogadorSaiuDaVisao();
+        Reativar();
+    }
+
+    void FixedUpdate()
+    {
+        if (!aguardandoSaidaAposDerrota) return;
+        var controller = jogadorDoEncontro != null ? jogadorDoEncontro.GetComponent<CharacterController>() : null;
+        if (gatilho == null || controller == null || !gatilho.bounds.Intersects(controller.bounds))
+            aguardandoSaidaAposDerrota = false;
+    }
+
+    public static void ReposicionarJogador(Transform jogador, Pose pose)
+    {
+        CharacterController controller = jogador.GetComponent<CharacterController>();
+        bool reativar = controller != null && controller.enabled;
+        if (reativar) controller.enabled = false;
+        jogador.SetPositionAndRotation(pose.position, pose.rotation);
+        if (reativar) controller.enabled = true;
+        Physics.SyncTransforms();
+    }
 }

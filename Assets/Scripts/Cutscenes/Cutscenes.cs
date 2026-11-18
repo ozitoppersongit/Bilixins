@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 // Gerenciador central de cutscenes do jogo. Cada cutscene é uma lista de passos feita no Inspector;
 // qualquer script chama Cutscenes.Instance.Tocar("nome"). Enquanto uma cutscene toca, o controle do
@@ -16,6 +17,22 @@ public class Cutscenes : MonoBehaviour
     public static bool EmCutscene => Instance != null && Instance.tocando;
 
     public bool EstaTocando => tocando;
+    Cutscene cutsceneAtual;
+    Transform jogadorDaCutscene;
+    Pose poseInicialJogador;
+    Pose poseInicialCamera;
+    readonly HashSet<GatilhoDeEncontro> inimigosCriados = new HashSet<GatilhoDeEncontro>();
+    readonly Dictionary<Transform, (Pose pose, bool ativo)> objetosDaTentativa =
+        new Dictionary<Transform, (Pose pose, bool ativo)>();
+
+    [Header("Faixas cinematográficas")]
+    [SerializeField, Range(0f, 0.5f)] float alturaFaixa = 0.1f;
+    [SerializeField, Min(0f)] float duracaoFaixas = 0.35f;
+
+    Canvas canvasFaixas;
+    RectTransform faixaSuperior;
+    RectTransform faixaInferior;
+    float aberturaFaixas;
 
     public enum Tipo
     {
@@ -140,6 +157,55 @@ public class Cutscenes : MonoBehaviour
     void OnDisable()
     {
         if (mapaGerador != null) mapaGerador.aoTerminarDeGerar.RemoveListener(AoGerarMapa);
+        aberturaFaixas = 0f;
+        if (canvasFaixas != null) canvasFaixas.enabled = false;
+    }
+
+    void AtualizarFaixas()
+    {
+        float alvo = EstaTocando ? 1f : 0f;
+        aberturaFaixas = duracaoFaixas > 0f
+            ? Mathf.MoveTowards(aberturaFaixas, alvo, Time.unscaledDeltaTime / duracaoFaixas)
+            : alvo;
+
+        if (aberturaFaixas <= 0f || alturaFaixa <= 0f)
+        {
+            if (canvasFaixas != null) canvasFaixas.enabled = false;
+            return;
+        }
+
+        if (canvasFaixas == null)
+        {
+            var objetoCanvas = new GameObject("Faixas cinematográficas", typeof(RectTransform), typeof(Canvas));
+            objetoCanvas.transform.SetParent(transform, false);
+            canvasFaixas = objetoCanvas.GetComponent<Canvas>();
+            canvasFaixas.renderMode = RenderMode.ScreenSpaceOverlay;
+            // Os canvases de batalha e diálogo usam ordem zero.
+            canvasFaixas.sortingOrder = -1;
+            faixaSuperior = CriarFaixa("Faixa superior");
+            faixaInferior = CriarFaixa("Faixa inferior");
+        }
+
+        float altura = alturaFaixa * Mathf.SmoothStep(0f, 1f, aberturaFaixas);
+        faixaSuperior.anchorMin = new Vector2(0f, 1f - altura);
+        faixaSuperior.anchorMax = Vector2.one;
+        faixaInferior.anchorMin = Vector2.zero;
+        faixaInferior.anchorMax = new Vector2(1f, altura);
+        canvasFaixas.enabled = true;
+    }
+
+    RectTransform CriarFaixa(string nome)
+    {
+        var objeto = new GameObject(nome, typeof(RectTransform), typeof(Image));
+        var imagem = objeto.GetComponent<Image>();
+        imagem.color = Color.black;
+        imagem.raycastTarget = false;
+
+        RectTransform faixa = imagem.rectTransform;
+        faixa.SetParent(canvasFaixas.transform, false);
+        faixa.offsetMin = Vector2.zero;
+        faixa.offsetMax = Vector2.zero;
+        return faixa;
     }
 
     void AoGerarMapa()
@@ -166,10 +232,25 @@ public class Cutscenes : MonoBehaviour
     IEnumerator Executar(Cutscene c)
     {
         tocando = true;
+        cutsceneAtual = c;
         yield return null; // deixa o player e a câmera terminarem de se montar
 
         Transform player = mapaGerador != null && mapaGerador.PlayerInstanciado != null ? mapaGerador.PlayerInstanciado.transform : null;
         Travar(true);
+        jogadorDaCutscene = player;
+        if (player != null) poseInicialJogador = new Pose(player.position, player.rotation);
+        if (cameraSeguir != null)
+            poseInicialCamera = new Pose(cameraSeguir.transform.position, cameraSeguir.transform.rotation);
+        objetosDaTentativa.Clear();
+        inimigosCriados.Clear();
+        foreach (Passo passo in c.passos)
+        {
+            Transform objeto = passo.tipo == Tipo.MoverObjeto ? passo.objeto : null;
+            if (objeto != null && !objetosDaTentativa.ContainsKey(objeto))
+                objetosDaTentativa.Add(objeto, (new Pose(objeto.position, objeto.rotation), objeto.gameObject.activeSelf));
+        }
+        while (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota)
+            yield return null;
         c.aoIniciar?.Invoke();
 
         foreach (Passo p in c.passos)
@@ -191,10 +272,41 @@ public class Cutscenes : MonoBehaviour
 
         Travar(false);
         concluidas.Add(c.nome);
+        cutsceneAtual = null;
         tocando = false;       // antes do aoTerminar, pra quem ele chamar (ex: AtivarCameraFixa) já ver a cutscene como acabada
         c.aoTerminar?.Invoke();
         aoTerminarCutscene?.Invoke(c.nome);
-        ControlarJoystick(true);
+        ControlarJoystick(!tocando);
+    }
+
+    public void InterromperParaDerrota()
+    {
+        StopAllCoroutines();
+        dialogoAberto = false;
+    }
+
+    public void ReiniciarAposDerrota(GatilhoDeEncontro encontro)
+    {
+        Cutscene reiniciar = cutsceneAtual;
+        foreach (GatilhoDeEncontro inimigo in inimigosCriados)
+        {
+            if (inimigo == null) continue;
+            inimigo.gameObject.SetActive(false);
+            Destroy(inimigo.gameObject);
+        }
+        if (encontro != null && !inimigosCriados.Contains(encontro)) encontro.Reativar();
+        foreach (var objeto in objetosDaTentativa)
+        {
+            if (objeto.Key == null) continue;
+            objeto.Key.SetPositionAndRotation(objeto.Value.pose.position, objeto.Value.pose.rotation);
+            objeto.Key.gameObject.SetActive(objeto.Value.ativo);
+        }
+        if (jogadorDaCutscene != null) GatilhoDeEncontro.ReposicionarJogador(jogadorDaCutscene, poseInicialJogador);
+        if (cameraSeguir != null)
+            cameraSeguir.transform.SetPositionAndRotation(poseInicialCamera.position, poseInicialCamera.rotation);
+        tocando = false;
+        if (reiniciar != null) Tocar(reiniciar.nome);
+        else Travar(false);
     }
 
     // Liga/desliga o que controla player e câmera. Durante a cutscene a câmera é movida direto pelo passo.
@@ -444,6 +556,7 @@ public class Cutscenes : MonoBehaviour
 
         // Ativa o tutorial automaticamente
         g.tutorialBatalha = true;
+        inimigosCriados.Add(g);
         return g;
     }
 
@@ -456,6 +569,8 @@ public class Cutscenes : MonoBehaviour
             Debug.LogWarning("Cutscenes: passo Batalha não achou um GatilhoDeEncontro com Collider a menos de 3 m do alvo.");
             yield break;
         }
+
+        gatilho.MarcarBatalhaDeCutscene(this);
 
         // vilão solta o inimigo: o player fica parado
         if (p.origem != null)
@@ -568,6 +683,8 @@ public class Cutscenes : MonoBehaviour
 
     void LateUpdate()
     {
+        AtualizarFaixas();
+
         // a tela de batalha religa a CameraSeguirPlayer sozinha ao terminar; durante a cutscene ela fica desligada
         if (tocando && cameraSeguir != null)
         {

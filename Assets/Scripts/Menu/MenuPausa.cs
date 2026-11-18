@@ -103,7 +103,8 @@ public class MenuPausa : MonoBehaviour
             // Verifica se ainda existe uma batalha
             batalha = Object.FindAnyObjectByType<BattleScript>();
 
-            if (batalha != null)
+            if (batalha != null ||
+                (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota))
             {
                 // Continua com o mundo congelado
                 Time.timeScale = 0f;
@@ -136,7 +137,8 @@ public class MenuPausa : MonoBehaviour
 
     public void Pausar()
 {
-    if (pausado || animando)
+    if (pausado || animando ||
+        (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota))
         return;
 
     pausado = true;

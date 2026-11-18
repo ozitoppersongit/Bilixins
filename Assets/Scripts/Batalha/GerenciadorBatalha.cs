@@ -1,16 +1,8 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using TMPro;
 
 public class GerenciadorBatalha : MonoBehaviour
 {
     public static GerenciadorBatalha instancia;
-
-    [Header("Contagem")]
-    private Missoes m;
-    public int lixoColetado;
-    public int totalLixos;
-    public TextMeshProUGUI counterLabel;
 
     private void Awake()
     {
@@ -23,12 +15,5 @@ public class GerenciadorBatalha : MonoBehaviour
         {
             Destroy(gameObject);
         }
- 
-        m = FindAnyObjectByType<Missoes>();
-    }
-
-    private void Update()
-    {
-        counterLabel.text = m.coletados.ToString() + " / " + m.total.ToString();
     }
 }
