@@ -1,9 +1,14 @@
 fileFormatVersion: 2
-guid: cb6d4ec7e1ab29d40bd125f6de3c3add
+guid: 8b087fd9f1d93a94aa5343cc43edfcd7
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Manoel.FaceTexture
+    second: {fileID: 2800000, guid: 91cc15f7bc00f3542ad5f53d8dd385f2, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0

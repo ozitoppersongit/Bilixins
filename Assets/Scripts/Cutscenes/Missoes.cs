@@ -54,6 +54,16 @@ public class Missoes : MonoBehaviour
     public event Action<string> aoMissaoConcluida;
 
     readonly List<MissaoAtiva> ativas = new List<MissaoAtiva>();
+
+    public IEnumerable<Transform> LixosColetaveis()
+    {
+        foreach (MissaoAtiva ativa in ativas)
+        {
+            if (ativa.entregando || ativa.coletados >= ativa.total || ativa.dados.itens == null) continue;
+            foreach (Transform item in ativa.dados.itens)
+                if (item.gameObject.activeInHierarchy) yield return item;
+        }
+    }
     RectTransform lista;
 
     void Awake()
@@ -66,6 +76,26 @@ public class Missoes : MonoBehaviour
     {
         if (Instance == this) Instance = null;
         if (lista != null) Destroy(lista.gameObject);
+    }
+
+    public void EncerrarPartida()
+    {
+        StopAllCoroutines();
+        enabled = false;
+        foreach (MissaoAtiva ativa in ativas)
+        {
+            if (ativa.linha != null) Destroy(ativa.linha);
+        }
+        ativas.Clear();
+        aoMudarProgresso = null;
+        aoMissaoConcluida = null;
+        if (lista != null)
+        {
+            lista.gameObject.SetActive(false);
+            Destroy(lista.gameObject);
+            lista = null;
+        }
+        if (Instance == this) Instance = null;
     }
 
     public void Iniciar(string nome)
@@ -144,6 +174,7 @@ public class Missoes : MonoBehaviour
             item.gameObject.SetActive(false);
             if (efeitoColeta != null) Instantiate(efeitoColeta, item.position + Vector3.up * 1.9f, Quaternion.identity);
             ativa.coletados++;
+            AudioJogo.Instance?.TocarColeta();
             if (ativa.contador != null) ativa.contador.text = $"{ativa.coletados} / {ativa.total}";
             aoMudarProgresso?.Invoke(m.nome, ativa.coletados, ativa.total);
             if (ativa.coletados >= ativa.total)

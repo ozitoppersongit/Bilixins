@@ -17,6 +17,17 @@ public class Cutscenes : MonoBehaviour
     public static bool EmCutscene => Instance != null && Instance.tocando;
 
     public bool EstaTocando => tocando;
+
+    public IEnumerable<Collider> GatilhosDisponiveis()
+    {
+        foreach (GatilhoDeCutscene gatilho in gatilhos)
+        {
+            if (gatilho.zona == null || !gatilho.zona.enabled || !gatilho.zona.gameObject.activeInHierarchy ||
+                (gatilho.umaVez && gatilho.usado)) continue;
+            if (!string.IsNullOrEmpty(gatilho.depoisDe) && !concluidas.Contains(gatilho.depoisDe)) continue;
+            yield return gatilho.zona;
+        }
+    }
     Cutscene cutsceneAtual;
     Transform jogadorDaCutscene;
     Pose poseInicialJogador;
@@ -283,6 +294,32 @@ public class Cutscenes : MonoBehaviour
     {
         StopAllCoroutines();
         dialogoAberto = false;
+    }
+
+    public void EncerrarPartida()
+    {
+        StopAllCoroutines();
+        enabled = false;
+        foreach (GatilhoDeEncontro inimigo in inimigosCriados)
+        {
+            if (inimigo == null) continue;
+            inimigo.gameObject.SetActive(false);
+            Destroy(inimigo.gameObject);
+        }
+        inimigosCriados.Clear();
+        objetosDaTentativa.Clear();
+        concluidas.Clear();
+        foreach (GatilhoDeCutscene gatilho in gatilhos) gatilho.usado = false;
+        cutsceneAtual = null;
+        jogadorDaCutscene = null;
+        tocando = false;
+        dialogoAberto = false;
+        if (canvasFaixas != null)
+        {
+            canvasFaixas.gameObject.SetActive(false);
+            Destroy(canvasFaixas.gameObject);
+        }
+        if (Instance == this) Instance = null;
     }
 
     public void ReiniciarAposDerrota(GatilhoDeEncontro encontro)

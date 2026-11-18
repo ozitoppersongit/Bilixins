@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class PlayerVisual : MonoBehaviour
 {
+    public Vector3 DirecaoVisual => modelo != null
+        ? Quaternion.Euler(0f, -ajusteRotacaoY, 0f) * modelo.forward
+        : transform.forward;
     [Header("Referências")]
     [SerializeField] private Transform jogador;
     [SerializeField] private Transform modelo;

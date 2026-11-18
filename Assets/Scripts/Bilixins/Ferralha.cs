@@ -23,6 +23,7 @@ public class Ferralha : MonoBehaviour, IDerrotaAnimada, IAntesDaBatalha
     private bool ignorandoJogador = false;
 
     bool derrotada;
+    public bool EstaDerrotada => derrotada;
 
 public void JogadorFugiu()
 {

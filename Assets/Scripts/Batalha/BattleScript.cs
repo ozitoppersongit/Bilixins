@@ -326,6 +326,7 @@ public void IniciarBatalha(
     botaoFugir.interactable = false;
 
     Time.timeScale = 0f;
+    AudioJogo.Instance?.IniciarBatalha(this);
 
     tutorialConcluido = !modoTutorial;
 
@@ -350,6 +351,11 @@ public void IniciarBatalha(
         botaoLutar.interactable = false;
         botaoItens.interactable = false;
         botaoFugir.interactable = false;
+    }
+
+    void OnDisable()
+    {
+        AudioJogo.Instance?.EncerrarBatalha(this);
     }
 
     Texture2D PegarIconeTipo(TipoLixo tipo)
@@ -583,7 +589,7 @@ if (critico)
         yield return EsperarBatalha(1.5f);
     }
 
-    hpJogador = Mathf.Max(0, hpJogador - dano);
+    hpJogador = AplicarDano(hpJogador, dano, bilixinJogador.tipo);
 
     AtualizarUI();
 
@@ -764,7 +770,7 @@ if (critico)
         yield return EsperarBatalha(1.5f);
     }
 
-    hpInimigo = Mathf.Max(0, hpInimigo - dano);
+    hpInimigo = AplicarDano(hpInimigo, dano, bilixinInimigo.tipo);
 
     AtualizarUI();
 
@@ -979,8 +985,7 @@ public void VoltarMenuPrincipal()
         yield return EsperarBatalha(1.5f);
     }
 
-        hpInimigo -= danoJogador;
-        hpInimigo = Mathf.Max(hpInimigo, 0);
+        hpInimigo = AplicarDano(hpInimigo, danoJogador, bilixinInimigo.tipo);
 
         AtualizarUI();
 
@@ -1029,8 +1034,7 @@ public void VoltarMenuPrincipal()
             power
         ));
 
-        hpJogador -= danoInimigo;
-        hpJogador = Mathf.Max(hpJogador, 0);
+        hpJogador = AplicarDano(hpJogador, danoInimigo, bilixinJogador.tipo);
 
         AtualizarUI();
 
@@ -1081,8 +1085,7 @@ public void VoltarMenuPrincipal()
 
     painelAtaques.SetActive(false);
     painelItens.SetActive(false);
-    botaoLutar.interactable = false;
-    botaoFugir.interactable = false;
+    BloquearBotoes(true);
 
     StartCoroutine(FinalizarFuga());
 }
@@ -1213,6 +1216,13 @@ private IEnumerator FinalizarDerrota()
     Destroy(gameObject);
 
     TransicaoBatalha.instancia.FecharDepoisDaDerrota();
+}
+
+private static int AplicarDano(int hp, int dano, TipoLixo tipo)
+{
+    int restante = Mathf.Max(0, hp - dano);
+    if (restante < hp) AudioJogo.Instance?.TocarDano(tipo);
+    return restante;
 }
 
 private IEnumerator EfeitoDano(Image imagem)

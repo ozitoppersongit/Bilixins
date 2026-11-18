@@ -32,6 +32,7 @@ public class MenuPausa : MonoBehaviour
     public GameObject painelConfirmarSaida;
 
     private bool pausado = false;
+    public bool EstaPausado => pausado;
     private bool animando = false;
     private bool abrindo = false;
     private BattleScript batalha;
@@ -45,9 +46,16 @@ public class MenuPausa : MonoBehaviour
 
     public void ConfirmarSaida()
     {
+        StopAllCoroutines();
+        animando = false;
+        enabled = false;
+        Cutscenes.Instance?.EncerrarPartida();
+        Missoes.Instance?.EncerrarPartida();
         Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
     }
 
     public void CancelarSaida()

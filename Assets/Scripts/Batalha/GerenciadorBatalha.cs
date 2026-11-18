@@ -9,11 +9,15 @@ public class GerenciadorBatalha : MonoBehaviour
         if (instancia == null)
         {
             instancia = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
             Destroy(gameObject);
         }
+    }
+
+    void OnDestroy()
+    {
+        if (instancia == this) instancia = null;
     }
 }
