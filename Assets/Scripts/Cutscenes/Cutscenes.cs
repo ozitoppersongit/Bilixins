@@ -29,12 +29,17 @@ public class Cutscenes : MonoBehaviour
         }
     }
     Cutscene cutsceneAtual;
+    GatilhoDeCutscene gatilhoDaTentativa;
+    bool preparandoRetorno;
+    Transform pontoRetorno;
+    bool batalhaVencida;
     Transform jogadorDaCutscene;
-    Pose poseInicialJogador;
     Pose poseInicialCamera;
     readonly HashSet<GatilhoDeEncontro> inimigosCriados = new HashSet<GatilhoDeEncontro>();
-    readonly Dictionary<Transform, (Pose pose, bool ativo)> objetosDaTentativa =
-        new Dictionary<Transform, (Pose pose, bool ativo)>();
+    readonly Dictionary<Transform, (Pose pose, Vector3 escala, bool ativo)> objetosDaTentativa =
+        new Dictionary<Transform, (Pose pose, Vector3 escala, bool ativo)>();
+    readonly Dictionary<Renderer, bool> renderizadoresDaTentativa = new Dictionary<Renderer, bool>();
+    readonly Dictionary<Collider, bool> collidersDaTentativa = new Dictionary<Collider, bool>();
 
     [Header("Faixas cinematográficas")]
     [SerializeField, Range(0f, 0.5f)] float alturaFaixa = 0.1f;
@@ -92,6 +97,7 @@ public class Cutscenes : MonoBehaviour
         [Tooltip("Volume do gatilho (um Collider, nenhum script nele). Dispara quando o player entra.")] public Collider zona;
         [Tooltip("Só vale depois que esta cutscene terminou (vazio = sempre).")] public string depoisDe;
         public bool umaVez = true;
+        [Tooltip("Ponto seguro opcional para retornar após perder a missão.")] public Transform pontoDeRetorno;
         [HideInInspector] public bool usado;
     }
 
@@ -249,16 +255,30 @@ public class Cutscenes : MonoBehaviour
         Transform player = mapaGerador != null && mapaGerador.PlayerInstanciado != null ? mapaGerador.PlayerInstanciado.transform : null;
         Travar(true);
         jogadorDaCutscene = player;
-        if (player != null) poseInicialJogador = new Pose(player.position, player.rotation);
         if (cameraSeguir != null)
             poseInicialCamera = new Pose(cameraSeguir.transform.position, cameraSeguir.transform.rotation);
         objetosDaTentativa.Clear();
+        renderizadoresDaTentativa.Clear();
+        collidersDaTentativa.Clear();
         inimigosCriados.Clear();
         foreach (Passo passo in c.passos)
         {
             Transform objeto = passo.tipo == Tipo.MoverObjeto ? passo.objeto : null;
+            if (passo.tipo == Tipo.EsconderInimigo ||
+                (passo.tipo == Tipo.Batalha && !(inimigoPrefab != null && passo.origem != null)))
+            {
+                GatilhoDeEncontro inimigo = AcharInimigo(passo.alvo);
+                if (inimigo != null) objeto = inimigo.transform;
+            }
             if (objeto != null && !objetosDaTentativa.ContainsKey(objeto))
-                objetosDaTentativa.Add(objeto, (new Pose(objeto.position, objeto.rotation), objeto.gameObject.activeSelf));
+            {
+                objetosDaTentativa.Add(objeto,
+                    (new Pose(objeto.position, objeto.rotation), objeto.localScale, objeto.gameObject.activeSelf));
+                foreach (Renderer renderer in objeto.GetComponentsInChildren<Renderer>(true))
+                    renderizadoresDaTentativa[renderer] = renderer.enabled;
+                foreach (Collider collider in objeto.GetComponentsInChildren<Collider>(true))
+                    collidersDaTentativa[collider] = collider.enabled;
+            }
         }
         while (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota)
             yield return null;
@@ -266,6 +286,7 @@ public class Cutscenes : MonoBehaviour
 
         foreach (Passo p in c.passos)
         {
+            if (p.tipo == Tipo.Batalha) batalhaVencida = false;
             Coroutine rodando = null;
             switch (p.tipo)
             {
@@ -278,7 +299,12 @@ public class Cutscenes : MonoBehaviour
                 case Tipo.EsconderInimigo: { GatilhoDeEncontro e = AcharInimigo(p.alvo); MostrarInimigo(e, false); if (e != null && p.origem != null) e.transform.position = p.origem.position; break; }
                 case Tipo.MoverObjeto: rodando = StartCoroutine(MoverObjeto(p)); break;
             }
-            if (rodando != null && !p.simultaneo) yield return rodando;
+            if (rodando != null && (!p.simultaneo || p.tipo == Tipo.Batalha)) yield return rodando;
+            if (p.tipo == Tipo.Batalha && !batalhaVencida)
+            {
+                InterromperParaDerrota();
+                yield break;
+            }
         }
 
         Travar(false);
@@ -308,6 +334,8 @@ public class Cutscenes : MonoBehaviour
         }
         inimigosCriados.Clear();
         objetosDaTentativa.Clear();
+        renderizadoresDaTentativa.Clear();
+        collidersDaTentativa.Clear();
         concluidas.Clear();
         foreach (GatilhoDeCutscene gatilho in gatilhos) gatilho.usado = false;
         cutsceneAtual = null;
@@ -322,30 +350,55 @@ public class Cutscenes : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    public void ReiniciarAposDerrota(GatilhoDeEncontro encontro)
+    public bool RetornarAposDerrota(GatilhoDeEncontro encontro)
     {
-        Cutscene reiniciar = cutsceneAtual;
-        foreach (GatilhoDeEncontro inimigo in inimigosCriados)
+        if (!preparandoRetorno)
         {
-            if (inimigo == null) continue;
-            inimigo.gameObject.SetActive(false);
-            Destroy(inimigo.gameObject);
+            preparandoRetorno = true;
+            pontoRetorno = gatilhoDaTentativa != null ? gatilhoDaTentativa.pontoDeRetorno : encontro.PontoDeRetorno;
+            if (gatilhoDaTentativa != null) gatilhoDaTentativa.usado = false;
+            foreach (var objeto in objetosDaTentativa)
+            {
+                if (objeto.Key == null) continue;
+                objeto.Key.SetPositionAndRotation(objeto.Value.pose.position, objeto.Value.pose.rotation);
+                objeto.Key.localScale = objeto.Value.escala;
+                objeto.Key.gameObject.SetActive(objeto.Value.ativo);
+            }
+            foreach (GatilhoDeEncontro inimigo in inimigosCriados)
+            {
+                if (inimigo == null) continue;
+                inimigo.gameObject.SetActive(false);
+                Destroy(inimigo.gameObject);
+            }
+            if (encontro != null && !inimigosCriados.Contains(encontro))
+            {
+                encontro.DesvincularMissao();
+                encontro.Reativar();
+                encontro.ProtegerAposRetorno();
+            }
+            foreach (var renderer in renderizadoresDaTentativa)
+                if (renderer.Key != null) renderer.Key.enabled = renderer.Value;
+            foreach (var collider in collidersDaTentativa)
+                if (collider.Key != null) collider.Key.enabled = collider.Value;
         }
-        if (encontro != null && !inimigosCriados.Contains(encontro)) encontro.Reativar();
-        foreach (var objeto in objetosDaTentativa)
-        {
-            if (objeto.Key == null) continue;
-            objeto.Key.SetPositionAndRotation(objeto.Value.pose.position, objeto.Value.pose.rotation);
-            objeto.Key.gameObject.SetActive(objeto.Value.ativo);
-        }
-        if (jogadorDaCutscene != null) GatilhoDeEncontro.ReposicionarJogador(jogadorDaCutscene, poseInicialJogador);
+
+        if (jogadorDaCutscene == null || mapaGerador == null) return false;
+        Pose retorno = RetornoSeguro.ObterPose(pontoRetorno, mapaGerador.PoseInicialJogador);
+
+        GatilhoDeEncontro.ReposicionarJogador(jogadorDaCutscene, retorno);
         if (cameraSeguir != null)
             cameraSeguir.transform.SetPositionAndRotation(poseInicialCamera.position, poseInicialCamera.rotation);
+        inimigosCriados.Clear();
+        objetosDaTentativa.Clear();
+        renderizadoresDaTentativa.Clear();
+        collidersDaTentativa.Clear();
+        cutsceneAtual = null;
         tocando = false;
-        if (reiniciar != null) Tocar(reiniciar.nome);
-        else Travar(false);
+        preparandoRetorno = false;
+        Travar(false);
+        ControlarJoystick(true);
+        return true;
     }
-
     // Liga/desliga o que controla player e câmera. Durante a cutscene a câmera é movida direto pelo passo.
     void Travar(bool travar)
     {
@@ -599,65 +652,37 @@ public class Cutscenes : MonoBehaviour
 
     IEnumerator Batalha(Transform player, Passo p)
     {
-        GatilhoDeEncontro gatilho = inimigoPrefab != null && p.origem != null ? CriarInimigo(p.origem.position) : AcharInimigo(p.alvo);
+        GatilhoDeEncontro gatilho = inimigoPrefab != null && p.origem != null
+            ? CriarInimigo(p.origem.position) : AcharInimigo(p.alvo);
         Collider col = gatilho != null ? gatilho.GetComponent<Collider>() : null;
         if (player == null || gatilho == null || col == null)
         {
-            Debug.LogWarning("Cutscenes: passo Batalha não achou um GatilhoDeEncontro com Collider a menos de 3 m do alvo.");
+            Debug.LogError("Cutscenes: o passo de batalha não encontrou um encontro válido.");
             yield break;
         }
 
         gatilho.MarcarBatalhaDeCutscene(this);
-
-        // vilão solta o inimigo: o player fica parado
+        ResultadoEncontro resultado = gatilho.Resultado;
         if (p.origem != null)
         {
             Vector3 pouso = p.destino != null ? p.destino.position : p.origem.position;
-            while (gatilho != null)
-            {
-                yield return Soltar(gatilho, p.origem.position, pouso, player.GetComponent<Collider>(), p.tempo);
-                if (gatilho == null) break;
-
-                float espera = 0f;
-                while (gatilho != null && FindFirstObjectByType<BattleScript>() == null && espera < 3f)
-                {
-                    espera += Time.unscaledDeltaTime;
-                    yield return null;
-                }
-                while (FindFirstObjectByType<BattleScript>() != null) yield return null;
-                if (gatilho == null) break; // venceu
-
-            }
-            yield break;
+            yield return Soltar(gatilho, p.origem.position, pouso, player.GetComponent<Collider>(), p.tempo);
         }
-
-        Vector3 origem = player.position;
-        while (gatilho != null)
+        else
         {
-            // anda até a batalha disparar (o gatilho se desliga no OnTriggerEnter)
-            yield return AndarAte(player, p.alvo.position, p.velocidade, () => gatilho == null || !col.enabled);
-            if (gatilho == null) break;
-
-            // espera a tela de batalha aparecer e depois acabar
-            float espera = 0f;
-            while (gatilho != null && FindFirstObjectByType<BattleScript>() == null && espera < 3f)
-            {
-                espera += Time.unscaledDeltaTime;
-                yield return null;
-            }
-            while (FindFirstObjectByType<BattleScript>() != null) yield return null;
-            if (gatilho == null) break; // venceu
-
-            // fugiu ou perdeu: reativa o gatilho e se afasta pra poder encostar de novo
-            gatilho.Reativar();
-            yield return AndarAte(player, origem, p.velocidade, null);
+            yield return AndarAte(player, p.alvo.position, p.velocidade,
+                () => gatilho == null || !col.enabled);
         }
-    }
 
+        while (resultado.Resultado == ResultadoBatalha.EmAndamento && gatilho != null)
+            yield return null;
+        batalhaVencida = resultado.Resultado == ResultadoBatalha.Vitoria;
+    }
     // Dispara a cutscene do gatilho quando o player entra no volume (e a cutscene anterior, se houver, já terminou).
     void VerificarGatilhos()
     {
-        if (tocando || mapaGerador == null || mapaGerador.PlayerInstanciado == null) return;
+        if (tocando || mapaGerador == null || mapaGerador.PlayerInstanciado == null ||
+            (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota)) return;
         Vector3 pos = mapaGerador.PlayerInstanciado.transform.position;
         foreach (GatilhoDeCutscene g in gatilhos)
         {
@@ -666,6 +691,7 @@ public class Cutscenes : MonoBehaviour
             if (!g.zona.bounds.Contains(pos)) continue;
             g.usado = true;
             Tocar(g.cutscene);
+            gatilhoDaTentativa = g;
             return;
         }
     }

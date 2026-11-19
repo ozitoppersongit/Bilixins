@@ -18,7 +18,7 @@ MonoBehaviour:
   ataque: 20
   defesa: 30
   tipo: 1
-  spr: {fileID: 2188859255033592919, guid: 98b8cbb9e03e6be45b235e92e2af2608, type: 3}
+  spr: {fileID: 21300000, guid: 4bcef7301ad6f754ca188e451d1e9451, type: 3}
   ataque1:
     nome: Ferrada
     poder: 40

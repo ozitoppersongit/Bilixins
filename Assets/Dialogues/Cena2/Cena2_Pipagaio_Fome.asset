@@ -26,12 +26,12 @@ MonoBehaviour:
     personagemFalando: 1
   - nomePersonagem: Pipagaio
     texto: "Foi mal, \xE9 que eu t\xF4 faminta... Voc\xEA n\xE3o teria algo de pl\xE1stico pra eu comer, teria?"
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 0
   - nomePersonagem: Galego
     texto: "Ah, eu tenho, sim. Peguei algumas garrafas no caminho pra c\xE1. Toma."
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
   - nomePersonagem: ...
@@ -41,6 +41,6 @@ MonoBehaviour:
     personagemFalando: 1
   - nomePersonagem: Pipagaio
     texto: Valeu Galego. Posso pensar direito agora.
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 0

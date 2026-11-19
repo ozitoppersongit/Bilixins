@@ -32,15 +32,15 @@ MonoBehaviour:
   - nomePersonagem: Pipagaio
     texto: "E n\xE3o sou um monstro. Me chamo Pipagaio"
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 0}
+    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     personagemFalando: 1
   - nomePersonagem: Michele
     texto: "Dona Pipa, voc\xEA n\xE3o vai correr atr\xE1s da gente pra nos devorar, vai?"
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 0}
+    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     personagemFalando: 0
   - nomePersonagem: Pipagaio
     texto: "Qu\xEA? Eu n\xE3o! Voc\xEAs n\xE3o s\xE3o de pl\xE1stico. Por que eu tentaria devorar voc\xEAs?"
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 0}
+    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     personagemFalando: 1

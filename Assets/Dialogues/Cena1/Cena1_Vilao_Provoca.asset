@@ -17,17 +17,17 @@ MonoBehaviour:
   - nomePersonagem: ???
     texto: Me deixa, seu maluco! Socorro!
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 0}
+    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     personagemFalando: 1
   - nomePersonagem: ???
     texto: Volta aqui, sua pipa louca!
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 0}
+    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     personagemFalando: 0
   - nomePersonagem: Evandro
     texto: "Olha! T\xE1 vendo que eu n\xE3o t\xF4 de onda!"
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 0}
+    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     personagemFalando: 0
   - nomePersonagem: Galego
     texto: Oloko!

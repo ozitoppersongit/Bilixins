@@ -61,6 +61,6 @@ MonoBehaviour:
     personagemFalando: 1
   - nomePersonagem: Pipagaio
     texto: "Bicho, n\xE3o. Bilixin, meu amigo."
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 0

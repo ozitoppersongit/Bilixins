@@ -65,6 +65,7 @@ public class MapaGerador : MonoBehaviour
 
     // O player instanciado no spawn, disponível depois que aoTerminarDeGerar dispara.
     public GameObject PlayerInstanciado { get; private set; }
+    public Pose PoseInicialJogador { get; private set; }
 
     const int ToleranciaCor = 900;
     const float SegundosPorFrame = 0.008f;
@@ -318,6 +319,7 @@ public class MapaGerador : MonoBehaviour
                 PlayerInstanciado.transform.SetPositionAndRotation(pontoDeSpawnDoPlayer.position, pontoDeSpawnDoPlayer.rotation);
 
             if (controller != null) controller.enabled = true;
+            PoseInicialJogador = new Pose(PlayerInstanciado.transform.position, PlayerInstanciado.transform.rotation);
         }
         else if (playerValido)
         {

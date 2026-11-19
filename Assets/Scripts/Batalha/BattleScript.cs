@@ -25,6 +25,12 @@ public class BattleScript : MonoBehaviour
     public TextMeshProUGUI nomeJogador;
     public TextMeshProUGUI hpTextoJogador;
     public Image hpBarraJogador;
+    public Image xpBarraJogador;
+    ProgressoBilixin progressoJogador;
+    bool recompensaConcedida;
+
+    int NivelJogador => progressoJogador != null ? progressoJogador.Nivel : Mathf.Max(1, bilixinJogador.nivel);
+    int NivelInimigo => Mathf.Max(1, bilixinInimigo.nivel);
 
     public Button botaoPularTutorial;
     private Coroutine coroutineTutorial;
@@ -303,6 +309,11 @@ public void IniciarBatalha(
 
 
     bilixinInimigo = inimigo;
+    GerenciadorBatalha gerenciador = GerenciadorBatalha.instancia;
+    if (gerenciador == null)
+        gerenciador = new GameObject("GerenciadorBatalha").AddComponent<GerenciadorBatalha>();
+    progressoJogador = gerenciador.ObterProgresso(bilixinJogador);
+    recompensaConcedida = false;
     gatilhoEncontro = gatilho;
     fugaBloqueadaPorCutscene = gatilho != null && gatilho.FugaBloqueadaPorCutscene;
 
@@ -312,8 +323,8 @@ public void IniciarBatalha(
     iconeTipoJogador.texture = PegarIconeTipo(bilixinJogador.tipo);
     iconeTipoInimigo.texture = PegarIconeTipo(bilixinInimigo.tipo);
 
-    maxHpJogador = bilixinJogador.hp;
-    maxHpInimigo = bilixinInimigo.hp;
+    maxHpJogador = bilixinJogador.HpNoNivel(NivelJogador);
+    maxHpInimigo = bilixinInimigo.HpNoNivel(NivelInimigo);
 
     hpJogador = maxHpJogador;
     hpInimigo = maxHpInimigo;
@@ -388,7 +399,12 @@ public void IniciarBatalha(
     // =========================
 
     nomeJogador.text =
-        bilixinJogador.name + "  Nv." + bilixinJogador.nivel;
+        bilixinJogador.nome + "  Nv." + NivelJogador;
+
+    if (xpBarraJogador != null)
+        xpBarraJogador.fillAmount = progressoJogador != null
+            ? (float)progressoJogador.Xp / progressoJogador.XpProximoNivel
+            : 0f;
 
     hpTextoJogador.text =
         hpJogador.ToString("F0") + " / " +
@@ -401,7 +417,7 @@ public void IniciarBatalha(
     // =========================
 
     nomeInimigo.text =
-        bilixinInimigo.name + "  Nv." + bilixinInimigo.nivel;
+        bilixinInimigo.nome + "  Nv." + NivelInimigo;
 
     hpTextoInimigo.text =
         hpInimigo.ToString("F0") + " / " +
@@ -460,11 +476,12 @@ float MultiplicadorTipo(TipoLixo atacante, TipoLixo defensor)
     BilixinsData defensor,
     float power)
 {
+    int nivelAtacante = atacante == bilixinJogador ? NivelJogador : Mathf.Max(1, atacante.nivel);
     float danoBase =
-        (((2f * atacante.nivel / 5f) + 2f)
+        (((2f * nivelAtacante / 5f) + 2f)
         * power
-        * atacante.ataque
-        / defensor.defesa)
+        * atacante.AtaqueNoNivel(nivelAtacante)
+        / Mathf.Max(1, defensor.defesa))
         / 50f
         + 2f;
 
@@ -1086,6 +1103,7 @@ public void VoltarMenuPrincipal()
     painelAtaques.SetActive(false);
     painelItens.SetActive(false);
     BloquearBotoes(true);
+    gatilhoEncontro?.Resultado.Concluir(ResultadoBatalha.Fuga);
 
     StartCoroutine(FinalizarFuga());
 }
@@ -1146,9 +1164,23 @@ public void Vitoria()
 
 private IEnumerator FinalizarVitoria()
 {
-    typewriter.Escrever("Você venceu a batalha!");
+    if (recompensaConcedida) yield break;
+    recompensaConcedida = true;
+    BloquearBotoes(true);
+    painelAtaques.SetActive(false);
+    painelItens.SetActive(false);
+    yield return MostrarRecompensa("Você venceu a batalha!");
 
-    yield return EsperarBatalha(1.5f);
+    int nivelAnterior = NivelJogador;
+    int xpRecebido = 25 * NivelInimigo;
+    progressoJogador.ReceberXp(xpRecebido);
+    int novoMaximo = bilixinJogador.HpNoNivel(NivelJogador);
+    hpJogador = Mathf.Min(novoMaximo, hpJogador + novoMaximo - maxHpJogador);
+    maxHpJogador = novoMaximo;
+    AtualizarUI();
+    yield return MostrarRecompensa($"{bilixinJogador.nome} recebeu {xpRecebido} XP!");
+    if (NivelJogador > nivelAnterior)
+        yield return MostrarRecompensa($"{bilixinJogador.nome} subiu para o nível {NivelJogador}!");
 
     // Cobre a tela
     yield return StartCoroutine(
@@ -1169,6 +1201,13 @@ private IEnumerator FinalizarVitoria()
 
     // Revela o mapa
     TransicaoBatalha.instancia.FecharDepoisDaVitoria();
+}
+
+private IEnumerator MostrarRecompensa(string mensagem)
+{
+    typewriter.Escrever(mensagem);
+    while (typewriter.EstaEscrevendo || batalhaPausada) yield return null;
+    yield return EsperarBatalha(1f);
 }
 
 public void Derrota()
@@ -1196,6 +1235,7 @@ private IEnumerator FinalizarDerrota()
         yield break;
     }
 
+    gatilhoEncontro?.Resultado.Concluir(ResultadoBatalha.Derrota);
     if (gatilhoEncontro != null && (gatilhoEncontro.EhFerralha || gatilhoEncontro.CutsceneResponsavel != null) &&
         TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.TemTelaDerrota)
     {

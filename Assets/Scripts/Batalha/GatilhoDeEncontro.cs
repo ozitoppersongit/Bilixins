@@ -11,6 +11,7 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     [Header("Batalha")]
     public GameObject battlePrefab;
+    [SerializeField] Transform pontoDeRetorno;
     private GerenciadorBatalha gB;
     private Collider gatilho;
     private bool batalhaIniciada = false;
@@ -24,13 +25,17 @@ public class GatilhoDeEncontro : MonoBehaviour
     public Cutscenes CutsceneResponsavel { get; private set; }
     public bool EhFerralha => ferralha != null;
     Transform jogadorDoEncontro;
-    Pose poseDoEncontro;
     bool aguardandoSaidaAposDerrota;
+    float protegidoAte;
+    public ResultadoEncontro Resultado { get; private set; } = new ResultadoEncontro();
+    public Collider Volume => gatilho;
+    public Transform PontoDeRetorno => pontoDeRetorno;
 
     public void MarcarBatalhaDeCutscene(Cutscenes responsavel)
     {
-        FugaBloqueadaPorCutscene = ferralha == null;
-        CutsceneResponsavel = FugaBloqueadaPorCutscene ? responsavel : null;
+        FugaBloqueadaPorCutscene = true;
+        CutsceneResponsavel = responsavel;
+        Resultado = new ResultadoEncontro();
     }
 
     void Awake()
@@ -52,7 +57,7 @@ void OnTriggerEnter(Collider other)
 {
     if (!other.CompareTag("Player"))
         return;
-    if (aguardandoSaidaAposDerrota ||
+    if (aguardandoSaidaAposDerrota || Time.unscaledTime < protegidoAte ||
         (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota))
         return;
 
@@ -64,8 +69,8 @@ void OnTriggerEnter(Collider other)
         return;
 
     batalhaIniciada = true;
+    if (Resultado.Resultado != ResultadoBatalha.EmAndamento) Resultado = new ResultadoEncontro();
     jogadorDoEncontro = other.transform;
-    poseDoEncontro = new Pose(jogadorDoEncontro.position, jogadorDoEncontro.rotation);
 
     Debug.Log($"GatilhoDeEncontro: player encontrou '{gameObject.name}'.");
 
@@ -161,6 +166,7 @@ private void OnTriggerExit(Collider other)
 
     public void Vencer()
     {
+        Resultado.Concluir(ResultadoBatalha.Vitoria);
         /// oziel, aqui a derrota animada: se o inimigo tem um script IDerrotaAnimada (ex: Ferralha), ele toca a animação
         /// e o objeto só é destruído depois do tempo que ele devolver. Sem o script, some na hora como antes.
         float espera = 0f;
@@ -180,55 +186,39 @@ private void OnTriggerExit(Collider other)
         gatilho.enabled = true;
 }
 
-    public void ReposicionarAposDerrota()
+    public void ProtegerAposRetorno()
     {
-        if (jogadorDoEncontro == null) { Reativar(); return; }
-
-        Pose retorno = poseDoEncontro;
-        CharacterController controller = jogadorDoEncontro.GetComponent<CharacterController>();
-        if (gatilho != null && controller != null)
-        {
-            // O collider está desligado durante a batalha. Rearmá-lo aqui ainda está
-            // protegido pelo estado de retorno e permite calcular seus limites atuais.
-            gatilho.enabled = true;
-            Physics.SyncTransforms();
-            Bounds volume = gatilho.bounds;
-            Vector3 direcao = retorno.position - volume.center;
-            direcao.y = 0f;
-            if (direcao.sqrMagnitude < 0.001f) direcao = -jogadorDoEncontro.forward;
-            direcao.y = 0f;
-            direcao.Normalize();
-            float raioPlayer = Mathf.Max(controller.bounds.extents.x, controller.bounds.extents.z);
-            float distancia = new Vector2(volume.extents.x, volume.extents.z).magnitude + raioPlayer + 0.75f;
-            float alturaDosPes = jogadorDoEncontro.position.y - controller.bounds.min.y;
-            for (int i = 0; i < 8; i++)
-            {
-                Vector3 lado = Quaternion.Euler(0f, i * 45f, 0f) * direcao;
-                Vector3 ponto = volume.center + lado * distancia;
-                ponto.y = retorno.position.y + 1.5f;
-                if (!Physics.Raycast(ponto, Vector3.down, out RaycastHit chao, 4f, Physics.DefaultRaycastLayers,
-                    QueryTriggerInteraction.Ignore) || chao.normal.y < 0.65f) continue;
-                float altura = controller.bounds.size.y;
-                Vector3 baseCapsula = chao.point + Vector3.up * (raioPlayer + 0.08f);
-                Vector3 topoCapsula = chao.point + Vector3.up * (Mathf.Max(raioPlayer, altura - raioPlayer) + 0.08f);
-                if (Physics.CheckCapsule(baseCapsula, topoCapsula, raioPlayer, Physics.DefaultRaycastLayers,
-                    QueryTriggerInteraction.Ignore)) continue;
-                retorno.position = chao.point + Vector3.up * (alturaDosPes + 0.08f);
-                break;
-            }
-        }
-        ReposicionarJogador(jogadorDoEncontro, retorno);
-        aguardandoSaidaAposDerrota = gatilho != null && controller != null;
-        if (ferralha != null) ferralha.JogadorSaiuDaVisao();
-        Reativar();
+        aguardandoSaidaAposDerrota = true;
+        protegidoAte = Time.unscaledTime + 3f;
+        if (ferralha != null) ferralha.ProtegerRetorno();
     }
 
+    public void DesvincularMissao()
+    {
+        CutsceneResponsavel = null;
+        FugaBloqueadaPorCutscene = false;
+    }
+
+    public bool ReposicionarAposDerrota()
+    {
+        if (jogadorDoEncontro == null) return false;
+        Reativar();
+        var mapa = FindAnyObjectByType<MapaGerador>();
+        if (mapa == null) return false;
+        Pose retorno = RetornoSeguro.ObterPose(pontoDeRetorno, mapa.PoseInicialJogador);
+        ReposicionarJogador(jogadorDoEncontro, retorno);
+        ProtegerAposRetorno();
+        return true;
+    }
     void FixedUpdate()
     {
         if (!aguardandoSaidaAposDerrota) return;
         var controller = jogadorDoEncontro != null ? jogadorDoEncontro.GetComponent<CharacterController>() : null;
-        if (gatilho == null || controller == null || !gatilho.bounds.Intersects(controller.bounds))
+        if (Time.unscaledTime >= protegidoAte && (gatilho == null || controller == null || !gatilho.bounds.Intersects(controller.bounds)))
+        {
             aguardandoSaidaAposDerrota = false;
+            if (ferralha != null) ferralha.JogadorSaiuDaVisao();
+        }
     }
 
     public static void ReposicionarJogador(Transform jogador, Pose pose)

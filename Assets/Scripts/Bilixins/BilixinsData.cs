@@ -17,6 +17,8 @@ public class BilixinsData : ScriptableObject
     public int nivel;
     public int ataque;
     public int defesa;
+    public int HpNoNivel(int level) => Mathf.Max(1, hp + 5 * (Mathf.Max(1, level) - 1));
+    public int AtaqueNoNivel(int level) => Mathf.Max(1, ataque + 2 * (Mathf.Max(1, level) - 1));
     public TipoLixo tipo;
     public Sprite spr;
 

@@ -69,6 +69,8 @@ public class DialogoUI : MonoBehaviour
 
         portraitEsquerdo.sprite = fala.portraitEsquerdo;
         portraitDireito.sprite = fala.portraitDireito;
+        portraitEsquerdo.enabled = fala.portraitEsquerdo != null;
+        portraitDireito.enabled = fala.portraitDireito != null;
 
         portraitEsquerdo.color =
             fala.personagemFalando == LadoPersonagem.Esquerdo

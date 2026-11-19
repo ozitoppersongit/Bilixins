@@ -24,6 +24,13 @@ public class Ferralha : MonoBehaviour, IDerrotaAnimada, IAntesDaBatalha
 
     bool derrotada;
     public bool EstaDerrotada => derrotada;
+    float protegidoAte;
+    public void ProtegerRetorno()
+    {
+        protegidoAte = Time.unscaledTime + 3f;
+        ignorandoJogador = true;
+        VoltarAoNormal();
+    }
 
 public void JogadorFugiu()
 {
@@ -36,7 +43,7 @@ public void JogadorFugiu()
 
 public bool PodePerseguir()
 {
-    return !derrotada && !ignorandoJogador;
+    return !derrotada && !ignorandoJogador && Time.unscaledTime >= protegidoAte;
 }
 
 public void JogadorSaiuDaVisao()

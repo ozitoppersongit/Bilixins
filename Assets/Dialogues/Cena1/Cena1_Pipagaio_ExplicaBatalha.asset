@@ -31,7 +31,7 @@ MonoBehaviour:
     personagemFalando: 1
   - nomePersonagem: ??? (Pipagaio)
     texto: "\xC9 Pipagaio pra voc\xEA, t\xE1?"
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 0
   - nomePersonagem: "??? (Vil\xE3o)"
@@ -46,12 +46,12 @@ MonoBehaviour:
     personagemFalando: 1
   - nomePersonagem: Pipagaio
     texto: "\xC9 o que eu sou. Esse cara t\xE1 cheio das ideias erradas. Me ajuda, mo\xE7o."
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 0
   - nomePersonagem: Galego
     texto: Pode me chamar de Galego, e pode contar comigo!
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
   - nomePersonagem: "??? (Vil\xE3o)"

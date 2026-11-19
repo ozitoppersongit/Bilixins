@@ -21,6 +21,6 @@ MonoBehaviour:
     personagemFalando: 1
   - nomePersonagem: Pipagaio
     texto: "\xC9, mas, como o Seu Evandro disse, tamb\xE9m tem gente que n\xE3o \xE9 muito boa em obedecer ordens."
-    portraitEsquerdo: {fileID: 0}
+    portraitEsquerdo: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     portraitDireito: {fileID: 0}
     personagemFalando: 0

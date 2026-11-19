@@ -62,13 +62,21 @@ public class TransicaoBatalha : MonoBehaviour
 
         yield return Abrir();
         Destroy(tela);
-        if (cutscene != null)
-            cutscene.ReiniciarAposDerrota(encontro);
-        else if (encontro != null)
-            encontro.ReposicionarAposDerrota();
+        bool retornou = cutscene != null
+            ? cutscene.RetornarAposDerrota(encontro)
+            : encontro != null && encontro.ReposicionarAposDerrota();
+        if (!retornou)
+        {
+            MapaGerador mapa = FindAnyObjectByType<MapaGerador>();
+            if (mapa != null && mapa.PlayerInstanciado != null)
+            {
+                GatilhoDeEncontro.ReposicionarJogador(mapa.PlayerInstanciado.transform, mapa.PoseInicialJogador);
+            }
+        }
 
         if (cutscene == null && camera != null) camera.enabled = true;
         yield return Fechar();
+        if (encontro != null) encontro.ProtegerAposRetorno();
         RetornandoDaDerrota = false;
         Time.timeScale = 1f;
     }

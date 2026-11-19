@@ -17,5 +17,5 @@ MonoBehaviour:
   - nomePersonagem: Pipagaio
     texto: "N\xE3o \xE9 um monstro, \xE9 um Bilixin. E eu acho melhor a gente parar o Boladro antes que ele coma muito lixo do tipo que ele n\xE3o deve. Isso pode fazer ele ficar louco de vez."
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: 0}
+    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
     personagemFalando: 1

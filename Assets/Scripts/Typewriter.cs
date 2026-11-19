@@ -12,6 +12,7 @@ public class Typewriter : MonoBehaviour
     public Button botaoContinuar;
 
     private bool aguardandoContinuar;
+    public bool EstaEscrevendo { get; private set; }
 
     public void Escrever(string mensagem)
     {
@@ -21,6 +22,7 @@ public class Typewriter : MonoBehaviour
 
     IEnumerator Digitar(string mensagem)
     {
+        EstaEscrevendo = true;
         texto.text = "";
 
         foreach (char letra in mensagem)
@@ -28,6 +30,7 @@ public class Typewriter : MonoBehaviour
             texto.text += letra;
             yield return new WaitForSecondsRealtime(velocidade);
         }
+        EstaEscrevendo = false;
     }
 
     public IEnumerator EscreverTutorial(string mensagem)

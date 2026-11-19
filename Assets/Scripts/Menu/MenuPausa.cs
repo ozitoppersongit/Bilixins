@@ -51,6 +51,7 @@ public class MenuPausa : MonoBehaviour
         enabled = false;
         Cutscenes.Instance?.EncerrarPartida();
         Missoes.Instance?.EncerrarPartida();
+        GerenciadorBatalha.instancia?.EncerrarPartida();
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
