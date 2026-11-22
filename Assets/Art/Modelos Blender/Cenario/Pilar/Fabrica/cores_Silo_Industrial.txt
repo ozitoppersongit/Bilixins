@@ -1,0 +1,8 @@
+Silo_Corpo=D8D4C4
+Silo_Banda=B7B2A0
+Silo_Concreto=8A8A84
+Silo_Ferrugem=A0623C
+Silo_Telhado=7B8286
+Silo_Respiro=55595D
+Silo_Escada=3E4044
+Silo_Faixa=D9B23A

@@ -1,0 +1,8 @@
+Empilhadeira_Corpo=D9A621
+Empilhadeira_Contrapeso=3E3E40
+Empilhadeira_Pneu=1F1F21
+Empilhadeira_Aro=8A8A88
+Empilhadeira_Mastro=55595D
+Empilhadeira_Banco=2B2B2E
+Empilhadeira_Ferrugem=8A4E2C
+Empilhadeira_Teto=3C3F46

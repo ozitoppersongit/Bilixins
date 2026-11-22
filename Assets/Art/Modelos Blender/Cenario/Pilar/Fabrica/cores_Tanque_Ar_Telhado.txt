@@ -1,0 +1,3 @@
+Tar_Aco=8A9298
+Tar_Escuro=3A3F44
+Tar_Cano=B07A3A

@@ -1,0 +1,5 @@
+Plc_Azul=3F6F8F
+Plc_Verde=4F8F5F
+Plc_Amarelo=D9B33A
+Plc_Madeira=A8834F
+Plc_Escuro=33373B

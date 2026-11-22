@@ -1,0 +1,2 @@
+Lum_Longa_Metal=33373B
+Lum_Longa_LuzEmissivo=FFD890

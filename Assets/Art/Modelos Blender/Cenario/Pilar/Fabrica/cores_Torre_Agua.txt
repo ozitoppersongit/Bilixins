@@ -1,0 +1,8 @@
+TorreAgua_Perna=4A4C50
+TorreAgua_Travessa=6A6D72
+TorreAgua_Tanque=7C9AA5
+TorreAgua_Banda=566A73
+TorreAgua_Teto=5A5F63
+TorreAgua_Ferrugem=8A5A3C
+TorreAgua_Cano=9C5B2E
+TorreAgua_Escada=2F3134

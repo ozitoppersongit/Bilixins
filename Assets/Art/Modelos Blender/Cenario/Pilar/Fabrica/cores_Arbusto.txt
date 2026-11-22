@@ -1,0 +1,4 @@
+Arb_Escuro=3E6A32
+Arb_Medio=55823A
+Arb_Claro=7A9A48
+Arb_Tronco=6B4E32

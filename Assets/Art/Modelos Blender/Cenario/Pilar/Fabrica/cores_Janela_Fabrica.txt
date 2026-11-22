@@ -1,0 +1,4 @@
+Jan_Concreto=A8A59C
+Jan_Vidro=56747E
+Jan_Moldura=3A3F44
+Jan_Sujeira=6A7C76

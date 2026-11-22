@@ -1,0 +1,3 @@
+Dut_Chapa=8A9298
+Dut_Escuro=3A3F44
+Dut_Flange=6E767C

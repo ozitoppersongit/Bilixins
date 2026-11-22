@@ -1,0 +1,4 @@
+Ent_Concreto=8A8A84
+Ent_Escuro=4A4D52
+Ent_Ferrugem=7A4B33
+Ent_Vidro=7FB89A

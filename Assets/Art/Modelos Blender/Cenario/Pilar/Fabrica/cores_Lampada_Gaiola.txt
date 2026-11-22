@@ -1,0 +1,2 @@
+Lag_Metal=33373B
+Lag_LuzEmissivo=FFB347

@@ -1,0 +1,4 @@
+Suc_Ferrugem=7A4B33
+Suc_Escuro=3A3D41
+Suc_Cinza=6A6E72
+Suc_Amarelo=B88F2A

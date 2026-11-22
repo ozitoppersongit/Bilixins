@@ -1,0 +1,5 @@
+Est_Escuro=4A4F55
+Est_Aco=7C858B
+Est_Amarelo=C9A227
+Est_Cano=B07A3A
+Est_ManometroEmissivo=F0E0A0

@@ -1,0 +1,4 @@
+Sac_Preto=26282C
+Sac_Verde=2F4A33
+Sac_Cinza=5A5E62
+Sac_Azul=2E4256

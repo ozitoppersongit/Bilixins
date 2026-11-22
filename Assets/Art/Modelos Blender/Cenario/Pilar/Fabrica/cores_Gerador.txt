@@ -1,0 +1,4 @@
+Ger_Corpo=D9A020
+Ger_Escuro=2E3034
+Ger_Ferro=55595D
+Ger_Painel=3C5A7A

@@ -1,0 +1,4 @@
+Bet_Quadro=D9A020
+Bet_Tambor=C85A2A
+Bet_Ferro=4C5054
+Bet_Borracha=232323

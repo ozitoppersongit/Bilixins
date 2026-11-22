@@ -1,0 +1,5 @@
+Mis_Aco=A2ABB0
+Mis_Escuro=33373B
+Mis_Azul=3F6F8F
+Mis_VisorEmissivo=5EF08A
+Mis_Cano=B07A3A

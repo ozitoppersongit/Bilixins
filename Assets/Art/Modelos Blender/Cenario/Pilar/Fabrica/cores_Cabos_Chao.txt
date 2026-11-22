@@ -1,0 +1,3 @@
+Cbc_Preto=1E2024
+Cbc_Laranja=B8602E
+Cbc_Cinza=6A6F74

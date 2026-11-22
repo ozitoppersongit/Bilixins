@@ -1,0 +1,5 @@
+Can_Concreto=8C8C86
+Can_Vermelho=C23A2E
+Can_Branco=E6E2D6
+Can_Luz=E8C23A
+Can_Ferro=4C5054

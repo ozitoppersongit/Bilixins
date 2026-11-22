@@ -1,0 +1,5 @@
+Tel_Moldura=33373B
+Tel_AzulEmissivo=55C8E8
+Tel_VerdeEmissivo=4CE06A
+Tel_LinhaEscura=1F5A78
+Tel_VermelhoEmissivo=FF5A4A

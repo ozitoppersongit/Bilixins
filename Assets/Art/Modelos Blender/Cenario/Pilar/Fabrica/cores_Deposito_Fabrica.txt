@@ -1,0 +1,9 @@
+Deposito_Laje=8A8A84
+Deposito_Parede=8E7A66
+Deposito_Costela=75634F
+Deposito_Telhado=6B6F73
+Deposito_Cumeeira=4C5054
+Deposito_Porta=A04A3A
+Deposito_Moldura=55595D
+Deposito_Vidro=2F4A5E
+Deposito_Ferrugem=7E4B34

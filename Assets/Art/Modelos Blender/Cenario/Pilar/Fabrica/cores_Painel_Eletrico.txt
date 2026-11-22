@@ -1,0 +1,5 @@
+Pae_Corpo=8E969B
+Pae_Escuro=33373B
+Pae_VerdeEmissivo=4CE06A
+Pae_AmareloEmissivo=F0C040
+Pae_VermelhoEmissivo=FF4A3A

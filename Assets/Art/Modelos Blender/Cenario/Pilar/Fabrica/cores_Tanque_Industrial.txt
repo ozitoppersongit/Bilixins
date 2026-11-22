@@ -1,0 +1,8 @@
+Tanque_Corpo=AEB4B6
+Tanque_Banda=7E8689
+Tanque_Base=707070
+Tanque_Topo=8F9699
+Tanque_Ferrugem=8A5A3C
+Tanque_Escada=4A4C50
+Tanque_Cano=9C5B2E
+Tanque_Flange=4C4C50

@@ -1,0 +1,6 @@
+Tr_Concreto=9A9A94
+Tr_Tanque=5E6E62
+Tr_Aleta=4E5C52
+Tr_Porcelana=B4693A
+Tr_Aviso=E8C23A
+Tr_Ferro=3E4247

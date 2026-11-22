@@ -1,0 +1,7 @@
+Cab_Parede=9FA6A2
+Cab_Escuro=33373B
+Cab_Vidro=6F9EB5
+Cab_Teto=5A5F66
+Cab_TelaEmissivo=55C8E8
+Cab_Moldura=D8D4C4
+Cab_Aviso=D9A220

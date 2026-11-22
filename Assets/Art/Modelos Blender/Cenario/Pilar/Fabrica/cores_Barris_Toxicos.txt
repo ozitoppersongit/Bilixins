@@ -1,0 +1,5 @@
+Bar_Amarelo=C9B02A
+Bar_Verde=5E8F3E
+Bar_Escuro=3C4A48
+Bar_Liquido=6BD468
+Bar_Aro=7B7F82

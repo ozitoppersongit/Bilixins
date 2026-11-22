@@ -1,0 +1,7 @@
+Conteiner_Vermelho_Corpo=A85B4E
+Conteiner_Vermelho_Costela=8A463B
+Conteiner_Vermelho_Ferro=4A4A4C
+Conteiner_Vermelho_Porta=A85B4E
+Conteiner_Vermelho_Trava=B8B8B0
+Conteiner_Vermelho_Faixa=E8E4D8
+Conteiner_Vermelho_Ferrugem=7E4B34

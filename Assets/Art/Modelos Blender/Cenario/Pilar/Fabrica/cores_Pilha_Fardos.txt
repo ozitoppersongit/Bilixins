@@ -1,0 +1,7 @@
+Frd_Cinza=4A4D50
+Frd_Fita=B8B8B0
+Frd_Verde=3F5A3A
+Frd_Marrom=6A5238
+Frd_Azul=35516B
+Frd_Preto=26282C
+Frd_Vermelho=8E3A30

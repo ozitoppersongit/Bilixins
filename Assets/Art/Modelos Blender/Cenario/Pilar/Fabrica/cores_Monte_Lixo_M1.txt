@@ -1,0 +1,11 @@
+Mon_Nucleo=2E2B28
+Mon_SacoPreto=26282C
+Mon_SacoVerde=2F4A33
+Mon_SacoCinza=5A5E62
+Mon_SacoAzul=2E4256
+Mon_Papelao=8A6A44
+Mon_Caixa=A8834F
+Mon_Ferrugem=7A4B33
+Mon_Plastico=CFC8AC
+Mon_Vermelho=A83A2E
+Mon_Pneu=1E1E20

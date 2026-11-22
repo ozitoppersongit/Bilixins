@@ -1,0 +1,6 @@
+Guindaste_Amarelo=E0B030
+Guindaste_Cinza=55595D
+Guindaste_Escuro=2B2D31
+Guindaste_Ferrugem=8A4E2C
+Guindaste_Cabo=3A3A3A
+Guindaste_Luz=E8D27A

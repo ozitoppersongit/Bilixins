@@ -1,0 +1,9 @@
+Cas_Parede=BDB7A6
+Cas_Base=6D6A62
+Cas_Teto=5A5D63
+Cas_Porta=47525B
+Cas_Moldura=E4E0D2
+Cas_Aviso=E8C23A
+Cas_Ferro=3E4247
+Cas_Veneziana=2E3034
+Cas_Luz=E8D27A

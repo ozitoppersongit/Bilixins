@@ -1,0 +1,7 @@
+Tcq_Base=3A3F44
+Tcq_Aco=7E868C
+Tcq_LiquidoEmissivo=2E8F48
+Tcq_Escuro=2C3034
+Tcq_Cano=9A6A3A
+Tcq_Vidro=7FB89A
+Tcq_FaiscaEmissivo=FFD040

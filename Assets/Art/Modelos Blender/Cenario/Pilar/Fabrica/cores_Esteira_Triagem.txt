@@ -1,0 +1,8 @@
+Est_T_Escuro=33373B
+Est_T_Correia=1F2124
+Est_T_Quadro=3E6A88
+Est_T_Aviso=D0A22A
+Est_T_Lixo1=5C6F4E
+Est_T_Lixo2=7A5A44
+Est_T_Lixo3=8A8E92
+Est_T_Lixo4=3F4F66
