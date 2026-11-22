@@ -1,0 +1,4 @@
+Cxp_Plastico=D9B33A
+Cxp_Escuro=3A3D40
+Cxp_Frasco=4FB872
+Cxp_Tampa=E8E4DA

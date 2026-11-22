@@ -1,0 +1,3 @@
+Cone_Laranja=E0661E
+Cone_Branco=E8E4DA
+Cone_Base=2B2B2D

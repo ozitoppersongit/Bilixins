@@ -1,0 +1,13 @@
+Cel_Concreto=9C9A92
+Cel_Escuro=2C3034
+Cel_Grade=6E767C
+Cel_Piso=4A4C50
+Cel_Colchao=5F6F5E
+Cel_Manta=8A4A3A
+Cel_Travesseiro=CFC8AC
+Cel_Balde=8A9298
+Cel_Agua=4A7A9A
+Cel_LuzEmissivo=FFC866
+Cel_Risco=5A5852
+Cel_Placa=C9A227
+Cel_Cadeado=B8A040

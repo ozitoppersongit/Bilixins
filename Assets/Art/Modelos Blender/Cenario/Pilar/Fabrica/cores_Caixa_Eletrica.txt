@@ -1,0 +1,4 @@
+Cx_Corpo=8A9094
+Cx_Escuro=3C4044
+Cx_Aviso=E8C23A
+Cx_Concreto=9A9A94

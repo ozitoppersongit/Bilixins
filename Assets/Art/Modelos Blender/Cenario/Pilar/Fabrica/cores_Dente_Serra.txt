@@ -1,0 +1,4 @@
+Den_Telha=50545B
+Den_Vidro=6F9AA8
+Den_Moldura=33373B
+Den_Cumeeira=6A6F76

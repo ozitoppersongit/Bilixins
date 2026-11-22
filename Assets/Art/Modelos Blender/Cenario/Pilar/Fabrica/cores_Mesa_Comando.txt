@@ -1,0 +1,6 @@
+Mco_Corpo=596168
+Mco_Escuro=2C3034
+Mco_TelaEmissivo=55C8E8
+Mco_VerdeEmissivo=4CE06A
+Mco_VermEmissivo=FF4A3A
+Mco_Amarelo=C9A227

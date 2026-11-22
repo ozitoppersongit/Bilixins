@@ -1,0 +1,3 @@
+Pas_Aco=7C858B
+Pas_Escuro=33373B
+Pas_Amarelo=C9A227

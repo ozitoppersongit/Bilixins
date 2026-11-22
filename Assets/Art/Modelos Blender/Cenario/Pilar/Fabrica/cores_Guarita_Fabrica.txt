@@ -1,0 +1,12 @@
+Guarita_Concreto=9A9A94
+Guarita_Parede=CFC8A8
+Guarita_Faixa=6F8F78
+Guarita_Quina=5E7A66
+Guarita_Teto=3C3F46
+Guarita_Luz=E8D27A
+Guarita_Vidro=3A5A78
+Guarita_Moldura=F1EFE3
+Guarita_Toldo=B5503C
+Guarita_Porta=4C6E57
+Guarita_Metal=D9B23A
+Guarita_Ferro=55595D

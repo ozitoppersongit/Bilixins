@@ -1,0 +1,9 @@
+Cam_Cabine=E4E0D2
+Cam_Corpo=4E8F5A
+Cam_Escuro=2B2D31
+Cam_Vidro=3A5A78
+Cam_Roda=1E1E20
+Cam_Aro=9AA0A6
+Cam_Farol=E8D27A
+Cam_Faixa=E0A82A
+Cam_Lanterna=B8362E

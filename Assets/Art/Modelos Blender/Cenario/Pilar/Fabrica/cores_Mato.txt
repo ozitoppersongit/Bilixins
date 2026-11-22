@@ -1,0 +1,3 @@
+Mat_Verde=5E8A3A
+Mat_Oliva=6E7A32
+Mat_Seco=A8A05A

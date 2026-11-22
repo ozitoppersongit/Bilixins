@@ -1,0 +1,5 @@
+Rck_Corpo=2C3034
+Rck_Moldura=4A4F55
+Rck_VerdeEmissivo=4CE06A
+Rck_AzulEmissivo=55C8E8
+Rck_AmareloEmissivo=F0C040

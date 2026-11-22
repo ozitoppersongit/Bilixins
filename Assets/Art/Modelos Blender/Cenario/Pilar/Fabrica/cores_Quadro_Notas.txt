@@ -1,0 +1,6 @@
+Qdn_Branco=EFEFEA
+Qdn_Moldura=6A7076
+Qdn_Traco=2E3A55
+Qdn_Vermelho=B84A3A
+Qdn_Creme=D8C79A
+Qdn_Escuro=33373B

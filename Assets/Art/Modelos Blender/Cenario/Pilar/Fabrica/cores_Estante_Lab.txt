@@ -1,0 +1,8 @@
+Est_L_Metal=5A6066
+Est_L_Frasco1=7FC8A0
+Est_L_Frasco2=C88A4A
+Est_L_Frasco3=8AA0D0
+Est_L_Frasco4=C8C060
+Est_L_Pasta1=B0463A
+Est_L_Pasta2=3F6F8F
+Est_L_Pasta3=E6E0C8

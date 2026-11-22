@@ -1,0 +1,4 @@
+Pap_Branco=EDEAE0
+Pap_Amarelo=E0C46A
+Pap_Azul=9DB4D0
+Pap_Vermelho=C86A5A

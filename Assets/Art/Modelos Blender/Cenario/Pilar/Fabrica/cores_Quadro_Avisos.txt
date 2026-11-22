@@ -1,0 +1,6 @@
+Qua_Cortica=B88F5A
+Qua_Moldura=5A4632
+Qua_Papel1=E8E4D6
+Qua_Papel2=E0C46A
+Qua_Papel3=C86A5A
+Qua_Teto=3C3F46

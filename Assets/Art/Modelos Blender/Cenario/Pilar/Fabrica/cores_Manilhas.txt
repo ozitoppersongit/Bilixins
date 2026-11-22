@@ -1,0 +1,2 @@
+Man_Concreto=A09E96
+Man_Escuro=5F5D58

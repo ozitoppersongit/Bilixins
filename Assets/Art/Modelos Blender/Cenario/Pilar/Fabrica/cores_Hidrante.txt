@@ -1,0 +1,2 @@
+Hid_Vermelho=B33A2E
+Hid_Ferro=4C5054

@@ -1,0 +1,2 @@
+Exa_Aco=8A9298
+Exa_Escuro=3A3F44

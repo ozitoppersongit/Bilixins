@@ -1,0 +1,8 @@
+Mqc_Corpo=596168
+Mqc_Escuro=2C3034
+Mqc_TelaEmissivo=55C8E8
+Mqc_VerdeEmissivo=4CE06A
+Mqc_VermelhoEmissivo=FF4A3A
+Mqc_Amarelo=C9A227
+Mqc_Cabo=B07A3A
+Mqc_Linha=1F5A78

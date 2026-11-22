@@ -1,0 +1,6 @@
+Pre_Corpo=C9A227
+Pre_Escuro=33373B
+Pre_Aco=8E969B
+Pre_LuzEmissivo=FF4A3A
+Pre_Faixa=1E1E20
+Pre_TelaEmissivo=5EE0A0

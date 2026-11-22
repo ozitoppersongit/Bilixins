@@ -1,0 +1,9 @@
+Pfa_Corpo=5E7A66
+Pfa_Escuro=2E3236
+Pfa_Amarelo=C9A227
+Pfa_Aco=8A9298
+Pfa_LuzEmissivo=FF4A3A
+Pfa_Faixa=1E1E20
+Pfa_FardoCinza=4A4D50
+Pfa_Fita=B8B8B0
+Pfa_FardoVerde=3F5A3A

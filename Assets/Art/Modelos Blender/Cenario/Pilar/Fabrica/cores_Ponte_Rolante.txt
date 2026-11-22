@@ -1,0 +1,5 @@
+Pon_Amarelo=D9A220
+Pon_Escuro=33373B
+Pon_Aco=7C858B
+Pon_Faixa=1E1E20
+Pon_LuzEmissivo=FFB040

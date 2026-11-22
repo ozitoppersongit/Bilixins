@@ -1,0 +1,7 @@
+Conteiner_Azul_Corpo=5B7FA6
+Conteiner_Azul_Costela=46668A
+Conteiner_Azul_Ferro=4A4A4C
+Conteiner_Azul_Porta=5B7FA6
+Conteiner_Azul_Trava=B8B8B0
+Conteiner_Azul_Faixa=E8E4D8
+Conteiner_Azul_Ferrugem=7E4B34

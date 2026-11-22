@@ -1,0 +1,2 @@
+Cla_Moldura=4A4F55
+Cla_Vidro=7FAAB8

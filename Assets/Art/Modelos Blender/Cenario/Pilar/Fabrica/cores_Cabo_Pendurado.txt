@@ -1,0 +1,3 @@
+Cpd_Preto=1E2024
+Cpd_Laranja=B8602E
+Cpd_Escuro=2C3034

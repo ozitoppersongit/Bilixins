@@ -1,0 +1,4 @@
+Cano_Tubo=A0642E
+Cano_Flange=4C4C50
+Cano_Apoio=8E8E88
+Cano_Ferrugem=7A4528

@@ -1,0 +1,5 @@
+Chm_Anel=5A5552
+Chm_Faixa=B03A2E
+Chm_Escada=3A3F44
+Chm_Fumaca=9A9EA2
+Chm_Boca=1E1F22

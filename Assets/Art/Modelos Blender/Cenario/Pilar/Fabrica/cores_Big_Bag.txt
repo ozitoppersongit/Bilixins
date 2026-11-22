@@ -1,0 +1,4 @@
+Bag_Saco=CFC8AC
+Bag_Fita=8C7B55
+Bag_Lixo=2B2D30
+Bag_Lixo2=4A5A3A

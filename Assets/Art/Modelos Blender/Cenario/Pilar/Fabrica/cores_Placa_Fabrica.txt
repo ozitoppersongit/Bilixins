@@ -1,0 +1,5 @@
+Plc_Fundo=2E4660
+Plc_Creme=E8DFC4
+Plc_Amarelo=D9A020
+Plc_Ferro=4C5054
+Plc_Luz=E8D27A

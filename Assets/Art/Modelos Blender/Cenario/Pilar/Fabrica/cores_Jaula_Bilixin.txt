@@ -1,0 +1,6 @@
+Jau_Base=3A3F44
+Jau_Grade=8A9298
+Jau_Escuro=2C3034
+Jau_Palha=B8A070
+Jau_Tigela=C0C4C8
+Jau_Aviso=D9A220

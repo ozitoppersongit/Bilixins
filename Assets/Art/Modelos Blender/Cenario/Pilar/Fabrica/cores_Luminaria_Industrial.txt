@@ -1,0 +1,2 @@
+Lum_trial_Metal=33373B
+Lum_trial_LuzEmissivo=FFD890

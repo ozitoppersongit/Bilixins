@@ -1,0 +1,6 @@
+Mes_Aco=A8B0B4
+Mes_Escuro=3A3F44
+Mes_Branco=E6E8E4
+Mes_Vidro=9BD2C0
+Mes_Laranja=E08A3A
+Mes_Roxo=7E58A0

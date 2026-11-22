@@ -1,0 +1,5 @@
+Let_Fundo=26364D
+Let_Ouro=E0B030
+Let_Moldura=9C7420
+Let_Aco=4C5054
+Let_LenteEmissivo=FFF1B0

@@ -1,0 +1,7 @@
+Conteiner_Verde_Corpo=5F8F6B
+Conteiner_Verde_Costela=4A7554
+Conteiner_Verde_Ferro=4A4A4C
+Conteiner_Verde_Porta=5F8F6B
+Conteiner_Verde_Trava=B8B8B0
+Conteiner_Verde_Faixa=E8E4D8
+Conteiner_Verde_Ferrugem=7E4B34

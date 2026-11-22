@@ -1,0 +1,4 @@
+Lix_Corpo=3D6B44
+Lix_Tampa=2C4F33
+Lix_Roda=1E1E20
+Lix_Saco=26282C
