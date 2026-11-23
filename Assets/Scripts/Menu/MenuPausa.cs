@@ -146,6 +146,13 @@ public class MenuPausa : MonoBehaviour
 
     public void Pausar()
 {
+    if (CarregamentoPartida.EmAndamento) return;
+    if (ModoInfinito.Instance != null && !ModoInfinito.Instance.PodeAbrirPausa) return;
+    if (ModoDeJogo.Infinito)
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
     if (pausado || animando ||
         (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota))
         return;

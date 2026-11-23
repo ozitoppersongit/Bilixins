@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("Movimentação")]
     [SerializeField] float speed = 5f;
+    public float VelocidadeNormal => speed;
     [SerializeField] float gravidade = -20f;
 
     [Header("Corrida (Shift)")]
@@ -113,6 +114,8 @@ void AtualizarAnimacao()
 
     void Update()
     {
+        if (CarregamentoPartida.EmAndamento) return;
+        if (ModoInfinito.Instance != null && !ModoInfinito.Instance.PodeExplorar) return;
         if (joystick == null || !joystick.gameObject.activeInHierarchy)
         {
             ProcurarJoystick();

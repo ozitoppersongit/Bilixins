@@ -100,6 +100,7 @@ public class Missoes : MonoBehaviour
 
     public void Iniciar(string nome)
     {
+        if (ModoDeJogo.Infinito) return;
         Missao m = missoes.Find(x => x.nome == nome);
         if (m == null) { Debug.LogWarning($"Missoes: não existe missão chamada '{nome}'."); return; }
         if (ativas.Exists(ativa => ativa.dados == m)) return;

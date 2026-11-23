@@ -15,7 +15,7 @@ public class Minimapa : MonoBehaviour
     [SerializeField] RawImage imagemMapa;
     [SerializeField] Sprite iconeLixo;
     [SerializeField] TMP_FontAsset fonte;
-    [SerializeField, Min(1f)] float tamanhoBolinha = 6f;
+    [SerializeField, Min(1f)] float tamanhoBolinha = 8f;
     [SerializeField, Min(1f)] float tamanhoLixo = 12f;
 
     readonly List<Image> marcadores = new List<Image>();
@@ -183,14 +183,24 @@ public class Minimapa : MonoBehaviour
             proximaBusca = Time.unscaledTime + 0.5f;
         }
         usados = 0;
-        foreach (Ferralha ferralha in ferralhas)
-            if (ferralha != null && ferralha.isActiveAndEnabled && !ferralha.EstaDerrotada)
-                Mostrar(ferralha.transform.position, bolinha, Color.red, tamanhoBolinha, raio);
-        if (cutscenes != null)
+        if (ModoInfinito.Instance != null)
+        {
+            foreach (Transform inimigo in ModoInfinito.Instance.InimigosVisiveis())
+                Mostrar(inimigo.position, bolinha, Color.red, tamanhoBolinha, raio);
+            foreach (Transform lixo in ModoInfinito.Instance.LixosVisiveis())
+                Mostrar(lixo.position, iconeLixo, Color.white, tamanhoLixo, raio);
+            if (ModoInfinito.Instance.PossuiRodada && ModoInfinito.Instance.EmBusca)
+                Mostrar(ModoInfinito.Instance.CentroObjetivo, bolinha, new Color(1f, 1f, 0f, 0.35f), 26f, raio);
+        }
+        else
+            foreach (Ferralha ferralha in ferralhas)
+                if (ferralha != null && ferralha.isActiveAndEnabled && !ferralha.EstaDerrotada)
+                    Mostrar(ferralha.transform.position, bolinha, Color.red, tamanhoBolinha, raio);
+        if (!ModoDeJogo.Infinito && cutscenes != null)
             foreach (Collider gatilho in cutscenes.GatilhosDisponiveis())
                 Mostrar(gatilho.bounds.center, bolinha, Color.yellow, tamanhoBolinha, raio);
         itensExibidos.Clear();
-        if (missoes != null)
+        if (!ModoDeJogo.Infinito && missoes != null)
             foreach (Transform item in missoes.LixosColetaveis())
                 if (itensExibidos.Add(item))
                     Mostrar(item.position, iconeLixo, Color.white, tamanhoLixo, raio);

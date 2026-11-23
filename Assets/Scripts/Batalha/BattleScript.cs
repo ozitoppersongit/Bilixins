@@ -338,6 +338,12 @@ public void IniciarBatalha(
 
     Time.timeScale = 0f;
     AudioJogo.Instance?.IniciarBatalha(this);
+    ModoInfinito.Instance?.IniciarBatalha(this);
+    if (ModoDeJogo.Infinito)
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
 
     tutorialConcluido = !modoTutorial;
 
@@ -367,6 +373,7 @@ public void IniciarBatalha(
     void OnDisable()
     {
         AudioJogo.Instance?.EncerrarBatalha(this);
+        ModoInfinito.Instance?.FecharBatalha(this);
     }
 
     Texture2D PegarIconeTipo(TipoLixo tipo)
@@ -1141,6 +1148,7 @@ IEnumerator FinalizarFuga()
         ferralha.JogadorFugiu();
 
     gatilhoEncontro.Reativar();
+    if (gatilhoEncontro.EncontroInfinito) gatilhoEncontro.ProtegerAposRetorno();
 }
 
     // Destrói a batalha
@@ -1236,6 +1244,11 @@ private IEnumerator FinalizarDerrota()
     }
 
     gatilhoEncontro?.Resultado.Concluir(ResultadoBatalha.Derrota);
+    if (ModoDeJogo.Infinito && ModoInfinito.Instance != null)
+    {
+        ModoInfinito.Instance.PerderBatalha(this);
+        yield break;
+    }
     if (gatilhoEncontro != null && (gatilhoEncontro.EhFerralha || gatilhoEncontro.CutsceneResponsavel != null) &&
         TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.TemTelaDerrota)
     {

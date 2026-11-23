@@ -62,7 +62,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1092565352920308993}
   - component: {fileID: 8751870232139432445}
-  - component: {fileID: 1262577338943998594}
   - component: {fileID: 2558421188624046176}
   m_Layer: 0
   m_Name: CameraMinimap
@@ -137,14 +136,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &1262577338943998594
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3116794512917659270}
-  m_Enabled: 1
 --- !u!114 &2558421188624046176
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -52,9 +52,11 @@ public class ControleInterfaceExploracao : MonoBehaviour
 
         // Só mostra quando o jogador estiver livre
         bool mostrar =
+            !CarregamentoPartida.EmAndamento &&
             jogadorExiste &&
             !emCutscene &&
-            !emDialogo;
+            !emDialogo &&
+            (ModoInfinito.Instance == null || ModoInfinito.Instance.PodeExplorar);
 
         // Evita chamar SetActive desnecessariamente
         if (estadoAnterior.HasValue &&

@@ -54,6 +54,7 @@ public class DialogoManager : MonoBehaviour
 
     void AbrirDialogo(string id)
     {
+        if (ModoDeJogo.Infinito) return;
         if (dialogoAberto != null)
         {
             Debug.LogWarning("Já existe um diálogo aberto.");

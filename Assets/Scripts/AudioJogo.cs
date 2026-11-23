@@ -68,7 +68,8 @@ public class AudioJogo : MonoBehaviour
     void LateUpdate()
     {
         bool suspenso = (menuPausa != null && menuPausa.EstaPausado) ||
-            (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota);
+            (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota) ||
+            (ModoInfinito.Instance != null && ModoInfinito.Instance.Encerrado);
         AudioSource proxima = suspenso ? null : batalha != null && combate.clip != null ? combate : cena;
         if (proxima == tocando) return;
         if (tocando != null) tocando.Pause();

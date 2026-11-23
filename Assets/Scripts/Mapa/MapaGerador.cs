@@ -318,6 +318,10 @@ public class MapaGerador : MonoBehaviour
             if (pontoDeSpawnDoPlayer != null)
                 PlayerInstanciado.transform.SetPositionAndRotation(pontoDeSpawnDoPlayer.position, pontoDeSpawnDoPlayer.rotation);
 
+            // Dá uma folga inicial em relação ao piso apenas no modo infinito.
+            if (ModoDeJogo.Infinito)
+                PlayerInstanciado.transform.position += Vector3.up * 0.3f;
+
             if (controller != null) controller.enabled = true;
             PoseInicialJogador = new Pose(PlayerInstanciado.transform.position, PlayerInstanciado.transform.rotation);
         }
@@ -328,6 +332,8 @@ public class MapaGerador : MonoBehaviour
 
         Debug.Log($"MapaGerador: mapa {largura}x{altura} gerado com {total} objetos.");
         aoTerminarDeGerar?.Invoke();
+        if (!ModoDeJogo.Infinito && PlayerInstanciado != null)
+            CarregamentoPartida.PreparacaoConcluida();
     }
 
     // BoxCollider.size é em espaço local, mas queremos um tamanho exato no mundo.

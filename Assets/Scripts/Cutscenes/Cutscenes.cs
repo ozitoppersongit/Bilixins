@@ -227,7 +227,12 @@ public class Cutscenes : MonoBehaviour
 
     void AoGerarMapa()
     {
-        if (!string.IsNullOrEmpty(cutsceneAoGerarMapa)) Tocar(cutsceneAoGerarMapa);
+        if (ModoDeJogo.Infinito) return;
+        CarregamentoPartida.AoRevelar(() =>
+        {
+            if (this != null && isActiveAndEnabled && !string.IsNullOrEmpty(cutsceneAoGerarMapa))
+                Tocar(cutsceneAoGerarMapa);
+        });
     }
 
     public void AtivarCameraFixa(bool ativa)
@@ -238,6 +243,7 @@ public class Cutscenes : MonoBehaviour
 
     public void Tocar(string nome)
     {
+        if (ModoDeJogo.Infinito) return;
         Cutscene c = cutscenes.Find(x => x.nome == nome);
         if (c == null) { Debug.LogWarning($"Cutscenes: não existe cutscene chamada '{nome}'."); return; }
         if (tocando) { Debug.LogWarning($"Cutscenes: '{nome}' ignorada, já tem uma cutscene tocando."); return; }
@@ -681,7 +687,7 @@ public class Cutscenes : MonoBehaviour
     // Dispara a cutscene do gatilho quando o player entra no volume (e a cutscene anterior, se houver, já terminou).
     void VerificarGatilhos()
     {
-        if (tocando || mapaGerador == null || mapaGerador.PlayerInstanciado == null ||
+        if (CarregamentoPartida.EmAndamento || tocando || mapaGerador == null || mapaGerador.PlayerInstanciado == null ||
             (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota)) return;
         Vector3 pos = mapaGerador.PlayerInstanciado.transform.position;
         foreach (GatilhoDeCutscene g in gatilhos)

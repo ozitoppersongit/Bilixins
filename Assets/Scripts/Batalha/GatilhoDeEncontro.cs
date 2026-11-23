@@ -20,6 +20,17 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     [Header("Tutorial")]
     public bool tutorialBatalha = false;
+    public bool EncontroInfinito { get; set; }
+
+    public void ConfigurarInfinito(BilixinsData dados, GameObject tela, Collider volume)
+    {
+        bilixinInimigo = dados;
+        battlePrefab = tela;
+        gatilho = volume;
+        tutorialBatalha = false;
+        EncontroInfinito = true;
+        DesvincularMissao();
+    }
 
     public bool FugaBloqueadaPorCutscene { get; private set; }
     public Cutscenes CutsceneResponsavel { get; private set; }
@@ -57,6 +68,8 @@ void OnTriggerEnter(Collider other)
 {
     if (!other.CompareTag("Player"))
         return;
+    if (ModoDeJogo.Infinito &&
+        (!EncontroInfinito || ModoInfinito.Instance == null || !ModoInfinito.Instance.PodeBatalhar)) return;
     if (aguardandoSaidaAposDerrota || Time.unscaledTime < protegidoAte ||
         (TransicaoBatalha.instancia != null && TransicaoBatalha.instancia.RetornandoDaDerrota))
         return;
@@ -69,6 +82,7 @@ void OnTriggerEnter(Collider other)
         return;
 
     batalhaIniciada = true;
+    if (EncontroInfinito) ModoInfinito.Instance?.IniciarEncontro();
     if (Resultado.Resultado != ResultadoBatalha.EmAndamento) Resultado = new ResultadoEncontro();
     jogadorDoEncontro = other.transform;
 
@@ -167,6 +181,7 @@ private void OnTriggerExit(Collider other)
     public void Vencer()
     {
         Resultado.Concluir(ResultadoBatalha.Vitoria);
+        if (EncontroInfinito) ModoInfinito.Instance?.RegistrarVitoria(this);
         /// oziel, aqui a derrota animada: se o inimigo tem um script IDerrotaAnimada (ex: Ferralha), ele toca a animação
         /// e o objeto só é destruído depois do tempo que ele devolver. Sem o script, some na hora como antes.
         float espera = 0f;

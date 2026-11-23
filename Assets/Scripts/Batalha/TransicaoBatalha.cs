@@ -16,6 +16,7 @@ public class TransicaoBatalha : MonoBehaviour
 
     public bool RetornandoDaDerrota { get; private set; }
     public bool TemTelaDerrota => telaDerrota != null && textoTelaDerrota != null;
+    public bool EmTransicao => bolinha != null && bolinha.localScale.sqrMagnitude > 0.001f;
 
     private void Awake()
     {

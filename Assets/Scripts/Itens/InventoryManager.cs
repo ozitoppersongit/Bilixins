@@ -14,6 +14,7 @@ public class InventoryManager : MonoBehaviour
 
     [Header("Inventário")]
     public List<ItemStack> itens = new List<ItemStack>();
+    readonly List<ItemStack> configuracaoInicial = new List<ItemStack>();
 
     private void Awake()
     {
@@ -24,7 +25,16 @@ public class InventoryManager : MonoBehaviour
         }
 
         instancia = this;
+        foreach (ItemStack stack in itens)
+            configuracaoInicial.Add(new ItemStack { item = stack.item, quantidade = stack.quantidade });
         DontDestroyOnLoad(gameObject);
+    }
+
+    public void RestaurarConfiguracaoInicial()
+    {
+        itens.Clear();
+        foreach (ItemStack stack in configuracaoInicial)
+            itens.Add(new ItemStack { item = stack.item, quantidade = stack.quantidade });
     }
 
     public void AdicionarItem(ItemData item, int quantidade = 1)
