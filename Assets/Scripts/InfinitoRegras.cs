@@ -26,7 +26,7 @@ public static class InfinitoRegras
     public static float Duracao(ObjetivoInfinito tipo, int quantidade, float distancia, float velocidade)
     {
         int custo = tipo == ObjetivoInfinito.Coleta ? 12 : tipo == ObjetivoInfinito.Combate ? 20 : 35;
-        return 30 + quantidade * custo + (float)Math.Ceiling(distancia / Math.Max(0.1f, velocidade));
+        return Math.Max(120f, 30 + quantidade * custo + (float)Math.Ceiling(distancia / Math.Max(0.1f, velocidade)));
     }
 
     public static int Bonus(int pontosBase, float restante, float inicial)

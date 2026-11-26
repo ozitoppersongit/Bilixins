@@ -7,21 +7,17 @@ public class AudioControl : MonoBehaviour
     [SerializeField] private AudioMixer mixer;
     [SerializeField] private Slider musicSlider;
     [SerializeField] private Slider soundsSlider;
-    [SerializeField] private Slider dialogueSlider;
 
     private const string MUSIC = "Músicas";
     private const string SOUNDS = "SFX";
-    private const string DIALOGUE = "Dialogues";
 
     private void Start()
     {
         LoadSlider(musicSlider, MUSIC);
         LoadSlider(soundsSlider, SOUNDS);
-        LoadSlider(dialogueSlider, DIALOGUE);
 
         musicSlider.onValueChanged.AddListener(v => SetVolume(MUSIC, v));
         soundsSlider.onValueChanged.AddListener(v => SetVolume(SOUNDS, v));
-        dialogueSlider.onValueChanged.AddListener(v => SetVolume(DIALOGUE, v));
     }
 
     private void LoadSlider(Slider slider, string key)

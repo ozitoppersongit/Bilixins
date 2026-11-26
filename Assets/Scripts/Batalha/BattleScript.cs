@@ -1185,7 +1185,7 @@ private IEnumerator FinalizarVitoria()
     yield return MostrarRecompensa("Você venceu a batalha!");
 
     int nivelAnterior = NivelJogador;
-    int xpRecebido = 25 * NivelInimigo;
+    int xpRecebido = 50 * NivelInimigo;
     progressoJogador.ReceberXp(xpRecebido);
     int novoMaximo = bilixinJogador.HpNoNivel(NivelJogador);
     hpJogador = Mathf.Min(novoMaximo, hpJogador + novoMaximo - maxHpJogador);

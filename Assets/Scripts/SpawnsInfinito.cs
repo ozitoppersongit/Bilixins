@@ -11,6 +11,8 @@ public class SpawnsInfinito : MonoBehaviour
     {
         public string nome;
         public Transform[] pontos;
+        public Transform waypointInimigos;
+        public Vector2[] pontosInimigos;
     }
 
     [Serializable]
@@ -21,6 +23,7 @@ public class SpawnsInfinito : MonoBehaviour
         [Min(0), Tooltip("Chance relativa. Zero exclui este tipo, inclusive nas alternativas de spawn.")]
         public float peso = 19f;
         [Min(0)] public float raioRonda;
+        [Min(0)] public int missoesConcluidasMinimas;
     }
 
     public sealed class Rodada
@@ -55,14 +58,15 @@ public class SpawnsInfinito : MonoBehaviour
     public bool NavegacaoPronta { get; private set; }
 
     public int QuantidadeRegioes => regioes != null ? regioes.Length : 0;
-    public bool TemModelosValidos => Candidatos().Count > 0;
+    public bool TemModelosValidos(int concluidas) => Candidatos(concluidas).Count > 0;
 
-    List<ModeloInimigo> Candidatos()
+    List<ModeloInimigo> Candidatos(int concluidas)
     {
         var candidatos = new List<ModeloInimigo>();
         if (modelos != null)
             foreach (ModeloInimigo modelo in modelos)
-                if (modelo != null && modelo.prefab != null && modelo.dados != null && SorteioPonderado.Valido(modelo.peso))
+                if (modelo != null && modelo.prefab != null && modelo.dados != null &&
+                    concluidas >= modelo.missoesConcluidasMinimas && SorteioPonderado.Valido(modelo.peso))
                     candidatos.Add(modelo);
         return candidatos;
     }
@@ -124,9 +128,11 @@ public class SpawnsInfinito : MonoBehaviour
         }
     }
 
-    public Rodada Criar(ObjetivoInfinito tipo, int quantidade, int inimigos, int nivel, int indice, Transform jogador)
+    public Rodada Criar(ObjetivoInfinito tipo, int quantidade, int inimigos, int nivel, int indice, Transform jogador, int concluidas)
     {
-        if (!NavegacaoPronta || indice < 0 || indice >= QuantidadeRegioes || !TemModelosValidos) return null;
+        if (!NavegacaoPronta || indice < 0 || indice >= QuantidadeRegioes) return null;
+        var elegiveis = Candidatos(concluidas);
+        if (elegiveis.Count == 0) return null;
         Regiao regiao = regioes[indice];
         if (regiao == null || regiao.pontos == null || regiao.pontos.Length == 0) return null;
         var pontos = new List<Vector3>();
@@ -143,7 +149,7 @@ public class SpawnsInfinito : MonoBehaviour
             float ronda = 0;
             Vector3 posicao = default;
             bool encontrou = false;
-            var candidatos = inimigo ? Candidatos() : new List<ModeloInimigo>();
+            var candidatos = inimigo ? new List<ModeloInimigo>(elegiveis) : new List<ModeloInimigo>();
             var pesos = new List<float>();
             foreach (ModeloInimigo candidato in candidatos) pesos.Add(candidato.peso);
             int alternativas = inimigo ? candidatos.Count : 1;
@@ -180,6 +186,8 @@ public class SpawnsInfinito : MonoBehaviour
                 ancoras++;
             }
         centro /= Mathf.Max(1, ancoras);
+        if (tipo == ObjetivoInfinito.Combate && regiao.waypointInimigos != null)
+            centro = regiao.waypointInimigos.position;
         while (objetivos.Count > 0)
         {
             int melhor = 0;
@@ -314,12 +322,23 @@ public class SpawnsInfinito : MonoBehaviour
     bool Encontrar(Regiao regiao, Transform jogador, List<Vector3> usados, List<float> raios,
         bool inimigo, float ronda, out Vector3 posicao)
     {
+        bool usarWaypoint = inimigo && regiao.waypointInimigos != null && regiao.pontosInimigos is { Length: > 0 };
         for (int tentativa = 0; tentativa < 64; tentativa++)
         {
-            Transform ancora = regiao.pontos[UnityEngine.Random.Range(0, regiao.pontos.Length)];
-            if (ancora == null) continue;
+            Vector3 centro;
+            if (usarWaypoint)
+            {
+                Vector2 ponto = regiao.pontosInimigos[UnityEngine.Random.Range(0, regiao.pontosInimigos.Length)];
+                centro = regiao.waypointInimigos.position + new Vector3(ponto.x, 0, ponto.y);
+            }
+            else
+            {
+                Transform ancora = regiao.pontos[UnityEngine.Random.Range(0, regiao.pontos.Length)];
+                if (ancora == null) continue;
+                centro = ancora.position;
+            }
             Vector2 deslocamento = UnityEngine.Random.insideUnitCircle * 12f;
-            Vector3 candidato = ancora.position + new Vector3(deslocamento.x, 0, deslocamento.y);
+            Vector3 candidato = centro + new Vector3(deslocamento.x, 0, deslocamento.y);
             if (!NavMesh.SamplePosition(candidato, out NavMeshHit hit, 3f, NavMesh.AllAreas)) continue;
             if (Vector3.Distance(hit.position, jogador.position) < (inimigo ? 8f + ronda : 4f)) continue;
             bool separado = true;

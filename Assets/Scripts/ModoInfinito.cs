@@ -130,7 +130,7 @@ public class ModoInfinito : MonoBehaviour
         SpawnsInfinito.Limpar(rodada);
         rodada = null;
         derrotados.Clear();
-        if (!spawns.TemModelosValidos)
+        if (!spawns.TemModelosValidos(concluidas))
         {
             Debug.LogError("Infinito: configure ao menos um inimigo com prefab, dados e peso positivo.", spawns);
             Encerrar("Nenhum inimigo configurado para o sorteio");
@@ -152,7 +152,7 @@ public class ModoInfinito : MonoBehaviour
                     int regiao = (primeiraRegiao + r) % spawns.QuantidadeRegioes;
                     if (repeticao == 0 && regiao == ultimaRegiao) continue;
                     rodada = spawns.Criar(tipo, quantidade, InfinitoRegras.Inimigos(concluidas),
-                        InfinitoRegras.NivelInimigo(concluidas), regiao, movimento.transform);
+                        InfinitoRegras.NivelInimigo(concluidas), regiao, movimento.transform, concluidas);
                     if (rodada != null) { ultimaRegiao = regiao; break; }
                     yield return null;
                 }

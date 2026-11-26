@@ -40,9 +40,11 @@ public static class ValidacaoMissoesFinais
                 e.aoVencer.GetPersistentMethodName(0) == "Iniciar");
             var lixoso = encontros.Single(e => e != viscoso &&
                 new SerializedObject(e).FindProperty("aoVencer.m_PersistentCalls.m_Calls") is SerializedProperty eventos &&
-                eventos.arraySize == 1 && eventos.GetArrayElementAtIndex(0)
+                eventos.arraySize == 2 && eventos.GetArrayElementAtIndex(0)
                     .FindPropertyRelative("m_Arguments.m_StringArgument").stringValue == "Fabrica_Lixoso");
             var rei = Encontro("Subterraneo_Rei");
+            var raizRei = (GameObject)lixoso.aoVencer.GetPersistentTarget(1);
+            Exigir(!raizRei.activeSelf && !rei.gameObject.activeInHierarchy, "Rei oculto antes da vitoria no Lixoso");
             foreach (var encontro in new[] { viscoso, lixoso, rei })
             {
                 Exigir(encontro.aoVencer.GetPersistentTarget(0) == missoes, "Evento ligado às missões da cena");
@@ -57,6 +59,8 @@ public static class ValidacaoMissoesFinais
             Chamar(missoes, "AtualizarMissao", ativaLixoso, Vector3.zero);
             Exigir(ativas.Count == 2, "Combate sem itens não conclui sozinho");
             lixoso.aoVencer.Invoke();
+            Exigir(raizRei.activeSelf && rei.isActiveAndEnabled && rei.GetComponent<Collider>().enabled,
+                "Modelo e gatilho do Rei liberados pela vitoria no Lixoso");
             Exigir(((Missoes.Missao)Campo(ativas[1], "dados")).nome == "Subterraneo_Rei", "Vitória no Lixoso inicia missão do Rei");
             rei.aoVencer.Invoke();
             rei.aoVencer.Invoke();
