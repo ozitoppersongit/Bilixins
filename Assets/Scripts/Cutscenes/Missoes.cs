@@ -19,10 +19,12 @@ public class Missoes : MonoBehaviour
     public class Missao
     {
         public string nome;
+        public TipoMissao tipo;
         [TextArea] public string titulo;
         [TextArea] public string objetivo = "Colete o lixo";
         [TextArea] public string objetivoEntrega = "Entregue os itens";
         public Sprite icone;
+        public bool ocultarIcone;
         [Tooltip("Objeto cujos filhos são os itens a coletar.")] public Transform itens;
         [Tooltip("Quantos coletar (0 = todos os filhos).")] public int quantidade;
         [Tooltip("Onde entregar. Vazio = a missão fecha assim que coletar tudo.")] public Transform entrega;
@@ -31,6 +33,8 @@ public class Missoes : MonoBehaviour
         public UnityEvent aoIniciar;
         public UnityEvent aoConcluir;
     }
+
+    public enum TipoMissao { Coleta, Combate, Aviso }
 
     sealed class MissaoAtiva
     {
@@ -54,12 +58,14 @@ public class Missoes : MonoBehaviour
     public event Action<string> aoMissaoConcluida;
 
     readonly List<MissaoAtiva> ativas = new List<MissaoAtiva>();
+    readonly HashSet<string> concluidas = new HashSet<string>();
+    readonly HashSet<string> vitoriasPendentes = new HashSet<string>();
 
     public IEnumerable<Transform> LixosColetaveis()
     {
         foreach (MissaoAtiva ativa in ativas)
         {
-            if (ativa.entregando || ativa.coletados >= ativa.total || ativa.dados.itens == null) continue;
+            if (ativa.dados.tipo != TipoMissao.Coleta || ativa.entregando || ativa.coletados >= ativa.total || ativa.dados.itens == null) continue;
             foreach (Transform item in ativa.dados.itens)
                 if (item.gameObject.activeInHierarchy) yield return item;
         }
@@ -87,6 +93,8 @@ public class Missoes : MonoBehaviour
             if (ativa.linha != null) Destroy(ativa.linha);
         }
         ativas.Clear();
+        concluidas.Clear();
+        vitoriasPendentes.Clear();
         aoMudarProgresso = null;
         aoMissaoConcluida = null;
         if (lista != null)
@@ -104,6 +112,7 @@ public class Missoes : MonoBehaviour
         Missao m = missoes.Find(x => x.nome == nome);
         if (m == null) { Debug.LogWarning($"Missoes: não existe missão chamada '{nome}'."); return; }
         if (ativas.Exists(ativa => ativa.dados == m)) return;
+        if (m.tipo != TipoMissao.Coleta && concluidas.Contains(nome)) return;
 
         var nova = new MissaoAtiva
         {
@@ -114,6 +123,17 @@ public class Missoes : MonoBehaviour
         CriarLinha(nova);
         m.aoIniciar?.Invoke();
         aoMudarProgresso?.Invoke(m.nome, 0, nova.total);
+        // Registra vitórias dos encontros mesmo se o jogador visitar os chefes fora de ordem.
+        if (m.tipo == TipoMissao.Combate && vitoriasPendentes.Remove(nome)) Concluir(nova);
+    }
+
+    public void ConcluirMissao(string nome)
+    {
+        if (ModoDeJogo.Infinito) return;
+        if (concluidas.Contains(nome) || !missoes.Exists(m => m.nome == nome && m.tipo == TipoMissao.Combate)) return;
+        MissaoAtiva ativa = ativas.Find(x => x.dados.nome == nome);
+        if (ativa == null) { vitoriasPendentes.Add(nome); return; }
+        Concluir(ativa);
     }
 
     void Update()
@@ -138,13 +158,14 @@ public class Missoes : MonoBehaviour
         bool mostrar = ativas.Count > 0 && movimento != null && movimento.isActiveAndEnabled &&
             Time.timeScale > 0f && !Cutscenes.EmCutscene &&
             (DialogoManager.Instance == null || !DialogoManager.Instance.TemDialogoAberto) &&
-            (TransicaoBatalha.instancia == null || !TransicaoBatalha.instancia.RetornandoDaDerrota);
+            (TransicaoBatalha.instancia == null || (!TransicaoBatalha.instancia.RetornandoDaDerrota && !TransicaoBatalha.instancia.EmTransicao));
         if (lista.gameObject.activeSelf != mostrar) lista.gameObject.SetActive(mostrar);
     }
 
     void AtualizarMissao(MissaoAtiva ativa, Vector3 jogador)
     {
         Missao m = ativa.dados;
+        if (m.tipo != TipoMissao.Coleta) return;
         if (ativa.entregando)
         {
             if (m.entrega == null)
@@ -200,7 +221,8 @@ public class Missoes : MonoBehaviour
     void Concluir(MissaoAtiva ativa)
     {
         Missao m = ativa.dados;
-        ativas.Remove(ativa);
+        if (!ativas.Remove(ativa)) return;
+        concluidas.Add(m.nome);
         if (ativa.linha != null)
         {
             ativa.linha.SetActive(false);
@@ -276,6 +298,7 @@ public class Missoes : MonoBehaviour
         var espacoIcone = objetoIcone.GetComponent<LayoutElement>();
         espacoIcone.minWidth = espacoIcone.preferredWidth = 24f;
         espacoIcone.minHeight = espacoIcone.preferredHeight = 24f;
+        objetoIcone.SetActive(!ativa.dados.ocultarIcone && ativa.dados.tipo != TipoMissao.Aviso);
 
         var descricao = new GameObject("Descrição", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
         descricao.transform.SetParent(linha.transform, false);
@@ -288,8 +311,17 @@ public class Missoes : MonoBehaviour
         espacoDescricao.minWidth = espacoDescricao.preferredWidth = 0f;
         espacoDescricao.flexibleWidth = 1f;
 
-        CriarTexto(tituloModelo, descricao.transform, ativa.dados.titulo, 10f, TextAlignmentOptions.Left);
+        if (ativa.dados.tipo == TipoMissao.Aviso)
+        {
+            var aviso = CriarTexto(objetivoModelo, descricao.transform, ativa.dados.objetivo, 12f, TextAlignmentOptions.Left);
+            aviso.textWrappingMode = TextWrappingModes.Normal;
+            aviso.overflowMode = TextOverflowModes.Overflow;
+            return;
+        }
+        if (!string.IsNullOrWhiteSpace(ativa.dados.titulo))
+            CriarTexto(tituloModelo, descricao.transform, ativa.dados.titulo, 10f, TextAlignmentOptions.Left);
         ativa.objetivo = CriarTexto(objetivoModelo, descricao.transform, ativa.dados.objetivo, 12f, TextAlignmentOptions.Left);
+        if (ativa.dados.tipo != TipoMissao.Coleta) return;
         ativa.contador = CriarTexto(contadorModelo, linha.transform, $"0 / {ativa.total}", 14f, TextAlignmentOptions.MidlineRight);
         var espacoContador = ativa.contador.gameObject.AddComponent<LayoutElement>();
         espacoContador.minWidth = espacoContador.preferredWidth = 42f;

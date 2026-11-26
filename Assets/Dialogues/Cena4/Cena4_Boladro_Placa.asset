@@ -16,18 +16,18 @@ MonoBehaviour:
   falas:
   - nomePersonagem: Boladro
     texto: "Ai... algu\xE9m anotou a placa do que me bateu...?"
-    portraitEsquerdo: {fileID: -4652305099162882959, guid: 517455afd9b6c93449c7eae97a277e30, type: 3}
+    portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 0
   - nomePersonagem: Pipagaio
     texto: "Foi mal, \xE9 que voc\xEA tava fora de controle."
-    portraitEsquerdo: {fileID: -4652305099162882959, guid: 517455afd9b6c93449c7eae97a277e30, type: 3}
-    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
     personagemFalando: 1
   - nomePersonagem: Boladro
     texto: "Pipagaio...? N\xE3o me surpreende que voc\xEA esteja bem... Tem muito mais pl\xE1stico jogado por a\xED do que os outros tipos de lixo..."
-    portraitEsquerdo: {fileID: -4652305099162882959, guid: 517455afd9b6c93449c7eae97a277e30, type: 3}
-    portraitDireito: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
     personagemFalando: 0
   - nomePersonagem: Caio
     texto: "Eu n\xE3o entendo. Por que o Boladro ficou descontrolado e a Pipagaio t\xE1 bem?"

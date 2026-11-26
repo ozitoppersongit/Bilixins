@@ -30,6 +30,7 @@ public class Cutscenes : MonoBehaviour
     }
     Cutscene cutsceneAtual;
     GatilhoDeCutscene gatilhoDaTentativa;
+    readonly Dictionary<GatilhoDeCutscene, float> gatilhosProtegidos = new Dictionary<GatilhoDeCutscene, float>();
     bool preparandoRetorno;
     Transform pontoRetorno;
     bool batalhaVencida;
@@ -243,10 +244,16 @@ public class Cutscenes : MonoBehaviour
 
     public void Tocar(string nome)
     {
+        Tocar(nome, null);
+    }
+
+    void Tocar(string nome, GatilhoDeCutscene origem)
+    {
         if (ModoDeJogo.Infinito) return;
         Cutscene c = cutscenes.Find(x => x.nome == nome);
         if (c == null) { Debug.LogWarning($"Cutscenes: não existe cutscene chamada '{nome}'."); return; }
         if (tocando) { Debug.LogWarning($"Cutscenes: '{nome}' ignorada, já tem uma cutscene tocando."); return; }
+        gatilhoDaTentativa = origem;
         ControlarJoystick(false);
         StartCoroutine(Executar(c));
         
@@ -362,7 +369,11 @@ public class Cutscenes : MonoBehaviour
         {
             preparandoRetorno = true;
             pontoRetorno = gatilhoDaTentativa != null ? gatilhoDaTentativa.pontoDeRetorno : encontro.PontoDeRetorno;
-            if (gatilhoDaTentativa != null) gatilhoDaTentativa.usado = false;
+            if (gatilhoDaTentativa != null)
+            {
+                gatilhoDaTentativa.usado = false;
+                gatilhosProtegidos[gatilhoDaTentativa] = float.PositiveInfinity;
+            }
             foreach (var objeto in objetosDaTentativa)
             {
                 if (objeto.Key == null) continue;
@@ -376,22 +387,27 @@ public class Cutscenes : MonoBehaviour
                 inimigo.gameObject.SetActive(false);
                 Destroy(inimigo.gameObject);
             }
+            foreach (var renderer in renderizadoresDaTentativa)
+                if (renderer.Key != null) renderer.Key.enabled = renderer.Value;
+            foreach (var collider in collidersDaTentativa)
+                if (collider.Key != null) collider.Key.enabled = collider.Value;
+            // O estado capturado antes do passo pode ter o collider desligado.
+            // Rearmar só depois de restaurar os objetos impede sobrescrever a liberação.
             if (encontro != null && !inimigosCriados.Contains(encontro))
             {
                 encontro.DesvincularMissao();
                 encontro.Reativar();
                 encontro.ProtegerAposRetorno();
             }
-            foreach (var renderer in renderizadoresDaTentativa)
-                if (renderer.Key != null) renderer.Key.enabled = renderer.Value;
-            foreach (var collider in collidersDaTentativa)
-                if (collider.Key != null) collider.Key.enabled = collider.Value;
         }
 
         if (jogadorDaCutscene == null || mapaGerador == null) return false;
         Pose retorno = RetornoSeguro.ObterPose(pontoRetorno, mapaGerador.PoseInicialJogador);
 
         GatilhoDeEncontro.ReposicionarJogador(jogadorDaCutscene, retorno);
+        if (gatilhoDaTentativa != null)
+            gatilhosProtegidos[gatilhoDaTentativa] = Time.unscaledTime + 3f;
+        gatilhoDaTentativa = null;
         if (cameraSeguir != null)
             cameraSeguir.transform.SetPositionAndRotation(poseInicialCamera.position, poseInicialCamera.rotation);
         inimigosCriados.Clear();
@@ -693,11 +709,18 @@ public class Cutscenes : MonoBehaviour
         foreach (GatilhoDeCutscene g in gatilhos)
         {
             if (g.zona == null || (g.umaVez && g.usado)) continue;
+            if (gatilhosProtegidos.TryGetValue(g, out float protegidoAte))
+            {
+                Collider jogador = mapaGerador.PlayerInstanciado.GetComponent<Collider>();
+                bool separado = jogador != null ? !g.zona.bounds.Intersects(jogador.bounds) : !g.zona.bounds.Contains(pos);
+                if (Time.unscaledTime < protegidoAte || !separado) continue;
+                gatilhosProtegidos.Remove(g);
+                continue; // A próxima entrada no volume inicia a tentativa.
+            }
             if (!string.IsNullOrEmpty(g.depoisDe) && !concluidas.Contains(g.depoisDe)) continue;
             if (!g.zona.bounds.Contains(pos)) continue;
             g.usado = true;
-            Tocar(g.cutscene);
-            gatilhoDaTentativa = g;
+            Tocar(g.cutscene, g);
             return;
         }
     }

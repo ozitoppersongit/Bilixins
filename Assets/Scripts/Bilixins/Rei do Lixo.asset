@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Rei do Lixo
   m_EditorClassIdentifier: Assembly-CSharp::BilixinsData
   nome: Rei do Lixo
-  hp: 50
+  hp: 40
   nivel: 1
-  ataque: 50
-  defesa: 50
+  ataque: 35
+  defesa: 35
   tipo: 0
   spr: {fileID: 21300000, guid: 510448e17f317e14fbe8f508799f6a33, type: 3}
   ataque1:

@@ -14,18 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogoData
   id: Missao1_Npc_PedeLixo
   falas:
-  - nomePersonagem: NPC sem nome
+  - nomePersonagem: Vendedor
     texto: "Opa Galego, beleza? Ent\xE3o, se voc\xEA n\xE3o se importar, eu preciso da sua ajuda."
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 0
-  - nomePersonagem: NPC sem nome
-    texto: "Voc\xEA precisa achar 12 lixos que est\xE3o espalhados pela cidade."
+  - nomePersonagem: Vendedor
+    texto: "Voc\xEA precisa achar 12 lixos que est\xE3o espalhados pela comunidade."
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 0
-  - nomePersonagem: NPC sem nome
-    texto: "Tranquilo para voc\xEA?"
+  - nomePersonagem: Vendedor
+    texto: "Tranquilo pra voc\xEA?"
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 0

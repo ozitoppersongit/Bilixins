@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -28,6 +29,10 @@ public class BattleScript : MonoBehaviour
     public Image xpBarraJogador;
     ProgressoBilixin progressoJogador;
     bool recompensaConcedida;
+
+    [Header("Itens por vitória")]
+    [SerializeField, Range(0f, 100f)] float chanceItem = 25f;
+    [SerializeField] ItemData[] itensDeRecompensa = System.Array.Empty<ItemData>();
 
     int NivelJogador => progressoJogador != null ? progressoJogador.Nivel : Mathf.Max(1, bilixinJogador.nivel);
     int NivelInimigo => Mathf.Max(1, bilixinInimigo.nivel);
@@ -1190,6 +1195,10 @@ private IEnumerator FinalizarVitoria()
     if (NivelJogador > nivelAnterior)
         yield return MostrarRecompensa($"{bilixinJogador.nome} subiu para o nível {NivelJogador}!");
 
+    ItemData itemRecebido = ConcederItemVitoria();
+    if (itemRecebido != null)
+        yield return MostrarRecompensa($"Você recebeu 1x {itemRecebido.nome}!");
+
     // Cobre a tela
     yield return StartCoroutine(
         TransicaoBatalha.instancia.Abrir()
@@ -1209,6 +1218,19 @@ private IEnumerator FinalizarVitoria()
 
     // Revela o mapa
     TransicaoBatalha.instancia.FecharDepoisDaVitoria();
+}
+
+private ItemData ConcederItemVitoria()
+{
+    InventoryManager inventario = InventoryManager.instancia;
+    if (inventario == null || itensDeRecompensa == null) return null;
+    var candidatos = new List<ItemData>();
+    foreach (ItemData item in itensDeRecompensa)
+        if (item != null && !candidatos.Contains(item)) candidatos.Add(item);
+    int escolhido = RegrasRecompensa.Sortear(chanceItem, candidatos.Count, Random.value, Random.value);
+    if (escolhido < 0) return null;
+    ItemData premio = candidatos[escolhido];
+    return inventario.TentarAdicionarItem(premio, 1) ? premio : null;
 }
 
 private IEnumerator MostrarRecompensa(string mensagem)

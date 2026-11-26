@@ -3357,6 +3357,9 @@ MonoBehaviour:
   conteudoItens: {fileID: 6351337744759490694}
   prefabBotaoItem: {fileID: 2412558818993360747, guid: 97d36f3815fe0de4e9ef58ed19249109, type: 3}
   textoCooldownAtaque2: {fileID: 4509931336498181658}
+  chanceItem: 25
+  itensDeRecompensa:
+  - {fileID: 11400000, guid: c019b1c2ded76f840afac8f6c66277b9, type: 2}
 --- !u!1 &5775376579296543454
 GameObject:
   m_ObjectHideFlags: 0

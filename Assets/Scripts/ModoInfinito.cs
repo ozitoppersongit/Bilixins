@@ -104,7 +104,6 @@ public class ModoInfinito : MonoBehaviour
         movimento = mapa.PlayerInstanciado.GetComponent<PlayerMovement>();
         movimento.enabled = false;
         Time.timeScale = 0f;
-        InventoryManager.instancia?.RestaurarConfiguracaoInicial();
         GerenciadorBatalha.instancia?.EncerrarPartida();
         // A geração também pode ter criado encontros vindos dos pixels do mapa.
         foreach (GatilhoDeEncontro encontro in FindObjectsByType<GatilhoDeEncontro>(FindObjectsSortMode.None))
@@ -131,6 +130,12 @@ public class ModoInfinito : MonoBehaviour
         SpawnsInfinito.Limpar(rodada);
         rodada = null;
         derrotados.Clear();
+        if (!spawns.TemModelosValidos)
+        {
+            Debug.LogError("Infinito: configure ao menos um inimigo com prefab, dados e peso positivo.", spawns);
+            Encerrar("Nenhum inimigo configurado para o sorteio");
+            yield break;
+        }
         yield return null;
         int primeiroTipo = Random.Range(0, 3);
         int primeiraRegiao = Random.Range(0, Mathf.Max(1, spawns.QuantidadeRegioes));

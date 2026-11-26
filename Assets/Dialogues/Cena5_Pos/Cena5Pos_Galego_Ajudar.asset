@@ -15,7 +15,12 @@ MonoBehaviour:
   id: Cena5Pos_Galego_Ajudar
   falas:
   - nomePersonagem: Galego
-    texto: "Que tal se a gente se ajudar? E se o pessoal da Comunidade separar os lixos por tipo de lixo recicl\xE1vel e o lixo org\xE2nico, dessa forma os Bilixins n\xE3o v\xE3o ter que se preocupar com comer algo que n\xE3o devem e eles n\xE3o v\xE3o mais espalhar o lixo por a\xED."
+    texto: "Que tal se a gente se ajudar? E se o pessoal da Comunidade separar os lixos por tipo de lixo recicl\xE1vel e o lixo org\xE2nico."
+    portraitEsquerdo: {fileID: 0}
+    portraitDireito: {fileID: 0}
+    personagemFalando: 1
+  - nomePersonagem: Galego
+    texto: "Dessa forma, os Bilixins n\xE3o v\xE3o ter que se preocupar com comer algo que n\xE3o devem e eles n\xE3o v\xE3o mais espalhar o lixo por a\xED."
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 1

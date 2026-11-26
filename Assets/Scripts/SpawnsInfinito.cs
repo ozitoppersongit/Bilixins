@@ -18,6 +18,8 @@ public class SpawnsInfinito : MonoBehaviour
     {
         public GameObject prefab;
         public BilixinsData dados;
+        [Min(0), Tooltip("Chance relativa. Zero exclui este tipo, inclusive nas alternativas de spawn.")]
+        public float peso = 19f;
         [Min(0)] public float raioRonda;
     }
 
@@ -52,7 +54,18 @@ public class SpawnsInfinito : MonoBehaviour
     NavMeshPath caminho;
     public bool NavegacaoPronta { get; private set; }
 
-    public int QuantidadeRegioes => regioes.Length;
+    public int QuantidadeRegioes => regioes != null ? regioes.Length : 0;
+    public bool TemModelosValidos => Candidatos().Count > 0;
+
+    List<ModeloInimigo> Candidatos()
+    {
+        var candidatos = new List<ModeloInimigo>();
+        if (modelos != null)
+            foreach (ModeloInimigo modelo in modelos)
+                if (modelo != null && modelo.prefab != null && modelo.dados != null && SorteioPonderado.Valido(modelo.peso))
+                    candidatos.Add(modelo);
+        return candidatos;
+    }
 
     public bool ConstruirNavegacao(GameObject jogador)
     {
@@ -113,9 +126,9 @@ public class SpawnsInfinito : MonoBehaviour
 
     public Rodada Criar(ObjetivoInfinito tipo, int quantidade, int inimigos, int nivel, int indice, Transform jogador)
     {
-        if (!NavegacaoPronta) return null;
+        if (!NavegacaoPronta || indice < 0 || indice >= QuantidadeRegioes || !TemModelosValidos) return null;
         Regiao regiao = regioes[indice];
-        if (regiao.pontos == null || regiao.pontos.Length == 0 || modelos.Length == 0) return null;
+        if (regiao == null || regiao.pontos == null || regiao.pontos.Length == 0) return null;
         var pontos = new List<Vector3>();
         var modelosEscolhidos = new List<ModeloInimigo>();
         var raios = new List<float>();
@@ -130,10 +143,20 @@ public class SpawnsInfinito : MonoBehaviour
             float ronda = 0;
             Vector3 posicao = default;
             bool encontrou = false;
-            int inicioModelo = UnityEngine.Random.Range(0, modelos.Length);
-            for (int alternativa = 0; alternativa < (inimigo ? modelos.Length : 1); alternativa++)
+            var candidatos = inimigo ? Candidatos() : new List<ModeloInimigo>();
+            var pesos = new List<float>();
+            foreach (ModeloInimigo candidato in candidatos) pesos.Add(candidato.peso);
+            int alternativas = inimigo ? candidatos.Count : 1;
+            for (int alternativa = 0; alternativa < alternativas; alternativa++)
             {
-                modelo = inimigo ? modelos[(inicioModelo + alternativa) % modelos.Length] : null;
+                if (inimigo)
+                {
+                    int escolhido = SorteioPonderado.Sortear(pesos, UnityEngine.Random.value);
+                    if (escolhido < 0) break;
+                    modelo = candidatos[escolhido];
+                    candidatos.RemoveAt(escolhido);
+                    pesos.RemoveAt(escolhido);
+                }
                 ronda = modelo != null ? modelo.raioRonda : 0;
                 if (!Encontrar(regiao, jogador, pontos, raios, inimigo, ronda, out posicao)) continue;
                 encontrou = true;
@@ -181,11 +204,17 @@ public class SpawnsInfinito : MonoBehaviour
             {
                 GameObject objeto = Instantiate(modelo.prefab, pontos[i], Quaternion.identity);
                 rodada.objetos.Add(objeto);
+                objeto.name = "Infinito_" + modelo.dados.nome;
+                foreach (Animator animador in objeto.GetComponentsInChildren<Animator>(true)) animador.Update(0f);
                 Assentar(objeto, pontos[i]);
-                if (!CabeNoLocal(objeto)) { Limpar(rodada); return null; }
+                if (!RondaCabeNoLocal(objeto, modelo.raioRonda, pontos[i]) || !CabeNoLocal(objeto)) { Limpar(rodada); return null; }
                 Ferralha ferralha = objeto.GetComponentInChildren<Ferralha>(true);
                 GameObject alvo = ferralha != null ? ferralha.gameObject : objeto;
                 foreach (Collider collider in objeto.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+                Rigidbody corpoEncontro = alvo.GetComponentInParent<Rigidbody>();
+                if (corpoEncontro == null) corpoEncontro = alvo.AddComponent<Rigidbody>();
+                corpoEncontro.isKinematic = true;
+                corpoEncontro.useGravity = false;
                 SphereCollider volume = alvo.AddComponent<SphereCollider>();
                 volume.isTrigger = true;
                 volume.radius = 1.4f;
@@ -250,6 +279,38 @@ public class SpawnsInfinito : MonoBehaviour
         return true;
     }
 
+    bool RondaCabeNoLocal(GameObject objeto, float raio, Vector3 piso)
+    {
+        if (raio <= 0f) return true;
+        Animator animador = objeto.GetComponentInChildren<Animator>();
+        int ronda = Animator.StringToHash("Base Layer.Ronda");
+        if (animador == null || !animador.HasState(0, ronda)) return false;
+        float solaMinima = float.PositiveInfinity;
+        Renderer[] partes = objeto.GetComponentsInChildren<Renderer>(true);
+        // Alguns ciclos abaixam as pernas depois do frame inicial. Reserva essa altura também.
+        for (int amostra = 0; amostra < 48; amostra++)
+        {
+            animador.Play(ronda, 0, amostra / 48f);
+            animador.Update(0f);
+            foreach (Renderer parte in partes)
+                if (!(parte is ParticleSystemRenderer) && parte.enabled && parte.gameObject.activeInHierarchy)
+                    solaMinima = Mathf.Min(solaMinima, parte.bounds.min.y);
+        }
+        if (!float.IsInfinity(solaMinima))
+            objeto.transform.position += Vector3.up * Mathf.Max(0, piso.y + 0.03f - solaMinima);
+        bool livre = true;
+        // Confere o volume do modelo real durante toda a ronda, além do caminho reservado.
+        for (int amostra = 0; amostra < 48; amostra++)
+        {
+            animador.Play(ronda, 0, amostra / 48f);
+            animador.Update(0f);
+            if (!CabeNoLocal(objeto)) { livre = false; break; }
+        }
+        animador.Play(ronda, 0, 0f);
+        animador.Update(0f);
+        return livre;
+    }
+
     bool Encontrar(Regiao regiao, Transform jogador, List<Vector3> usados, List<float> raios,
         bool inimigo, float ronda, out Vector3 posicao)
     {
@@ -260,7 +321,7 @@ public class SpawnsInfinito : MonoBehaviour
             Vector2 deslocamento = UnityEngine.Random.insideUnitCircle * 12f;
             Vector3 candidato = ancora.position + new Vector3(deslocamento.x, 0, deslocamento.y);
             if (!NavMesh.SamplePosition(candidato, out NavMeshHit hit, 3f, NavMesh.AllAreas)) continue;
-            if (Vector3.Distance(hit.position, jogador.position) < (inimigo ? 8f : 4f)) continue;
+            if (Vector3.Distance(hit.position, jogador.position) < (inimigo ? 8f + ronda : 4f)) continue;
             bool separado = true;
             for (int i = 0; i < usados.Count; i++)
             {

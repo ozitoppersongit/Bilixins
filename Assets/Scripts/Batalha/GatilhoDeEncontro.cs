@@ -6,6 +6,8 @@ using Unity.Cinemachine;
 public class GatilhoDeEncontro : MonoBehaviour
 {
     public UnityEvent aoEncontrarPlayer;
+    public UnityEvent aoVencer = new UnityEvent();
+    bool vitoriaProcessada;
 
     public BilixinsData bilixinInimigo;
 
@@ -24,6 +26,7 @@ public class GatilhoDeEncontro : MonoBehaviour
 
     public void ConfigurarInfinito(BilixinsData dados, GameObject tela, Collider volume)
     {
+        enabled = true;
         bilixinInimigo = dados;
         battlePrefab = tela;
         gatilho = volume;
@@ -180,8 +183,11 @@ private void OnTriggerExit(Collider other)
 
     public void Vencer()
     {
+        if (vitoriaProcessada || (Resultado.Resultado != ResultadoBatalha.EmAndamento && Resultado.Resultado != ResultadoBatalha.Vitoria)) return;
+        vitoriaProcessada = true;
         Resultado.Concluir(ResultadoBatalha.Vitoria);
         if (EncontroInfinito) ModoInfinito.Instance?.RegistrarVitoria(this);
+        if (!ModoDeJogo.Infinito) aoVencer?.Invoke();
         /// oziel, aqui a derrota animada: se o inimigo tem um script IDerrotaAnimada (ex: Ferralha), ele toca a animação
         /// e o objeto só é destruído depois do tempo que ele devolver. Sem o script, some na hora como antes.
         float espera = 0f;
@@ -193,6 +199,9 @@ private void OnTriggerExit(Collider other)
     public void Reativar()
 {
     batalhaIniciada = false;
+    // Triggers também recebem OnTriggerEnter em MonoBehaviours desativados.
+    // A liberação da proteção, porém, precisa de Update em execução.
+    enabled = true;
 
     foreach (IAntesDaBatalha a in GetComponentsInChildren<IAntesDaBatalha>())
         a.VoltarAoNormal();
@@ -203,6 +212,7 @@ private void OnTriggerExit(Collider other)
 
     public void ProtegerAposRetorno()
     {
+        enabled = true;
         aguardandoSaidaAposDerrota = true;
         protegidoAte = Time.unscaledTime + 3f;
         if (ferralha != null) ferralha.ProtegerRetorno();
@@ -225,7 +235,7 @@ private void OnTriggerExit(Collider other)
         ProtegerAposRetorno();
         return true;
     }
-    void FixedUpdate()
+    void Update()
     {
         if (!aguardandoSaidaAposDerrota) return;
         var controller = jogadorDoEncontro != null ? jogadorDoEncontro.GetComponent<CharacterController>() : null;

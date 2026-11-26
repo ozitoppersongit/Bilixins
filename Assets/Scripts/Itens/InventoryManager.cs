@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public class ItemStack
@@ -28,6 +29,20 @@ public class InventoryManager : MonoBehaviour
         foreach (ItemStack stack in itens)
             configuracaoInicial.Add(new ItemStack { item = stack.item, quantidade = stack.quantidade });
         DontDestroyOnLoad(gameObject);
+        SceneManager.sceneLoaded += AoCarregarCena;
+    }
+
+    void AoCarregarCena(Scene cena, LoadSceneMode modo)
+    {
+        if (modo == LoadSceneMode.Single &&
+            (cena.name == "Game_Mesclado" || cena.name == "Game_Tutorial" || cena.name == "Game"))
+            RestaurarConfiguracaoInicial();
+    }
+
+    void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= AoCarregarCena;
+        if (instancia == this) instancia = null;
     }
 
     public void RestaurarConfiguracaoInicial()
@@ -39,13 +54,19 @@ public class InventoryManager : MonoBehaviour
 
     public void AdicionarItem(ItemData item, int quantidade = 1)
     {
+        TentarAdicionarItem(item, quantidade);
+    }
+
+    public bool TentarAdicionarItem(ItemData item, int quantidade = 1)
+    {
         if (item == null || quantidade <= 0)
-            return;
+            return false;
 
         ItemStack existente = itens.Find(x => x.item == item);
 
         if (existente != null)
         {
+            if (existente.quantidade > int.MaxValue - quantidade) return false;
             existente.quantidade += quantidade;
         }
         else
@@ -56,6 +77,7 @@ public class InventoryManager : MonoBehaviour
                 quantidade = quantidade
             });
         }
+        return true;
     }
 
     public bool RemoverItem(ItemData item, int quantidade = 1)

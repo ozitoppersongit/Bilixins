@@ -22,7 +22,7 @@ MonoBehaviour:
   - nomePersonagem: Pipagaio
     texto: "Isso n\xE3o \xE9 bom. Deve ser o Boladro. Ele \xE9 um Bilixin de vidro. Galego, precisamos alimentar ele com vidro ou isso pode sair do controle."
     portraitEsquerdo: {fileID: 0}
-    portraitDireito: {fileID: -4652305099162882959, guid: 517455afd9b6c93449c7eae97a277e30, type: 3}
+    portraitDireito: {fileID: 0}
     personagemFalando: 1
   - nomePersonagem: Galego
     texto: "T\xE1, mas eu n\xE3o tenho vidro comigo agora."
