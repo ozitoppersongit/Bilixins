@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
 using Unity.Cinemachine;
 
@@ -18,11 +17,6 @@ public class BattleScript : MonoBehaviour
     public Button botaoLutar;
     public Button botaoFugir;
     public Typewriter typewriter;
-    private Outline contornoLutar;
-    private Outline contornoItens;
-    private Outline contornoFugir;
-    private Outline contornoSelecionado;
-    private int ordemOriginalContorno;
 
     [Header("Câmera")]
     public CinemachineCamera camera;
@@ -379,52 +373,10 @@ public void IniciarBatalha(
         botaoLutar.interactable = false;
         botaoItens.interactable = false;
         botaoFugir.interactable = false;
-        contornoLutar = CriarContornoDeSelecao(botaoLutar);
-        contornoItens = CriarContornoDeSelecao(botaoItens);
-        contornoFugir = CriarContornoDeSelecao(botaoFugir);
-    }
-
-    static Outline CriarContornoDeSelecao(Button botao)
-    {
-        Outline contorno = botao.targetGraphic.gameObject.AddComponent<Outline>();
-        contorno.effectColor = Color.white;
-        contorno.effectDistance = new Vector2(10f, 10f);
-        contorno.enabled = false;
-        return contorno;
-    }
-
-    void LateUpdate()
-    {
-        GameObject selecionado = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
-        Outline contorno = null;
-        if (selecionado == botaoLutar.gameObject && botaoLutar.IsInteractable()) contorno = contornoLutar;
-        if (selecionado == botaoItens.gameObject && botaoItens.IsInteractable()) contorno = contornoItens;
-        if (selecionado == botaoFugir.gameObject && botaoFugir.IsInteractable()) contorno = contornoFugir;
-        if (contorno == contornoSelecionado) return;
-
-        RestaurarContornoSelecionado();
-        if (contorno == null) return;
-
-        contornoSelecionado = contorno;
-        ordemOriginalContorno = contorno.transform.GetSiblingIndex();
-        // Move só entre os botões de ação, mantendo os painéis acima deles.
-        int frente = Mathf.Max(botaoLutar.transform.GetSiblingIndex(),
-            Mathf.Max(botaoItens.transform.GetSiblingIndex(), botaoFugir.transform.GetSiblingIndex()));
-        contorno.transform.SetSiblingIndex(frente);
-        contorno.enabled = true;
-    }
-
-    void RestaurarContornoSelecionado()
-    {
-        if (contornoSelecionado == null) return;
-        contornoSelecionado.enabled = false;
-        contornoSelecionado.transform.SetSiblingIndex(ordemOriginalContorno);
-        contornoSelecionado = null;
     }
 
     void OnDisable()
     {
-        RestaurarContornoSelecionado();
         AudioJogo.Instance?.EncerrarBatalha(this);
         ModoInfinito.Instance?.FecharBatalha(this);
     }
@@ -1200,8 +1152,7 @@ IEnumerator FinalizarFuga()
     if (ferralha != null)
         ferralha.JogadorFugiu();
 
-    gatilhoEncontro.Reativar();
-    if (gatilhoEncontro.EncontroInfinito) gatilhoEncontro.ProtegerAposRetorno();
+    gatilhoEncontro.ReativarAposFuga();
 }
 
     // Destrói a batalha

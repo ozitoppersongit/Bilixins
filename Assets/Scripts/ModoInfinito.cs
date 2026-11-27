@@ -63,12 +63,10 @@ public class ModoInfinito : MonoBehaviour
         Time.timeScale > 0f && (pausa == null || !pausa.EstaPausado) &&
         (TransicaoBatalha.instancia == null || !TransicaoBatalha.instancia.EmTransicao);
     public bool EmBusca => tipo == ObjetivoInfinito.Busca;
-    public bool PossuiRodada => rodada != null && !Encerrado;
-    public Vector3 CentroObjetivo => rodada != null ? rodada.centro : Vector3.zero;
 
-    public IEnumerable<Transform> LixosVisiveis()
+    public IEnumerable<Transform> ItensVisiveis()
     {
-        if (rodada == null || tipo != ObjetivoInfinito.Coleta) yield break;
+        if (rodada == null || Encerrado) yield break;
         foreach (GameObject item in rodada.itens)
             if (item != null && item.activeInHierarchy) yield return item.transform;
     }
@@ -113,10 +111,10 @@ public class ModoInfinito : MonoBehaviour
             objeto.SetActive(false);
         }
         yield return null;
-        if (!spawns.ConstruirNavegacao(mapa.PlayerInstanciado))
+        while (!spawns.ConstruirNavegacao(mapa.PlayerInstanciado))
         {
-            Encerrar("Não foi possível preparar a navegação");
-            yield break;
+            CarregamentoPartida.PreparacaoConcluida();
+            yield return new WaitForSecondsRealtime(1f);
         }
         yield return PrepararRodada();
     }
@@ -137,31 +135,37 @@ public class ModoInfinito : MonoBehaviour
             yield break;
         }
         yield return null;
-        int primeiroTipo = Random.Range(0, 3);
-        int primeiraRegiao = Random.Range(0, Mathf.Max(1, spawns.QuantidadeRegioes));
-        // Primeiro tenta combinações diferentes da rodada anterior.
-        for (int repeticao = 0; repeticao < 2 && rodada == null; repeticao++)
-            for (int t = 0; t < 3 && rodada == null; t++)
-            {
-                int candidato = (primeiroTipo + t) % 3;
-                if (repeticao == 0 && candidato == ultimoTipo) continue;
-                tipo = (ObjetivoInfinito)candidato;
-                quantidade = InfinitoRegras.Quantidade(tipo, concluidas);
-                for (int r = 0; r < spawns.QuantidadeRegioes; r++)
-                {
-                    int regiao = (primeiraRegiao + r) % spawns.QuantidadeRegioes;
-                    if (repeticao == 0 && regiao == ultimaRegiao) continue;
-                    rodada = spawns.Criar(tipo, quantidade, InfinitoRegras.Inimigos(concluidas),
-                        InfinitoRegras.NivelInimigo(concluidas), regiao, movimento.transform, concluidas);
-                    if (rodada != null) { ultimaRegiao = regiao; break; }
-                    yield return null;
-                }
-            }
-        if (rodada == null)
+        int inimigosDaRodada = InfinitoRegras.Inimigos(concluidas);
+        while (rodada == null)
         {
-            Debug.LogError("Infinito: nenhum conjunto de spawns acessíveis pôde ser preparado.");
-            Encerrar("Não foi possível preparar a missão");
-            yield break;
+            int primeiroTipo = Random.Range(0, 3);
+            int primeiraRegiao = Random.Range(0, Mathf.Max(1, spawns.QuantidadeRegioes));
+            // Primeiro tenta combinações diferentes da rodada anterior.
+            for (int repeticao = 0; repeticao < 2 && rodada == null; repeticao++)
+                for (int t = 0; t < 3 && rodada == null; t++)
+                {
+                    int candidato = (primeiroTipo + t) % 3;
+                    if (repeticao == 0 && candidato == ultimoTipo) continue;
+                    tipo = (ObjetivoInfinito)candidato;
+                    quantidade = InfinitoRegras.Quantidade(tipo, concluidas);
+                    for (int r = 0; r < spawns.QuantidadeRegioes; r++)
+                    {
+                        int regiao = (primeiraRegiao + r) % spawns.QuantidadeRegioes;
+                        bool repetiriaRodadaAnterior = candidato == ultimoTipo || regiao == ultimaRegiao;
+                        if ((repeticao == 0) == repetiriaRodadaAnterior) continue;
+                        rodada = spawns.Criar(tipo, quantidade, inimigosDaRodada,
+                            InfinitoRegras.NivelInimigo(concluidas), regiao, movimento.transform, concluidas);
+                        if (rodada != null) { ultimaRegiao = regiao; break; }
+                        yield return null;
+                    }
+                }
+            if (rodada == null)
+            {
+                CarregamentoPartida.PreparacaoConcluida();
+                // Reduz apenas os encontros extras. A quantidade do objetivo continua obrigatória.
+                inimigosDaRodada = Mathf.Max(1, inimigosDaRodada / 2);
+                yield return new WaitForSecondsRealtime(0.5f);
+            }
         }
         ultimoTipo = (int)tipo;
         coletados = 0;

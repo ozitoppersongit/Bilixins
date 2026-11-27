@@ -187,10 +187,13 @@ public class Minimapa : MonoBehaviour
         {
             foreach (Transform inimigo in ModoInfinito.Instance.InimigosVisiveis())
                 Mostrar(inimigo.position, bolinha, Color.red, tamanhoBolinha, raio);
-            foreach (Transform lixo in ModoInfinito.Instance.LixosVisiveis())
-                Mostrar(lixo.position, iconeLixo, Color.white, tamanhoLixo, raio);
-            if (ModoInfinito.Instance.PossuiRodada && ModoInfinito.Instance.EmBusca)
-                Mostrar(ModoInfinito.Instance.CentroObjetivo, bolinha, new Color(1f, 1f, 0f, 0.35f), 26f, raio);
+            foreach (Transform item in ModoInfinito.Instance.ItensVisiveis())
+            {
+                if (ModoInfinito.Instance.EmBusca)
+                    Mostrar(item.position, bolinha, new Color(1f, 1f, 0f, 0.8f), 14f, raio);
+                else
+                    Mostrar(item.position, iconeLixo, Color.white, tamanhoLixo, raio);
+            }
         }
         else
             foreach (Ferralha ferralha in ferralhas)

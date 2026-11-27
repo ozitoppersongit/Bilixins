@@ -44,7 +44,6 @@ public class SpawnsInfinito : MonoBehaviour
         public readonly HashSet<GatilhoDeEncontro> inimigos = new HashSet<GatilhoDeEncontro>();
         public readonly List<BilixinsData> dados = new List<BilixinsData>();
         public string regiao;
-        public Vector3 centro;
         public float distancia;
     }
 
@@ -147,26 +146,27 @@ public class SpawnsInfinito : MonoBehaviour
         if (elegiveis.Count == 0) return null;
         Regiao regiao = regioes[indice];
         if (regiao == null || regiao.pontos == null || regiao.pontos.Length == 0) return null;
+        var rodada = new Rodada { regiao = regiao.nome };
         var pontos = new List<Vector3>();
-        var modelosEscolhidos = new List<ModeloInimigo>();
         var raios = new List<float>();
+        var distanciasDoJogador = new List<float>();
+        var especiesUsadas = new HashSet<BilixinsData>();
         int itens = tipo == ObjetivoInfinito.Combate ? 0 : quantidade;
         int totalInimigos = Mathf.Max(inimigos, tipo == ObjetivoInfinito.Combate ? quantidade : 0);
-        float distancia = 0;
-        Vector3 origem = jogador.position;
         for (int i = 0; i < totalInimigos + itens; i++)
         {
             bool inimigo = i < totalInimigos;
-            ModeloInimigo modelo = null;
-            float ronda = 0;
-            Vector3 posicao = default;
-            bool encontrou = false;
-            var candidatos = inimigo ? new List<ModeloInimigo>(elegiveis) : new List<ModeloInimigo>();
+            var candidatos = inimigo ? new List<ModeloInimigo>(elegiveis) : null;
             var pesos = new List<float>();
-            foreach (ModeloInimigo candidato in candidatos) pesos.Add(candidato.peso);
+            if (inimigo)
+                foreach (ModeloInimigo candidato in candidatos)
+                    pesos.Add(especiesUsadas.Contains(candidato.dados) ? candidato.peso * 0.25f : candidato.peso);
+
+            bool encontrou = false;
             int alternativas = inimigo ? candidatos.Count : 1;
-            for (int alternativa = 0; alternativa < alternativas; alternativa++)
+            for (int alternativa = 0; alternativa < alternativas && !encontrou; alternativa++)
             {
+                ModeloInimigo modelo = null;
                 if (inimigo)
                 {
                     int escolhido = SorteioPonderado.Sortear(pesos, UnityEngine.Random.value);
@@ -175,125 +175,137 @@ public class SpawnsInfinito : MonoBehaviour
                     candidatos.RemoveAt(escolhido);
                     pesos.RemoveAt(escolhido);
                 }
-                ronda = modelo != null ? modelo.raioRonda : 0;
-                if (!Encontrar(regiao, jogador, pontos, raios, inimigo, ronda, out posicao)) continue;
-                encontrou = true;
-                break;
+                float ronda = modelo != null ? modelo.raioRonda : 0f;
+                // Valida também a malha nesta posição. Uma colisão do modelo só invalida este ponto.
+                for (int tentativa = 0; tentativa < 3; tentativa++)
+                {
+                    if (!Encontrar(regiao, jogador, pontos, raios, inimigo, ronda, out Vector3 posicao, out float metros))
+                        break;
+                    bool criou = inimigo
+                        ? TentarCriarInimigo(rodada, modelo, posicao, nivel, jogador)
+                        : TentarCriarItem(rodada, tipo, posicao);
+                    if (!criou) continue;
+
+                    pontos.Add(posicao);
+                    raios.Add(inimigo ? Mathf.Max(0f, ronda) : 0.75f);
+                    distanciasDoJogador.Add(metros);
+                    if (inimigo) especiesUsadas.Add(modelo.dados);
+                    encontrou = true;
+                    break;
+                }
             }
-            if (!encontrou) return null;
-            pontos.Add(posicao);
-            raios.Add(inimigo ? Mathf.Max(0f, ronda) : 0.75f);
-            modelosEscolhidos.Add(modelo);
+            if (!encontrou)
+            {
+                Limpar(rodada);
+                return null;
+            }
         }
 
-        // A rota aproxima uma visita a todos os objetivos, pelo vizinho mais próximo.
-        var objetivos = tipo == ObjetivoInfinito.Combate
-            ? pontos.GetRange(0, quantidade) : pontos.GetRange(totalInimigos, itens);
-        Vector3 centro = Vector3.zero;
-        int ancoras = 0;
-        foreach (Transform ponto in regiao.pontos)
-            if (ponto != null)
-            {
-                centro += ponto.position;
-                ancoras++;
-            }
-        centro /= Mathf.Max(1, ancoras);
-        if (tipo == ObjetivoInfinito.Combate && regiao.waypointInimigos != null)
-            centro = regiao.waypointInimigos.position;
-        while (objetivos.Count > 0)
+        int primeiroObjetivo = tipo == ObjetivoInfinito.Combate ? 0 : totalInimigos;
+        var pendentes = new List<int>();
+        for (int i = primeiroObjetivo; i < primeiroObjetivo + quantidade; i++) pendentes.Add(i);
+        int anterior = -1;
+        Vector3 origem = jogador.position;
+        while (pendentes.Count > 0)
         {
             int melhor = 0;
-            float menor = float.MaxValue;
-            for (int i = 0; i < objetivos.Count; i++)
-                if (Distancia(origem, objetivos[i], out float metros) && metros < menor)
-                {
-                    menor = metros;
+            for (int i = 1; i < pendentes.Count; i++)
+                if ((pontos[pendentes[i]] - origem).sqrMagnitude < (pontos[pendentes[melhor]] - origem).sqrMagnitude)
                     melhor = i;
-                }
-            if (menor == float.MaxValue) return null;
-            distancia += menor;
-            origem = objetivos[melhor];
-            objetivos.RemoveAt(melhor);
-        }
 
-        var rodada = new Rodada { regiao = regiao.nome, centro = centro, distancia = distancia };
-        for (int i = 0; i < pontos.Count; i++)
-        {
-            ModeloInimigo modelo = modelosEscolhidos[i];
-            if (modelo != null)
-            {
-                GameObject objeto = Instantiate(modelo.prefab, pontos[i], Quaternion.identity);
-                rodada.objetos.Add(objeto);
-                objeto.name = "Infinito_" + modelo.dados.nome;
-                if (!VisualBilixinMapa.InstalarNoSpawn(objeto, modelo.visual, boladroReferencia, pontos[i].y))
-                {
-                    foreach (Animator animador in objeto.GetComponentsInChildren<Animator>(true)) animador.Update(0f);
-                    Assentar(objeto, pontos[i]);
-                }
-                if (!RondaCabeNoLocal(objeto, modelo.raioRonda, pontos[i]) || !CabeNoLocal(objeto)) { Limpar(rodada); return null; }
-                Ferralha ferralha = objeto.GetComponentInChildren<Ferralha>(true);
-                GameObject alvo = ferralha != null ? ferralha.gameObject : objeto;
-                foreach (Collider collider in objeto.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
-                Rigidbody corpoEncontro = alvo.GetComponentInParent<Rigidbody>();
-                if (corpoEncontro == null) corpoEncontro = alvo.AddComponent<Rigidbody>();
-                corpoEncontro.isKinematic = true;
-                corpoEncontro.useGravity = false;
-                SphereCollider volume = alvo.AddComponent<SphereCollider>();
-                volume.isTrigger = true;
-                volume.radius = 1.4f;
-                volume.center = Vector3.up * 0.75f;
-                GatilhoDeEncontro encontro = alvo.GetComponent<GatilhoDeEncontro>();
-                if (encontro == null) encontro = alvo.AddComponent<GatilhoDeEncontro>();
-                BilixinsData dados = Instantiate(modelo.dados);
-                dados.nivel = nivel;
-                encontro.ConfigurarInfinito(dados, telaBatalha, volume);
-                rodada.inimigos.Add(encontro);
-                rodada.dados.Add(dados);
-            }
-            else
-            {
-                int indiceLixo = tipo == ObjetivoInfinito.Busca ? -1 : UnityEngine.Random.Range(0, lixos.Length);
-                GameObject prefab = indiceLixo < 0 ? pacote : lixos[indiceLixo];
-                // A âncora nunca gira nem flutua: coleta e minimapa usam sempre o mesmo ponto.
-                GameObject objeto = new GameObject("Coletável infinito");
-                objeto.transform.position = pontos[i];
-                rodada.objetos.Add(objeto);
-                GameObject visual = Instantiate(prefab, objeto.transform);
-                visual.transform.localPosition = Vector3.zero;
-                visual.transform.localRotation = Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0);
-                foreach (Collider collider in visual.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
-                Animator animador = null;
-                if (indiceLixo >= 0 && animacoesLixo != null && indiceLixo < animacoesLixo.Length &&
-                    animacoesLixo[indiceLixo] != null)
-                {
-                    animador = visual.GetComponent<Animator>();
-                    if (animador == null) animador = visual.AddComponent<Animator>();
-                    animador.runtimeAnimatorController = animacoesLixo[indiceLixo];
-                    animador.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-                    animador.applyRootMotion = false;
-                    animador.Update(0f);
-                    animador.speed = 0f;
-                }
-                Assentar(visual, pontos[i] + Vector3.up * 0.65f);
-                if (!CabeGirando(objeto) || !AcessoColeta(objeto))
-                {
-                    Limpar(rodada);
-                    return null;
-                }
-                objeto.AddComponent<ItemInfinito>().Configurar(visual.transform, animador, materialBrilho);
-                rodada.itens.Add(objeto);
-            }
+            int proximo = pendentes[melhor];
+            // Já existe um caminho validado do jogador até cada objetivo.
+            if (anterior < 0) rodada.distancia += distanciasDoJogador[proximo];
+            else if (Distancia(origem, pontos[proximo], out float metros)) rodada.distancia += metros;
+            else rodada.distancia += distanciasDoJogador[anterior] + distanciasDoJogador[proximo];
+            pendentes.RemoveAt(melhor);
+            origem = pontos[proximo];
+            anterior = proximo;
         }
         return rodada;
+    }
+
+    bool TentarCriarInimigo(Rodada rodada, ModeloInimigo modelo, Vector3 posicao, int nivel, Transform jogador)
+    {
+        GameObject objeto = Instantiate(modelo.prefab, posicao, Quaternion.identity);
+        objeto.name = "Infinito_" + modelo.dados.nome;
+        if (!VisualBilixinMapa.InstalarNoSpawn(objeto, modelo.visual, boladroReferencia, posicao.y))
+        {
+            foreach (Animator animador in objeto.GetComponentsInChildren<Animator>(true)) animador.Update(0f);
+            Assentar(objeto, posicao);
+        }
+        if (!RondaCabeNoLocal(objeto, modelo.raioRonda, posicao) || !CabeNoLocal(objeto))
+        {
+            objeto.SetActive(false);
+            Destroy(objeto);
+            return false;
+        }
+        rodada.objetos.Add(objeto);
+        Ferralha ferralha = objeto.GetComponentInChildren<Ferralha>(true);
+        GameObject alvo = ferralha != null ? ferralha.gameObject : objeto;
+        foreach (Collider collider in objeto.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+        Rigidbody corpoEncontro = alvo.GetComponentInParent<Rigidbody>();
+        if (corpoEncontro == null) corpoEncontro = alvo.AddComponent<Rigidbody>();
+        corpoEncontro.isKinematic = true;
+        corpoEncontro.useGravity = false;
+        SphereCollider volume = alvo.AddComponent<SphereCollider>();
+        volume.isTrigger = true;
+        volume.radius = 1.4f;
+        volume.center = Vector3.up * 0.75f;
+        GatilhoDeEncontro encontro = alvo.GetComponent<GatilhoDeEncontro>();
+        if (encontro == null) encontro = alvo.AddComponent<GatilhoDeEncontro>();
+        BilixinsData dados = Instantiate(modelo.dados);
+        dados.nivel = nivel;
+        encontro.ConfigurarInfinito(dados, telaBatalha, volume, jogador);
+        rodada.inimigos.Add(encontro);
+        rodada.dados.Add(dados);
+        return true;
+    }
+
+    bool TentarCriarItem(Rodada rodada, ObjetivoInfinito tipo, Vector3 posicao)
+    {
+        int indiceLixo = tipo == ObjetivoInfinito.Busca ? -1 : UnityEngine.Random.Range(0, lixos.Length);
+        GameObject prefab = indiceLixo < 0 ? pacote : lixos[indiceLixo];
+        // A âncora nunca gira nem flutua: coleta e minimapa usam sempre o mesmo ponto.
+        GameObject objeto = new GameObject("Coletável infinito");
+        objeto.transform.position = posicao;
+        GameObject visual = Instantiate(prefab, objeto.transform);
+        visual.transform.localPosition = Vector3.zero;
+        visual.transform.localRotation = Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0);
+        foreach (Collider collider in visual.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+        Animator animador = null;
+        if (indiceLixo >= 0 && animacoesLixo != null && indiceLixo < animacoesLixo.Length &&
+            animacoesLixo[indiceLixo] != null)
+        {
+            animador = visual.GetComponent<Animator>();
+            if (animador == null) animador = visual.AddComponent<Animator>();
+            animador.runtimeAnimatorController = animacoesLixo[indiceLixo];
+            animador.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            animador.applyRootMotion = false;
+            animador.Update(0f);
+            animador.speed = 0f;
+        }
+        Assentar(visual, posicao + Vector3.up * 0.65f);
+        if (!CabeGirando(objeto) || !AcessoColeta(objeto))
+        {
+            objeto.SetActive(false);
+            Destroy(objeto);
+            return false;
+        }
+        objeto.AddComponent<ItemInfinito>().Configurar(visual.transform, animador, materialBrilho);
+        rodada.objetos.Add(objeto);
+        rodada.itens.Add(objeto);
+        return true;
     }
 
     bool CabeNoLocal(GameObject objeto)
     {
         Physics.SyncTransforms();
+        VisualBilixinMapa visual = objeto.GetComponent<VisualBilixinMapa>();
         foreach (Renderer renderer in objeto.GetComponentsInChildren<Renderer>(true))
         {
             if (renderer is ParticleSystemRenderer || !renderer.enabled) continue;
-            Bounds limites = renderer.bounds;
+            Bounds limites = visual != null ? visual.MedirLimites(renderer) : renderer.bounds;
             Vector3 tamanho = Vector3.Max(limites.extents - Vector3.one * 0.02f, Vector3.one * 0.01f);
             foreach (Collider collider in Physics.OverlapBox(limites.center, tamanho, Quaternion.identity,
                 mascaraFisica, QueryTriggerInteraction.Ignore))
@@ -335,8 +347,9 @@ public class SpawnsInfinito : MonoBehaviour
     }
 
     bool Encontrar(Regiao regiao, Transform jogador, List<Vector3> usados, List<float> raios,
-        bool inimigo, float ronda, out Vector3 posicao)
+        bool inimigo, float ronda, out Vector3 posicao, out float distancia)
     {
+        distancia = 0f;
         bool usarWaypoint = inimigo && regiao.waypointInimigos != null && regiao.pontosInimigos is { Length: > 0 };
         for (int tentativa = 0; tentativa < 64; tentativa++)
         {
@@ -373,7 +386,7 @@ public class SpawnsInfinito : MonoBehaviour
                     break;
                 }
             }
-            if (!separado || !Livre(hit.position) || !Distancia(jogador.position, hit.position, out _)) continue;
+            if (!separado || !Livre(hit.position) || !Distancia(jogador.position, hit.position, out float metros)) continue;
             bool rondaLivre = true;
             for (int i = 0; i < 12 && ronda > 0; i++)
             {
@@ -388,6 +401,7 @@ public class SpawnsInfinito : MonoBehaviour
             }
             if (!rondaLivre) continue;
             posicao = hit.position;
+            distancia = metros;
             return true;
         }
         posicao = default;

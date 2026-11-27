@@ -278,7 +278,7 @@ public class Cutscenes : MonoBehaviour
         inimigosCriados.Clear();
         foreach (Passo passo in c.passos)
         {
-            Transform objeto = passo.tipo == Tipo.MoverObjeto ? passo.objeto : null;
+            Transform objeto = passo.objeto;
             if (passo.tipo == Tipo.EsconderInimigo ||
                 (passo.tipo == Tipo.Batalha && !(inimigoPrefab != null && passo.origem != null)))
             {
@@ -653,6 +653,7 @@ public class Cutscenes : MonoBehaviour
             yield break;
         }
         
+        VisualBilixinMapa visual = p.objeto.GetComponent<VisualBilixinMapa>();
         foreach (Transform ponto in p.trajeto)
         {
             if (ponto == null) continue;
@@ -662,7 +663,12 @@ public class Cutscenes : MonoBehaviour
                 Vector3 dir = ponto.position - p.objeto.position;
                 p.objeto.position = Vector3.MoveTowards(p.objeto.position, ponto.position, p.velocidade * dt);
                 dir.y = 0f;
-                if (dir.sqrMagnitude > 0.0001f) p.objeto.rotation = Quaternion.LookRotation(dir);
+                if (dir.sqrMagnitude > 0.0001f)
+                {
+                    Quaternion rotacao = Quaternion.LookRotation(dir);
+                    p.objeto.rotation = rotacao;
+                    if (visual != null) visual.OrientarMovimento(rotacao);
+                }
                 yield return null;
             }
         }

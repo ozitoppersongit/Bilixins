@@ -25,8 +25,13 @@ public class GatilhoDeEncontro : MonoBehaviour
     [Header("Tutorial")]
     public bool tutorialBatalha = false;
     public bool EncontroInfinito { get; set; }
+    Transform jogadorInfinito;
+    Quaternion rotacaoInicialInfinito;
+    Quaternion? rotacaoDeOlhar;
+    const float DistanciaParaOlhar = 5f;
+    const float VelocidadeGiro = 420f;
 
-    public void ConfigurarInfinito(BilixinsData dados, GameObject tela, Collider volume)
+    public void ConfigurarInfinito(BilixinsData dados, GameObject tela, Collider volume, Transform jogador)
     {
         enabled = true;
         bilixinInimigo = dados;
@@ -34,6 +39,8 @@ public class GatilhoDeEncontro : MonoBehaviour
         gatilho = volume;
         tutorialBatalha = false;
         EncontroInfinito = true;
+        jogadorInfinito = jogador;
+        rotacaoInicialInfinito = transform.localRotation;
         DesvincularMissao();
     }
 
@@ -87,6 +94,8 @@ void OnTriggerEnter(Collider other)
         return;
 
     batalhaIniciada = true;
+    if (EncontroInfinito && ferralha == null && DirecaoJogador(other.transform, out Vector3 direcao))
+        transform.rotation = Quaternion.LookRotation(direcao);
     if (EncontroInfinito) ModoInfinito.Instance?.IniciarEncontro();
     if (Resultado.Resultado != ResultadoBatalha.EmAndamento) Resultado = new ResultadoEncontro();
     jogadorDoEncontro = other.transform;
@@ -220,6 +229,13 @@ private void OnTriggerExit(Collider other)
         if (ferralha != null) ferralha.ProtegerRetorno();
     }
 
+    public void ReativarAposFuga()
+    {
+        rotacaoDeOlhar = null;
+        if (EncontroInfinito) ProtegerAposRetorno();
+        Reativar();
+    }
+
     public void DesvincularMissao()
     {
         CutsceneResponsavel = null;
@@ -241,11 +257,46 @@ private void OnTriggerExit(Collider other)
     {
         if (!aguardandoSaidaAposDerrota) return;
         var controller = jogadorDoEncontro != null ? jogadorDoEncontro.GetComponent<CharacterController>() : null;
-        if (Time.unscaledTime >= protegidoAte && (gatilho == null || controller == null || !gatilho.bounds.Intersects(controller.bounds)))
+        if (Time.unscaledTime >= protegidoAte && SaiuDoVolume(controller))
         {
             aguardandoSaidaAposDerrota = false;
             if (ferralha != null) ferralha.JogadorSaiuDaVisao();
         }
+    }
+
+    bool SaiuDoVolume(CharacterController controlador)
+    {
+        if (gatilho == null || controlador == null) return true;
+        Bounds area = gatilho.bounds;
+        if (EncontroInfinito) area.Expand(1f);
+        return !area.Intersects(controlador.bounds);
+    }
+
+    bool DirecaoJogador(Transform jogador, out Vector3 direcao)
+    {
+        direcao = jogador.position - transform.position;
+        float altura = Mathf.Abs(direcao.y);
+        direcao.y = 0f;
+        return altura < 2.5f && direcao.sqrMagnitude > 0.0001f &&
+            direcao.sqrMagnitude <= DistanciaParaOlhar * DistanciaParaOlhar;
+    }
+
+    void LateUpdate()
+    {
+        if (!EncontroInfinito || batalhaIniciada || jogadorInfinito == null ||
+            ModoInfinito.Instance == null || !ModoInfinito.Instance.PodeExplorar) return;
+        Quaternion destino = ferralha != null ? transform.localRotation : rotacaoInicialInfinito;
+        bool perto = DirecaoJogador(jogadorInfinito, out Vector3 direcao);
+        if (perto)
+        {
+            Quaternion olhar = Quaternion.LookRotation(direcao);
+            destino = transform.parent != null ? Quaternion.Inverse(transform.parent.rotation) * olhar : olhar;
+        }
+        else if (!rotacaoDeOlhar.HasValue && ferralha != null) return;
+
+        Quaternion atual = Quaternion.RotateTowards(rotacaoDeOlhar ?? transform.localRotation, destino, VelocidadeGiro * Time.deltaTime);
+        transform.localRotation = atual;
+        rotacaoDeOlhar = perto || Quaternion.Angle(atual, destino) > 0.1f ? atual : null;
     }
 
     public static void ReposicionarJogador(Transform jogador, Pose pose)

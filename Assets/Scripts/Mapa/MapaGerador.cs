@@ -454,6 +454,7 @@ public class MapaGerador : MonoBehaviour
     // Ficam na layer "Ignore Raycast": o personagem esbarra nelas, mas a câmera (que usa SphereCast) passa por dentro.
     void CriarParedesInvisiveis(TileDefinicao[] camada, Relevo relevo, int largura, int altura)
     {
+        Physics.SyncTransforms();
         GameObject raiz = new GameObject("BordasInvisiveis");
         raiz.transform.SetParent(transform);
         raiz.layer = 2;
