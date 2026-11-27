@@ -9,7 +9,23 @@ public class MainMenu : MonoBehaviour
     [SerializeField] GameObject MainScreen;
     [SerializeField] GameObject OptionsScreen;
     [SerializeField] GameObject SelectModeScreen;
+    [SerializeField] GameObject VictoryScreen;
+    [SerializeField] GameObject CreditsScreen;
     [SerializeField] GameObject telaCarregamento;
+
+    static bool abrirVitoria;
+
+    public static void Carregar(bool vitoriaHistoria = false)
+    {
+        abrirVitoria = vitoriaHistoria;
+        Cutscenes.Instance?.EncerrarPartida();
+        Missoes.Instance?.EncerrarPartida();
+        GerenciadorBatalha.instancia?.EncerrarPartida();
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+    }
 
     void Awake()
     {
@@ -18,8 +34,13 @@ public class MainMenu : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        bool mostrarVitoria = abrirVitoria;
+        abrirVitoria = false;
         SelectModeScreen.SetActive(false);
-        MainScreen.SetActive(true);
+        CreditsScreen.SetActive(false);
+        MainScreen.SetActive(!mostrarVitoria);
+        VictoryScreen.SetActive(mostrarVitoria);
+        if (mostrarVitoria) FocarBotao(VictoryScreen);
     }
 
     // Update is called once per frame
@@ -52,8 +73,17 @@ public class MainMenu : MonoBehaviour
         OptionsScreen.SetActive(true);
     }
 
+    public void Credits()
+    {
+        MainScreen.SetActive(false);
+        CreditsScreen.SetActive(true);
+        FocarBotao(CreditsScreen);
+    }
+
     public void GoBack()
     {
+        CreditsScreen.SetActive(false);
+        VictoryScreen.SetActive(false);
         OptionsScreen.SetActive(false);
         SelectModeScreen.SetActive(false);
         MainScreen.SetActive(true);

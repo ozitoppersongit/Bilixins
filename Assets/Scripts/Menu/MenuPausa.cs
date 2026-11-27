@@ -2,7 +2,6 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 
 public class MenuPausa : MonoBehaviour
 {
@@ -49,14 +48,7 @@ public class MenuPausa : MonoBehaviour
         StopAllCoroutines();
         animando = false;
         enabled = false;
-        Cutscenes.Instance?.EncerrarPartida();
-        Missoes.Instance?.EncerrarPartida();
-        GerenciadorBatalha.instancia?.EncerrarPartida();
-        Time.timeScale = 1f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
+        MainMenu.Carregar();
     }
 
     public void CancelarSaida()

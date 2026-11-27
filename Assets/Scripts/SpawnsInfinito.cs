@@ -13,6 +13,16 @@ public class SpawnsInfinito : MonoBehaviour
         public Transform[] pontos;
         public Transform waypointInimigos;
         public Vector2[] pontosInimigos;
+        public Vector2 limiteMinimo;
+        public Vector2 limiteMaximo;
+        public bool TemLimites => limiteMaximo.x > limiteMinimo.x && limiteMaximo.y > limiteMinimo.y;
+
+        public bool Contem(Vector3 posicao, float margem)
+        {
+            if (!TemLimites) return true;
+            return posicao.x >= limiteMinimo.x + margem && posicao.x <= limiteMaximo.x - margem &&
+                posicao.z >= limiteMinimo.y + margem && posicao.z <= limiteMaximo.y - margem;
+        }
     }
 
     [Serializable]
@@ -20,6 +30,7 @@ public class SpawnsInfinito : MonoBehaviour
     {
         public GameObject prefab;
         public BilixinsData dados;
+        public VisualBilixinMapa.Configuracao visual;
         [Min(0), Tooltip("Chance relativa. Zero exclui este tipo, inclusive nas alternativas de spawn.")]
         public float peso = 19f;
         [Min(0)] public float raioRonda;
@@ -39,6 +50,7 @@ public class SpawnsInfinito : MonoBehaviour
 
     [SerializeField] Regiao[] regioes;
     [SerializeField] ModeloInimigo[] modelos;
+    [SerializeField] Transform boladroReferencia;
     [SerializeField] GameObject[] lixos;
     [SerializeField] GameObject pacote;
     [SerializeField] GameObject telaBatalha;
@@ -213,8 +225,11 @@ public class SpawnsInfinito : MonoBehaviour
                 GameObject objeto = Instantiate(modelo.prefab, pontos[i], Quaternion.identity);
                 rodada.objetos.Add(objeto);
                 objeto.name = "Infinito_" + modelo.dados.nome;
-                foreach (Animator animador in objeto.GetComponentsInChildren<Animator>(true)) animador.Update(0f);
-                Assentar(objeto, pontos[i]);
+                if (!VisualBilixinMapa.InstalarNoSpawn(objeto, modelo.visual, boladroReferencia, pontos[i].y))
+                {
+                    foreach (Animator animador in objeto.GetComponentsInChildren<Animator>(true)) animador.Update(0f);
+                    Assentar(objeto, pontos[i]);
+                }
                 if (!RondaCabeNoLocal(objeto, modelo.raioRonda, pontos[i]) || !CabeNoLocal(objeto)) { Limpar(rodada); return null; }
                 Ferralha ferralha = objeto.GetComponentInChildren<Ferralha>(true);
                 GameObject alvo = ferralha != null ? ferralha.gameObject : objeto;
@@ -340,6 +355,8 @@ public class SpawnsInfinito : MonoBehaviour
             Vector2 deslocamento = UnityEngine.Random.insideUnitCircle * 12f;
             Vector3 candidato = centro + new Vector3(deslocamento.x, 0, deslocamento.y);
             if (!NavMesh.SamplePosition(candidato, out NavMeshHit hit, 3f, NavMesh.AllAreas)) continue;
+            if (!regiao.Contem(hit.position, 0.75f + ronda)) continue;
+            if (regiao.TemLimites && Mathf.Abs(hit.position.y - centro.y) > 0.65f) continue;
             if (Vector3.Distance(hit.position, jogador.position) < (inimigo ? 8f + ronda : 4f)) continue;
             bool separado = true;
             for (int i = 0; i < usados.Count; i++)

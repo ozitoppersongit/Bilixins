@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -30,6 +31,8 @@ public class Missoes : MonoBehaviour
         [Tooltip("Onde entregar. Vazio = a missão fecha assim que coletar tudo.")] public Transform entrega;
         public float raioColeta = 1.2f;
         public float raioEntrega = 2.5f;
+        public ItemData itemRecompensa;
+        [Min(1)] public int quantidadeRecompensa = 1;
         public UnityEvent aoIniciar;
         public UnityEvent aoConcluir;
     }
@@ -71,6 +74,7 @@ public class Missoes : MonoBehaviour
         }
     }
     RectTransform lista;
+    GameObject avisoRecompensa;
 
     void Awake()
     {
@@ -87,6 +91,11 @@ public class Missoes : MonoBehaviour
     public void EncerrarPartida()
     {
         StopAllCoroutines();
+        if (avisoRecompensa != null)
+        {
+            avisoRecompensa.SetActive(false);
+            Destroy(avisoRecompensa);
+        }
         enabled = false;
         foreach (MissaoAtiva ativa in ativas)
         {
@@ -112,7 +121,7 @@ public class Missoes : MonoBehaviour
         Missao m = missoes.Find(x => x.nome == nome);
         if (m == null) { Debug.LogWarning($"Missoes: não existe missão chamada '{nome}'."); return; }
         if (ativas.Exists(ativa => ativa.dados == m)) return;
-        if (m.tipo != TipoMissao.Coleta && concluidas.Contains(nome)) return;
+        if ((m.tipo != TipoMissao.Coleta || m.itemRecompensa != null) && concluidas.Contains(nome)) return;
 
         var nova = new MissaoAtiva
         {
@@ -229,8 +238,39 @@ public class Missoes : MonoBehaviour
             Destroy(ativa.linha);
         }
         if (lista != null && ativas.Count == 0) lista.gameObject.SetActive(false);
+        InventoryManager inventario = InventoryManager.instancia;
+        if (m.itemRecompensa != null && inventario != null &&
+            inventario.TentarAdicionarItem(m.itemRecompensa, m.quantidadeRecompensa))
+            StartCoroutine(MostrarRecompensa());
+
         aoMissaoConcluida?.Invoke(m.nome);
         m.aoConcluir?.Invoke();
+    }
+
+    IEnumerator MostrarRecompensa()
+    {
+        Canvas canvas = missionPanel.GetComponentInParent<Canvas>(true).rootCanvas;
+        var painel = new GameObject("Recompensa da missão", typeof(RectTransform), typeof(Image));
+        avisoRecompensa = painel;
+        var fundo = painel.GetComponent<Image>();
+        fundo.rectTransform.SetParent(canvas.transform, false);
+        fundo.rectTransform.sizeDelta = new Vector2(360f, 90f);
+        fundo.sprite = missionPanel.GetComponent<Image>()?.sprite;
+        fundo.type = Image.Type.Sliced;
+        fundo.color = fundo.sprite != null ? Color.white : Color.black;
+        fundo.raycastTarget = false;
+
+        TMP_Text texto = CriarTexto(objetivoModelo, painel.transform,
+            "Missão concluída!\n+2 Poções de Cura!", 22f, TextAlignmentOptions.Center);
+        texto.rectTransform.anchorMin = Vector2.zero;
+        texto.rectTransform.anchorMax = Vector2.one;
+        texto.rectTransform.offsetMin = new Vector2(12f, 8f);
+        texto.rectTransform.offsetMax = new Vector2(-12f, -8f);
+        texto.textWrappingMode = TextWrappingModes.Normal;
+
+        yield return new WaitForSecondsRealtime(3f);
+        Destroy(painel);
+        avisoRecompensa = null;
     }
 
     void CriarLista()

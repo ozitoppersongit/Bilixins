@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -26,7 +25,6 @@ public static class ValidacaoMissoesFinais
             missoes = raizes.SelectMany(r => r.GetComponentsInChildren<Missoes>(true)).Single();
             var configuracao = (List<Missoes.Missao>)Campo(missoes, "missoes");
             foreach (Missoes.Missao missao in configuracao) PermitirNoEditor(missao.aoConcluir);
-            Transform painelModelo = missoes.missionPanel;
             missoes.missionPanel = null; // Testa a sequência sem criar/destruir UI no modo de edição.
             Chamar(missoes, "Awake");
             var ativas = (IList)Campo(missoes, "ativas");
@@ -43,6 +41,9 @@ public static class ValidacaoMissoesFinais
                 eventos.arraySize == 2 && eventos.GetArrayElementAtIndex(0)
                     .FindPropertyRelative("m_Arguments.m_StringArgument").stringValue == "Fabrica_Lixoso");
             var rei = Encontro("Subterraneo_Rei");
+            Exigir(encontros.Count(e => e.EncerraHistoria) == 1 && rei.EncerraHistoria,
+                "Apenas o encontro do Rei encerra a história");
+            Exigir(configuracao.All(m => m.nome != "FimHistoria"), "Aviso antigo removido");
             var raizRei = (GameObject)lixoso.aoVencer.GetPersistentTarget(1);
             Exigir(!raizRei.activeSelf && !rei.gameObject.activeInHierarchy, "Rei oculto antes da vitoria no Lixoso");
             foreach (var encontro in new[] { viscoso, lixoso, rei })
@@ -64,10 +65,8 @@ public static class ValidacaoMissoesFinais
             Exigir(((Missoes.Missao)Campo(ativas[1], "dados")).nome == "Subterraneo_Rei", "Vitória no Lixoso inicia missão do Rei");
             rei.aoVencer.Invoke();
             rei.aoVencer.Invoke();
-            Exigir(ativas.Count == 2 && ((Missoes.Missao)Campo(ativas[1], "dados")).tipo == Missoes.TipoMissao.Aviso,
-                "Aviso final único, com missão de coleta preservada");
-            Chamar(missoes, "AtualizarMissao", ativas[1], Vector3.zero);
-            Exigir(ativas.Count == 2, "Aviso não conclui automaticamente");
+            Exigir(ativas.Count == 1 && ((Missoes.Missao)Campo(ativas[0], "dados")).nome == "LixoTutorial",
+                "Vitória conclui a missão do Rei, sem iniciar o aviso antigo");
 
             ativas.Clear();
             ((HashSet<string>)Campo(missoes, "concluidas")).Clear();
@@ -75,21 +74,16 @@ public static class ValidacaoMissoesFinais
             missoes.ConcluirMissao("Fabrica_Lixoso");
             missoes.Iniciar("LixoTutorial");
             viscoso.aoVencer.Invoke();
-            Exigir(ativas.Count == 2 && ((Missoes.Missao)Campo(ativas[1], "dados")).nome == "FimHistoria",
+            Exigir(ativas.Count == 1 && ((Missoes.Missao)Campo(ativas[0], "dados")).nome == "LixoTutorial",
                 "Chefes derrotados fora de ordem não deixam missão impossível");
-
-            missoes.missionPanel = painelModelo;
-            Chamar(missoes, "CriarLista");
-            Chamar(missoes, "CriarLinha", ativas[1]);
-            var linha = (GameObject)Campo(ativas[1], "linha");
-            Exigir(!linha.transform.Find("Ícone").gameObject.activeSelf, "Aviso sem coluna de ícone");
-            TMP_Text[] textos = linha.GetComponentsInChildren<TMP_Text>(true);
-            Exigir(textos.Length == 1 && textos[0].text == "Parabéns! Você derrotou o Rei do Lixo!", "Somente a frase final no aviso");
 
             var objetoInventario = new GameObject("Inventário de validação");
             SceneManager.MoveGameObjectToScene(objetoInventario, cena);
             InventoryManager inventario = objetoInventario.AddComponent<InventoryManager>();
             ItemData pocao = AssetDatabase.LoadAssetAtPath<ItemData>("Assets/Scripts/Itens/PocaoCura.asset");
+            var coleta = configuracao.Single(m => m.nome == "LixoTutorial");
+            Exigir(coleta.quantidade == 12 && coleta.entrega != null && coleta.itemRecompensa == pocao &&
+                coleta.quantidadeRecompensa == 2, "A entrega dos 12 lixos recompensa duas Poções de Cura");
             var inicial = (List<ItemStack>)Campo(inventario, "configuracaoInicial");
             inicial.Add(new ItemStack { item = pocao, quantidade = 3 });
             inventario.RestaurarConfiguracaoInicial();
@@ -102,7 +96,7 @@ public static class ValidacaoMissoesFinais
             inventario.RemoverItem(pocao);
             inventario.RestaurarConfiguracaoInicial();
             Exigir(inventario.ConsultarQuantidade(pocao) == 3, "Estoque inicial não foi alterado pelo consumo");
-            Debug.Log("PASS: sequência final, eventos das instâncias, aviso sem ícone, coleta preservada e reset de inventário.");
+            Debug.Log("PASS: sequência final, encontro do Rei, recompensa da coleta e reset de inventário.");
         }
         finally
         {

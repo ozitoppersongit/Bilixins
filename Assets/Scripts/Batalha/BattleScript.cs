@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using Unity.Cinemachine;
 
@@ -17,6 +18,11 @@ public class BattleScript : MonoBehaviour
     public Button botaoLutar;
     public Button botaoFugir;
     public Typewriter typewriter;
+    private Outline contornoLutar;
+    private Outline contornoItens;
+    private Outline contornoFugir;
+    private Outline contornoSelecionado;
+    private int ordemOriginalContorno;
 
     [Header("Câmera")]
     public CinemachineCamera camera;
@@ -373,10 +379,52 @@ public void IniciarBatalha(
         botaoLutar.interactable = false;
         botaoItens.interactable = false;
         botaoFugir.interactable = false;
+        contornoLutar = CriarContornoDeSelecao(botaoLutar);
+        contornoItens = CriarContornoDeSelecao(botaoItens);
+        contornoFugir = CriarContornoDeSelecao(botaoFugir);
+    }
+
+    static Outline CriarContornoDeSelecao(Button botao)
+    {
+        Outline contorno = botao.targetGraphic.gameObject.AddComponent<Outline>();
+        contorno.effectColor = Color.white;
+        contorno.effectDistance = new Vector2(10f, 10f);
+        contorno.enabled = false;
+        return contorno;
+    }
+
+    void LateUpdate()
+    {
+        GameObject selecionado = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+        Outline contorno = null;
+        if (selecionado == botaoLutar.gameObject && botaoLutar.IsInteractable()) contorno = contornoLutar;
+        if (selecionado == botaoItens.gameObject && botaoItens.IsInteractable()) contorno = contornoItens;
+        if (selecionado == botaoFugir.gameObject && botaoFugir.IsInteractable()) contorno = contornoFugir;
+        if (contorno == contornoSelecionado) return;
+
+        RestaurarContornoSelecionado();
+        if (contorno == null) return;
+
+        contornoSelecionado = contorno;
+        ordemOriginalContorno = contorno.transform.GetSiblingIndex();
+        // Move só entre os botões de ação, mantendo os painéis acima deles.
+        int frente = Mathf.Max(botaoLutar.transform.GetSiblingIndex(),
+            Mathf.Max(botaoItens.transform.GetSiblingIndex(), botaoFugir.transform.GetSiblingIndex()));
+        contorno.transform.SetSiblingIndex(frente);
+        contorno.enabled = true;
+    }
+
+    void RestaurarContornoSelecionado()
+    {
+        if (contornoSelecionado == null) return;
+        contornoSelecionado.enabled = false;
+        contornoSelecionado.transform.SetSiblingIndex(ordemOriginalContorno);
+        contornoSelecionado = null;
     }
 
     void OnDisable()
     {
+        RestaurarContornoSelecionado();
         AudioJogo.Instance?.EncerrarBatalha(this);
         ModoInfinito.Instance?.FecharBatalha(this);
     }
@@ -564,7 +612,7 @@ IEnumerator TurnoInimigo()
     typewriter.Escrever(
         bilixinInimigo.nome +
         " usou " +
-        ataqueEscolhido.nome +
+        Destacar(ataqueEscolhido.nome) +
         "!"
     );
 
@@ -627,10 +675,10 @@ if (critico)
     if (critico)
 {
     typewriter.Escrever(
-        "ACERTO CRÍTICO! " +
+        Destacar("ATAQUE CRÍTICO!") + " " +
         bilixinInimigo.nome +
         " causou " +
-        dano +
+        Destacar(dano.ToString()) +
         " de dano!"
     );
 }
@@ -639,7 +687,7 @@ else
     typewriter.Escrever(
         bilixinInimigo.nome +
         " causou " +
-        dano +
+        Destacar(dano.ToString()) +
         " de dano!"
     );
 }
@@ -746,7 +794,7 @@ IEnumerator ExecutarAtaqueJogador(AtaqueBilixin ataque)
     BloquearBotoes(true);
 
     typewriter.Escrever(
-        bilixinJogador.nome + " usou " + ataque.nome + "!"
+        bilixinJogador.nome + " usou " + Destacar(ataque.nome) + "!"
     );
 
     yield return EsperarBatalha(1.5f);
@@ -808,10 +856,10 @@ if (critico)
     if (critico)
 {
     typewriter.Escrever(
-        "ACERTO CRÍTICO! " +
+        Destacar("ATAQUE CRÍTICO!") + " " +
         bilixinJogador.nome +
         " causou " +
-        dano +
+        Destacar(dano.ToString()) +
         " de dano!"
     );
 }
@@ -820,7 +868,7 @@ else
     typewriter.Escrever(
         bilixinJogador.nome +
         " causou " +
-        dano +
+        Destacar(dano.ToString()) +
         " de dano!"
     );
 }
@@ -939,7 +987,7 @@ public void UsarItem(ItemData item)
     painelItens.SetActive(false);
 
     typewriter.Escrever(
-        bilixinJogador.nome + " utilizou " + item.nome + "!"
+        bilixinJogador.nome + " utilizou " + Destacar(item.nome) + "!"
     );
 
     AtualizarUI();
@@ -1023,7 +1071,7 @@ public void VoltarMenuPrincipal()
         typewriter.Escrever(
             bilixinJogador.name +
             " causou " +
-            danoJogador.ToString("F0") +
+            Destacar(danoJogador.ToString("F0")) +
             " de dano!"
         );
 
@@ -1072,7 +1120,7 @@ public void VoltarMenuPrincipal()
         typewriter.Escrever(
             bilixinInimigo.name +
             " causou " +
-            danoInimigo.ToString("F0") +
+            Destacar(danoInimigo.ToString("F0")) +
             " de dano!"
         );
 
@@ -1175,6 +1223,8 @@ public void Vitoria()
     StartCoroutine(FinalizarVitoria());
 }
 
+private static string Destacar(string texto) => $"<color=#FF0000><size=110%>{texto}</size></color>";
+
 private IEnumerator FinalizarVitoria()
 {
     if (recompensaConcedida) yield break;
@@ -1191,13 +1241,13 @@ private IEnumerator FinalizarVitoria()
     hpJogador = Mathf.Min(novoMaximo, hpJogador + novoMaximo - maxHpJogador);
     maxHpJogador = novoMaximo;
     AtualizarUI();
-    yield return MostrarRecompensa($"{bilixinJogador.nome} recebeu {xpRecebido} XP!");
+    yield return MostrarRecompensa($"{bilixinJogador.nome} recebeu <color=#338BFF>{xpRecebido} XP</color>!");
     if (NivelJogador > nivelAnterior)
         yield return MostrarRecompensa($"{bilixinJogador.nome} subiu para o nível {NivelJogador}!");
 
     ItemData itemRecebido = ConcederItemVitoria();
     if (itemRecebido != null)
-        yield return MostrarRecompensa($"Você recebeu 1x {itemRecebido.nome}!");
+        yield return MostrarRecompensa($"Você recebeu 1x {Destacar(itemRecebido.nome)}!");
 
     // Cobre a tela
     yield return StartCoroutine(
@@ -1211,7 +1261,14 @@ private IEnumerator FinalizarVitoria()
 
     // Avisa que o Bilixin foi derrotado
     if (gatilhoEncontro != null)
+    {
         gatilhoEncontro.Vencer();
+        if (gatilhoEncontro.EncerraHistoria)
+        {
+            MainMenu.Carregar(vitoriaHistoria: true);
+            yield break;
+        }
+    }
 
     // Destrói a tela de batalha
     Destroy(gameObject);

@@ -52,7 +52,7 @@ public class MarcadoresRegiao : MonoBehaviour
         go.transform.SetParent(transform, false);
         canvas = go.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 80;
+        canvas.sortingOrder = -1; // Atrás do Canvas do minimapa e das missões (ordem 0).
         area = go.GetComponent<RectTransform>();
         CanvasScaler scaler = go.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;

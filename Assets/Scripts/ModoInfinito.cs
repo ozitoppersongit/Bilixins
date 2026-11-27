@@ -228,7 +228,7 @@ public class ModoInfinito : MonoBehaviour
         score += pontosBase + bonus;
         concluidas++;
         AtualizarHud();
-        textoAviso.text = $"Missão concluída! +{pontosBase + bonus} pontos\n{pontosBase} da missão + {bonus} de bônus de tempo";
+        textoAviso.text = $"Missão concluída! +{pontosBase + bonus} pontos";
         yield return new WaitForSecondsRealtime(2f);
         yield return PrepararRodada();
     }

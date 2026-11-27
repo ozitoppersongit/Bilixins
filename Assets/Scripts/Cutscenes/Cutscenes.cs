@@ -116,6 +116,8 @@ public class Cutscenes : MonoBehaviour
 
     [Header("Inimigo solto pelo vilão")]
     [Tooltip("Prefab do inimigo (o mesmo do tile no MapaGerador). A cutscene cria ele, em vez de ele nascer de um pixel do mapa.")] [SerializeField] GameObject inimigoPrefab;
+    [SerializeField] VisualBilixinMapa.Configuracao visualInimigoSolto;
+    [SerializeField] Transform boladroReferencia;
     [SerializeField] BilixinsData bilixinDoInimigo;
     [SerializeField] GameObject telaDeBatalha;
 
@@ -587,9 +589,17 @@ public class Cutscenes : MonoBehaviour
     void MostrarInimigo(GatilhoDeEncontro g, bool mostrar)
     {
         if (g == null) return;
-        foreach (Renderer r in g.GetComponentsInChildren<Renderer>()) r.enabled = mostrar;
+        MostrarVisualInimigo(g, mostrar);
         // o inimigo tem uma cápsula sólida e uma caixa de gatilho (6 m): todos precisam ligar e desligar juntos
         foreach (Collider c in g.GetComponents<Collider>()) c.enabled = mostrar;
+    }
+
+    void MostrarVisualInimigo(GatilhoDeEncontro encontro, bool mostrar)
+    {
+        var visual = encontro.GetComponent<VisualBilixinMapa>();
+        if (visual != null && visual.Mostrar(mostrar)) return;
+        foreach (Renderer renderer in encontro.GetComponentsInChildren<Renderer>())
+            renderer.enabled = mostrar;
     }
 
     // O inimigo aparece em "de". Se "para" for outro ponto ele cai num arco até lá; se for o mesmo, só surge ali (pop).
@@ -597,11 +607,13 @@ public class Cutscenes : MonoBehaviour
     IEnumerator Soltar(GatilhoDeEncontro g, Vector3 de, Vector3 para, Collider player, float espera)
     {
         MostrarInimigo(g, false);
+        var visual = g.GetComponent<VisualBilixinMapa>();
+        if (visual != null) visual.PrepararLancamento();
         g.transform.position = de;
         Vector3 escala = g.transform.localScale;
         bool surgir = (de - para).sqrMagnitude < 0.01f;
         if (surgir) g.transform.localScale = Vector3.zero;
-        foreach (Renderer r in g.GetComponentsInChildren<Renderer>()) r.enabled = true;
+        MostrarVisualInimigo(g, true);
 
         float duracao = surgir ? 0.3f : 0.9f;
         const float altura = 1.6f;
@@ -620,6 +632,7 @@ public class Cutscenes : MonoBehaviour
         if (g == null) yield break;
         g.transform.position = para;
         g.transform.localScale = escala;
+        if (visual != null) visual.AssentarAposLancamento();
         yield return new WaitForSeconds(espera);
         if (g == null) yield break;
         // O player tem dois colliders (cápsula e CharacterController), então ligar o collider encostado dispararia o encontro duas vezes.
@@ -662,6 +675,7 @@ public class Cutscenes : MonoBehaviour
     {
         GameObject go = Instantiate(inimigoPrefab, pos, Quaternion.identity);
         go.name = "Inimigo_" + inimigoPrefab.name;
+        VisualBilixinMapa.InstalarNoSpawn(go, visualInimigoSolto, boladroReferencia, pos.y);
         GatilhoDeEncontro g = go.AddComponent<GatilhoDeEncontro>();
         g.bilixinInimigo = bilixinDoInimigo;
         g.battlePrefab = telaDeBatalha;

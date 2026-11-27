@@ -23,13 +23,17 @@ public class Typewriter : MonoBehaviour
     IEnumerator Digitar(string mensagem)
     {
         EstaEscrevendo = true;
-        texto.text = "";
+        texto.maxVisibleCharacters = 0;
+        texto.text = mensagem;
+        texto.ForceMeshUpdate();
+        int total = texto.textInfo.characterCount;
 
-        foreach (char letra in mensagem)
+        for (int visiveis = 1; visiveis <= total; visiveis++)
         {
-            texto.text += letra;
+            texto.maxVisibleCharacters = visiveis;
             yield return new WaitForSecondsRealtime(velocidade);
         }
+        texto.maxVisibleCharacters = int.MaxValue;
         EstaEscrevendo = false;
     }
 

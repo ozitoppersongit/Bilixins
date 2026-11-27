@@ -14,6 +14,8 @@ public class GatilhoDeEncontro : MonoBehaviour
     [Header("Batalha")]
     public GameObject battlePrefab;
     [SerializeField] Transform pontoDeRetorno;
+    [SerializeField] bool encerraHistoria;
+    public bool EncerraHistoria => encerraHistoria && !ModoDeJogo.Infinito;
     private GerenciadorBatalha gB;
     private Collider gatilho;
     private bool batalhaIniciada = false;
