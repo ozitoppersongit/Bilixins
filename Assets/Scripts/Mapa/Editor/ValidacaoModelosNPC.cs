@@ -18,7 +18,7 @@ public static class ValidacaoModelosNPC
     public static void Executar()
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        var cena = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Game_Mesclado.unity");
+        var cena = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Game.unity");
         try
         {
             Transform[] objetos = cena.GetRootGameObjects().SelectMany(o => o.GetComponentsInChildren<Transform>(true)).ToArray();
@@ -198,7 +198,7 @@ public static class ValidacaoModelosNPC
     [MenuItem("Tools/Bilixins/Validar retorno dos encontros")]
     public static void ValidarRetornoEncontros()
     {
-        var cena = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Game_Mesclado.unity");
+        var cena = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Game.unity");
         try
         {
             var jogador = new GameObject("Jogador de teste de retorno");

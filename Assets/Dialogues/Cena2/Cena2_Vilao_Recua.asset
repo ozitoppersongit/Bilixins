@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogoData
   id: Cena2_Vilao_Recua
   falas:
-  - nomePersonagem: "??? (Vil\xE3o)"
+  - nomePersonagem: Dr. Manuel
     texto: "Droga! Voc\xEA vai se arrepender de ter entrado no meu caminho, catador! Eu prometo que voc\xEA vai pagar por isso."
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}

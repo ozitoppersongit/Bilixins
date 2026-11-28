@@ -18,7 +18,7 @@ MonoBehaviour:
   ataque: 25
   defesa: 25
   tipo: 3
-  spr: {fileID: -4788706270349717968, guid: 21d516cb7e7d97f4687719a144233832, type: 3}
+  spr: {fileID: 21300000, guid: 50274428da7143d43891138a6784af72, type: 3}
   ataque1:
     nome: Investida
     poder: 40

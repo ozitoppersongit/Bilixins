@@ -24,7 +24,7 @@ MonoBehaviour:
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
-  - nomePersonagem: ???
+  - nomePersonagem: Evandro
     texto: Galego!
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}

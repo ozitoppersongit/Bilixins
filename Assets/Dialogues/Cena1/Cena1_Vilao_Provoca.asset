@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogoData
   id: Cena1_Vilao_Provoca
   falas:
-  - nomePersonagem: ??? (Pipagaio)
+  - nomePersonagem: Pipagaio
     texto: Me deixa, seu maluco! Socorro!
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
-  - nomePersonagem: "??? (Vil\xE3o)"
+  - nomePersonagem: Dr. Manuel
     texto: Volta aqui, sua pipa louca!
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}

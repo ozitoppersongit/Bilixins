@@ -307,7 +307,8 @@ public class ModoInfinito : MonoBehaviour
         var objeto = new GameObject("HUD Infinito", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
         hud = objeto.GetComponent<Canvas>();
         hud.renderMode = RenderMode.ScreenSpaceOverlay;
-        hud.sortingOrder = 110;
+        Canvas canvasPausa = pausa != null ? pausa.GetComponentInParent<Canvas>() : null;
+        hud.sortingOrder = canvasPausa != null ? canvasPausa.rootCanvas.sortingOrder - 1 : 110;
         var scaler = objeto.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(800, 450);

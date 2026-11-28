@@ -17,7 +17,7 @@ public static class ValidacaoMissoesFinais
     public static void Executar()
     {
         Exigir(!Application.isPlaying && !ModoDeJogo.Infinito, "Execute fora de Play Mode, com modo história selecionado");
-        var cena = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Game_Mesclado.unity");
+        var cena = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Game.unity");
         Missoes missoes = null;
         try
         {

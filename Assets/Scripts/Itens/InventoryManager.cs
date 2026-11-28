@@ -35,7 +35,7 @@ public class InventoryManager : MonoBehaviour
     void AoCarregarCena(Scene cena, LoadSceneMode modo)
     {
         if (modo == LoadSceneMode.Single &&
-            (cena.name == "Game_Mesclado" || cena.name == "Game_Tutorial" || cena.name == "Game"))
+            (cena.name == "Game_Tutorial" || cena.name == "Game"))
             RestaurarConfiguracaoInicial();
     }
 

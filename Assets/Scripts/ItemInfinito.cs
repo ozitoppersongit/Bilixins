@@ -15,8 +15,15 @@ public class ItemInfinito : MonoBehaviour
         animador = animacao;
         posicaoInicial = visual.localPosition;
 
+        var efeito = CriarBrilho(transform, brilho, new Color(1f, 0.92f, 0.5f, 0.8f));
+        efeito.Pause();
+        particulas = new[] { efeito };
+    }
+
+    internal static ParticleSystem CriarBrilho(Transform pai, Material material, Color corInicial)
+    {
         var objeto = new GameObject("Brilho do coletável");
-        objeto.transform.SetParent(transform, false);
+        objeto.transform.SetParent(pai, false);
         objeto.transform.localPosition = Vector3.up * 0.9f;
         objeto.SetActive(false);
         var efeito = objeto.AddComponent<ParticleSystem>();
@@ -27,7 +34,7 @@ public class ItemInfinito : MonoBehaviour
         main.startLifetime = 1.2f;
         main.startSpeed = 0.18f;
         main.startSize = 0.09f;
-        main.startColor = new Color(1f, 0.92f, 0.5f, 0.8f);
+        main.startColor = corInicial;
         main.simulationSpace = ParticleSystemSimulationSpace.Local;
         main.useUnscaledTime = true;
         var emission = efeito.emission;
@@ -41,11 +48,10 @@ public class ItemInfinito : MonoBehaviour
         gradiente.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
             new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.2f), new GradientAlphaKey(0f, 1f) });
         cor.color = gradiente;
-        efeito.GetComponent<ParticleSystemRenderer>().sharedMaterial = brilho;
+        efeito.GetComponent<ParticleSystemRenderer>().sharedMaterial = material;
         objeto.SetActive(true);
         efeito.Play();
-        efeito.Pause();
-        particulas = new[] { efeito };
+        return efeito;
     }
 
     public void ConfigurarRajada()

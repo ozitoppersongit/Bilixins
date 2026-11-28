@@ -59,10 +59,10 @@ public class CarregamentoPartida : MonoBehaviour
         // Deixa a tela chegar à renderização antes de iniciar a operação pesada.
         yield return null;
         AsyncOperation operacao;
-        try { operacao = SceneManager.LoadSceneAsync("Game_Mesclado", LoadSceneMode.Single); }
+        try { operacao = SceneManager.LoadSceneAsync("Game", LoadSceneMode.Single); }
         catch (Exception erro)
         {
-            Debug.LogError("Carregamento: não foi possível abrir Game_Mesclado. " + erro.Message);
+            Debug.LogError("Carregamento: não foi possível abrir Game. " + erro.Message);
             Cancelar();
             yield break;
         }

@@ -75,6 +75,7 @@ public class Missoes : MonoBehaviour
     }
     RectTransform lista;
     GameObject avisoRecompensa;
+    readonly Queue<(string mensagem, float largura)> avisosRecompensa = new();
 
     void Awake()
     {
@@ -86,11 +87,13 @@ public class Missoes : MonoBehaviour
     {
         if (Instance == this) Instance = null;
         if (lista != null) Destroy(lista.gameObject);
+        if (avisoRecompensa != null) Destroy(avisoRecompensa);
     }
 
     public void EncerrarPartida()
     {
         StopAllCoroutines();
+        avisosRecompensa.Clear();
         if (avisoRecompensa != null)
         {
             avisoRecompensa.SetActive(false);
@@ -241,34 +244,63 @@ public class Missoes : MonoBehaviour
         InventoryManager inventario = InventoryManager.instancia;
         if (m.itemRecompensa != null && inventario != null &&
             inventario.TentarAdicionarItem(m.itemRecompensa, m.quantidadeRecompensa))
-            StartCoroutine(MostrarRecompensa());
+            EnfileirarAviso("Missão concluída!\n+2 Poções de Cura!", this);
 
         aoMissaoConcluida?.Invoke(m.nome);
         m.aoConcluir?.Invoke();
     }
 
-    IEnumerator MostrarRecompensa()
+    public static void MostrarAvisoColeta(string mensagem)
+    {
+        if (Instance != null && Instance.isActiveAndEnabled)
+        {
+            Instance.EnfileirarAviso(mensagem, Instance, largura: 460f);
+            return;
+        }
+
+        // No Infinito, as missões ficam inativas, mas seus modelos de UI continuam disponíveis.
+        var infinito = ModoInfinito.Instance;
+        if (infinito == null || !infinito.isActiveAndEnabled) return;
+
+        var modelo = FindAnyObjectByType<Missoes>(FindObjectsInactive.Include);
+        if (modelo != null) modelo.EnfileirarAviso(mensagem, infinito, largura: 460f);
+    }
+
+    void EnfileirarAviso(string mensagem, MonoBehaviour executor, float largura = 360f)
+    {
+        avisosRecompensa.Enqueue((mensagem, largura));
+        if (avisoRecompensa == null)
+            executor.StartCoroutine(MostrarAvisosRecompensa());
+    }
+
+    IEnumerator MostrarAvisosRecompensa()
     {
         Canvas canvas = missionPanel.GetComponentInParent<Canvas>(true).rootCanvas;
         var painel = new GameObject("Recompensa da missão", typeof(RectTransform), typeof(Image));
         avisoRecompensa = painel;
         var fundo = painel.GetComponent<Image>();
         fundo.rectTransform.SetParent(canvas.transform, false);
-        fundo.rectTransform.sizeDelta = new Vector2(360f, 90f);
         fundo.sprite = missionPanel.GetComponent<Image>()?.sprite;
         fundo.type = Image.Type.Sliced;
         fundo.color = fundo.sprite != null ? Color.white : Color.black;
         fundo.raycastTarget = false;
 
         TMP_Text texto = CriarTexto(objetivoModelo, painel.transform,
-            "Missão concluída!\n+2 Poções de Cura!", 22f, TextAlignmentOptions.Center);
+            string.Empty, 22f, TextAlignmentOptions.Center);
         texto.rectTransform.anchorMin = Vector2.zero;
         texto.rectTransform.anchorMax = Vector2.one;
         texto.rectTransform.offsetMin = new Vector2(12f, 8f);
         texto.rectTransform.offsetMax = new Vector2(-12f, -8f);
         texto.textWrappingMode = TextWrappingModes.Normal;
 
-        yield return new WaitForSecondsRealtime(3f);
+        while (avisosRecompensa.Count > 0)
+        {
+            var aviso = avisosRecompensa.Dequeue();
+            fundo.rectTransform.sizeDelta = new Vector2(aviso.largura, 90f);
+            texto.text = aviso.mensagem;
+            yield return new WaitForSecondsRealtime(3f);
+        }
+        painel.SetActive(false);
         Destroy(painel);
         avisoRecompensa = null;
     }

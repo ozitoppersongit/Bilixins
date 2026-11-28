@@ -19,7 +19,7 @@ MonoBehaviour:
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
-  - nomePersonagem: "??? (Vil\xE3o)"
+  - nomePersonagem: Dr. Manuel
     texto: "Qu\xEA? Vai cuidar da tua vida, catador de lixo! N\xE3o t\xE1 vendo que eu t\xF4 ocupado?"
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
@@ -29,12 +29,12 @@ MonoBehaviour:
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
-  - nomePersonagem: ??? (Pipagaio)
+  - nomePersonagem: Pipagaio
     texto: "\xC9 Pipagaio pra voc\xEA, t\xE1?"
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 0
-  - nomePersonagem: "??? (Vil\xE3o)"
+  - nomePersonagem: Dr. Manuel
     texto: "Voc\xEA fica fora disso, catador! N\xE3o t\xE1 vendo que eu t\xF4 tentando livrar a Comunidade desse Bilixin?"
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
@@ -54,7 +54,7 @@ MonoBehaviour:
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
-  - nomePersonagem: "??? (Vil\xE3o)"
+  - nomePersonagem: Dr. Manuel
     texto: "T\xE1 querendo ficar no meu caminho? Beleza, ent\xE3o \xE9 melhor se preparar!"
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogoData
   id: Cena3_Criancas_Medo
   falas:
-  - nomePersonagem: ???
+  - nomePersonagem: Caio
     texto: "Marcelo, eu n\xE3o acho que a gente devia ir muito pra perto do lixo. E se o monstro pular na gente?"
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
@@ -24,7 +24,7 @@ MonoBehaviour:
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
     personagemFalando: 1
-  - nomePersonagem: ???
+  - nomePersonagem: Michele
     texto: "S\xF3 da mam\xE3e, morcegos e aranhas."
     portraitEsquerdo: {fileID: 0}
     portraitDireito: {fileID: 0}
